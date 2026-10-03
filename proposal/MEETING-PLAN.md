@@ -18,7 +18,8 @@
 - [ ] Record a 60-second screen capture of each demo as a backup (mall Wi-Fi may be poor). Bring a phone hotspot.
 - [ ] If a live phone number is configured for `npm run demo`, test calling it from a mobile in English, Mandarin, Cantonese and Korean. If Cantonese or Korean quality is shaky, demo the strongest languages live and say the others will be tuned with them.
 - [ ] Prepare the returning-caller demo (section 2.3, step 7): make sure your demo phone number is already saved with language = Cantonese in the demo database (call once in Cantonese beforehand, or set it in the dashboard). Check `voice-agent/README.md` for how `npm run simulate` sets the caller's number.
-- [ ] Print: 2 x PROPOSAL.md, 1 x notes proof sheet (colour), 1-page agreement (scope, fees, payment terms, 30-day pilot, data ownership, card price change clause on 30 days' notice).
+- [ ] Prepare the promotions demo (section 2.4): seed the demo database with about 20 clients across English, Simplified Chinese, Traditional Chinese (Cantonese) and Korean, a mix of opted-in, not opted-in and one already opted out, a few with last visit 4+ months ago, and one with a birthday this month. Add your own mobile as an opted-in client so "send test to yourself" and the STOP reply work live. Check `website/README.md` for the Promotions route (expected under `/admin`) and whether texts actually send in the demo or are simulated. Have a Chinese or Korean speaker sanity-check the drafted translations once.
+- [ ] Print: 2 x PROPOSAL.md, 1 x notes proof sheet (colour), 1-page agreement (scope, fees, payment terms, 30-day pilot, data ownership, card price change clause on 30 days' notice, and the texting responsibilities line from `COSTS.md` section 9, item 10).
 - [ ] If possible, order one physical sample card from the handwriting provider now (Oct 3) addressed to yourself. It may not arrive by Friday (mailed from the US), but if it does, it is the single best prop.
 - [ ] Language: the owner may be more comfortable in Cantonese, Mandarin or Korean. If you do not speak the owner's language, consider bringing a bilingual friend, or at least have the website's Chinese and Korean versions and the Chinese card samples ready to show.
 
@@ -31,8 +32,8 @@
 | Time | Block | What to do |
 |---|---|---|
 | 0:00 to 0:04 | Hello and purpose | Thank them for the time. "I build websites and booking tools for local businesses. I looked CF Hair up online and saw some easy wins, and I built a working demo with your salon in mind. I'd love to ask a few questions first, then show you." |
-| 0:04 to 0:15 | Discovery | Ask the priority questions in section 3 (aim for the top 8). Listen more than talk. Write numbers down; you'll use them in the ROI. |
-| 0:15 to 0:31 | Live demo | Website and booking (5 min), dashboard (3 min), phone receptionist (6 min), handwritten cards (2 min). Script in section 2. Tie each demo back to something they said in discovery. |
+| 0:04 to 0:14 | Discovery | Ask the priority questions in section 3 (aim for the top 8, including the texting question). Listen more than talk. Write numbers down; you'll use them in the ROI. |
+| 0:14 to 0:31 | Live demo | Website and booking (4 min), dashboard (2 min), phone receptionist (6 min), text promotions (3 min), handwritten cards (2 min). Script in section 2. Tie each demo back to something they said in discovery. |
 | 0:31 to 0:38 | Proposal and pricing | Walk through section 6 of the proposal. Rebuild the ROI table with THEIR numbers (calls per day, miss rate, average ticket). Recommend Growth. |
 | 0:38 to 0:43 | Questions and concerns | Handle objections (section 4). |
 | 0:43 to 0:45 | Close | Ask for the decision. Book the onboarding slot. If not ready, book a follow-up date and leave the printed proposal. |
@@ -87,7 +88,26 @@ Talking points while it runs:
 - "It only says what you've approved. If it doesn't know, it takes a message."
 - "It tells callers it's the salon's virtual assistant. No pretending."
 
-### 2.4 Handwritten cards (about 2 minutes)
+### 2.4 Text promotions (about 3 minutes)
+
+Setup: same dashboard (`/admin`), Promotions screen (confirm the route in `website/README.md`). Your phone on the table, face up, sound on.
+
+1. **Open Promotions and pick an audience.** Choose "Clients not seen in 4+ months". Point at the count and the split: "23 clients match. 15 said yes to texts; the other 8 haven't, so they're left out." Show the other audiences briefly: all opted-in clients, one stylist's clients, birthdays this month.
+2. **Draft the message.** Type the idea in plain words, for example "15% off any cut Monday to Thursday until November 20, we miss you". Let it draft. Say: "You can rewrite any word. Every promotion always includes the salon name and 'Reply STOP to opt out'."
+3. **Language preview.** Flip through English, 简体中文, 繁體中文 (for Cantonese clients) and 한국어. Say: "Each client gets it in their own language: the same language the phone line remembers for them." Point at the segment counter: "Chinese and Korean texts take more space, so the counter helps keep them short. That's what keeps your cost down."
+4. **Send a test to yourself.** Send to your own phone; show it arriving. If the owner is willing, send it to their phone instead.
+5. **STOP handling.** Reply "STOP" from your phone. Back in the dashboard, open your own client record: show it is now marked opted out, with the date and time, and that the next campaign's count drops by one. Say: "That's instant. The law gives you 10 business days; we do it in a second, and we keep a record in case anyone ever asks."
+6. **Schedule.** Pick tomorrow at 7 pm, then try 10 pm: show it won't send after 8 pm (rehearse this; check whether the build blocks the time or moves it to 9 am next day). Mention the 4-a-month cap per client.
+7. **Results.** Show the results view on a seeded past campaign: delivered, opt-outs, and "booked within 14 days". Say: "This is how you'll know if an offer works, in real bookings, not guesses."
+
+Talking points:
+- "Only people who said yes get these. The website box is unticked; they have to choose."
+- "Booking confirmations and reminders are separate. They're not promotions."
+- "Included in Growth: 500 segments a month, roughly 250 to 300 texts."
+
+If live sending is not wired up in the demo, show the preview and results screens, and use a screenshot of a received text from your rehearsal.
+
+### 2.5 Handwritten cards (about 2 minutes)
 
 1. Open the notes proof sheet (generated by `notes/`; see `notes/README.md` for the command and output path; print it in colour as backup).
 2. Show 4 cards: a first-visit thank-you, a birthday card, a "we miss you" card, and a Lunar New Year card (in Chinese if available).
@@ -111,6 +131,7 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 3a. **Korean clients:** "Do you get Korean-speaking clients, for example from the North Road and Lougheed area? Roughly what share? Does anyone on your team speak Korean, and are there Korean styles (perms, down perms) clients ask for?"
 4. **Current booking and client records:** "How do you book now: paper book, phone, WeChat? Do you keep any client list with names, phone numbers, birthdays or addresses?"
 5. **Budget and success:** "What would a good result look like in 30 days? And what monthly amount would feel comfortable for something that brings in more bookings?"
+5a. **Texting:** "Do you text clients today? From which phone: the salon line, your own mobile, WeChat or KakaoTalk? Do you have a list of clients who've agreed to get offers from you?" (Details in "Text promotions" below.)
 
 ### Business basics (confirm the placeholders)
 
@@ -138,6 +159,16 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 21. Have you ever sent cards or gifts to clients? How did it go?
 22. Is Lunar New Year a busy period? Any other peaks (graduation, weddings, back-to-school)?
 
+### Text promotions
+
+22a. **Current texting:** Do you already text clients (reminders, offers, "your stylist is running late")? From which phone or app? Roughly how many clients? Any complaints or replies like "stop texting me"? (Our texts come from a dedicated, carrier-verified texting number, not the salon landline, because Canadian carriers filter business texts from ordinary numbers. If they insist on texting from (604) 475-7705, note it and check whether the landline can be text-enabled later; do not promise it.)
+22b. **Existing opt-in list:** Do you have any list of clients who agreed to receive offers (a sign-up sheet, a WeChat group, a loyalty card form)? How did they agree, and is it written down anywhere? (Only clients with recorded consent, or with a paid visit in the last 2 years if they choose implied consent, can be included. We can't mass-text the others to ask.)
+22c. **Frequency:** How often would you want to send a promotion: once a month, twice, only around holidays? (Default cap is 4 a month per client; most salons will want 1 or 2.)
+22d. **Typical promotions:** Which offers would you run? Prompt with: weekday or quiet-hour specials (Mon to Thu), Lunar New Year (Feb 6, 2027, also Seollal), back-to-school kids' cuts (late August), Mother's Day, graduation and wedding season, a new stylist's introductory price, colour or perm specials, "we miss you" for lapsed clients, birthday month treats.
+22e. **Discounts:** Are you comfortable offering discounts, or would you rather offer an add-on (free treatment, free blow-dry)?
+22f. **Languages:** For Chinese-speaking clients, which script do they read: simplified or traditional? Do Cantonese clients expect traditional characters? Who on the team can check a Korean or Chinese message before it goes out?
+22g. **Who writes and approves:** Will you write the offers yourself, or should a manager do it?
+
 ### Decision
 
 23. "Is there anyone else who'd be part of this decision?" (partner, family, landlord rules about signage)
@@ -157,6 +188,8 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 | **"Handwritten cards sound like a gimmick" / "too expensive per card."** | "It's optional, and you set the monthly cap. Start with 20 'we miss you' cards: $170. If three people come back, it's paid for. We track exactly who returns after a card, so you'll know." |
 | **"I don't have time to set this up."** | "You need about two hours total: one onboarding session and a quick review. I do everything else, including call forwarding with your phone company." |
 | **"What about privacy?"** | "We follow BC's privacy law (PIPA): we only collect what's needed, birthdays and addresses are optional and with permission, there's a privacy policy on the site, and clients can ask to see or delete their info. You own all the data." |
+| **"Will clients find texts annoying?" / "I don't want to spam my clients."** | "Good instinct, and the system is built around it. Only clients who said yes get promotions; the website box starts unticked. Nobody gets more than 4 a month (most salons send 1 or 2), nothing goes out before 9 am or after 8 pm, every text has the salon name and 'Reply STOP', and STOP works instantly. After every campaign you see how many people opted out, so if an offer annoys people, you'll know the same day. The trick is to send fewer, better texts: a real offer, in their language, for a quiet weekday. Industry figures put opt-outs around 1 to 2% per send; if yours run higher, we send less." |
+| **"Is texting even legal? I heard about anti-spam fines."** | "Yes, with consent, and that's why consent is built in. Canada's anti-spam law (CASL) needs three things: permission, the salon's name and contact details, and an easy opt-out. The system records every 'yes' with the date and how it was given, and every STOP. The big fines go to people texting strangers without permission; we only text people who said yes, or, if you choose, recent paying clients, which the law allows for two years." (Do not give legal advice; if they want implied-consent mode or have an old list, suggest a quick check with a lawyer.) |
 | **"Isn't it creepy that it remembers people?"** | "It only remembers one thing: which language they used last time, so it can say hello in that language. It still opens in English every time, callers can switch back with one sentence, you can edit it in the dashboard, and private numbers are never remembered. It's what a good receptionist does anyway." |
 | **"You're one person. What if you disappear?"** | "Fair question. The domain is registered in your name, your data can be exported any time, and everything is built on standard, widely used tools any developer can maintain. It's month to month, so you're never locked in." |
 | **"Let me think about it."** | "Of course. What's the main thing you'd want to think through?" Address it. Then: "The founding-client offer runs until October 23. Can we pencil in the onboarding for next week and you can cancel it by Monday if you decide not to?" |
@@ -170,17 +203,21 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 
 | Package | Setup | Monthly | Included |
 |---|---|---|---|
-| Starter | $1,200 | $99 | Website, booking, dashboard, SMS, Google/Yelp setup |
-| Growth | $2,200 | $279 | + AI phone, 400 min; $0.25/min after |
+| Starter | $1,200 | $99 | Website, booking, dashboard, booking SMS, Google/Yelp setup. Promotions add-on: $49/month incl. 500 segments, $150 setup |
+| Growth | $2,200 | $279 | + AI phone, 400 min ($0.25/min after) + promotions, 500 segments ($0.05/segment after) |
 | Complete | $2,700 | $349 | + cards at $8.50 each |
 
-**Recommend Growth.** It is the best value for them and the best margin for you (about $90 to $145/month after time, see `COSTS.md` section 4).
+**Recommend Growth.** It is the best value for them and the best margin for you (about $56 to $176/month after time, see `COSTS.md` section 4). Promotions make the jump from Starter easier to justify: Starter + promotions is $148, Growth is $279 and adds the phone receptionist.
+
+**Explaining segments simply:** "Phone companies charge per 'segment': about 160 letters in English, or 70 characters in Chinese or Korean. Most English offers are 1 or 2 segments, Chinese and Korean 2 or 3. 500 segments is roughly 250 to 300 texts a month at your language mix." Our cost is about 2.3 cents a segment, so 5 cents is honest and still leaves margin.
 
 **Floor (do not go below):**
 
 | Package | Setup floor | Monthly floor | Notes |
 |---|---|---|---|
-| Starter | $800 | $95 | Starter is near break-even after time on the first client, worse with multilingual texts (see COSTS.md 1.8). |
+| Starter | $800 | $99 (no monthly discount at all) | Starter is now loss-making after time on the first client once the corrected SMS cost is counted (see COSTS.md 1.9 and 4). Push the promotions add-on or Growth instead of discounting. |
+| Starter promotions add-on | $100 | $39 | Below $39 the add-on barely covers support time. |
+| Promo segment overage | | $0.04 | Our cost is $0.0231 ($0.024 at FX 1.45). Never below $0.04. |
 | Growth | $1,500 | $229 (with 300 included minutes) | Never below $199/month. Below that, offer Starter only. |
 | Complete | $1,900 | $299 | |
 | Overage minutes | $0.20 | | Our cost is about $0.17 at FX 1.45. Never below $0.20. |
@@ -189,12 +226,12 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 **Concessions to trade, in this order (before cutting price):**
 1. Split setup into 3 payments (signing, website live, phone live).
 2. Free first month of overage minutes, or 20 free cards (already in the founding offer; use it as the closer).
-3. Extra included minutes (for example 500 instead of 400; costs you about $17 more at full use).
+3. Extra included minutes (for example 500 instead of 400; costs you about $17 more at full use), or extra included promo segments (for example 1,000 instead of 500; costs you about $12 more at full use, and is a cheap, visible concession).
 4. Waive $300 to $500 of setup in exchange for: a written testimonial, permission to use CF Hair as a case study, and two referrals to other salons or shops in Henderson Place.
 5. Prepay 6 months: one month free.
 6. Only then, move toward the floor.
 
-**What not to concede:** owner approval on cards (protects both of you), call disclosure, the right to adjust card price on 30 days' notice if the provider or exchange rate changes.
+**What not to concede:** owner approval on cards (protects both of you), call disclosure, the texting safeguards (unticked opt-in box, STOP, 9 am to 8 pm window, salon name in every promo; express consent by default), the right to adjust card and segment prices on 30 days' notice if the provider, carrier fees or exchange rate change.
 
 **Payment terms:** 50% setup at signing, 50% at website go-live. Monthly fees start per product at go-live. Month to month after the 30-day pilot, 30 days' notice.
 
@@ -205,5 +242,7 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 - Same day: send a thank-you message (text or WeChat if they use it) with the proposal PDF and the onboarding time.
 - Update `shared/salon.json` with confirmed facts (and set `verified.*.status` to "owner-confirmed" with the date).
 - Rebuild the ROI section of the proposal with their real numbers before the onboarding session.
-- If signed: register the domain in the owner's name, start Google Business Profile verification (it can take days), and ask their phone provider about conditional call forwarding.
+- If signed: register the domain in the owner's name, start Google Business Profile verification (it can take days), and ask their phone provider about conditional call forwarding. Buy the two toll-free texting numbers (booking texts, promotions) and submit Twilio toll-free verification the same week (free, about 3 to 5 business days), so the opt-in box can go live with the website in Week 2.
+- If they have an existing opt-in list, get a copy with how and when each person agreed; import only those with a record, and mark the consent source as "imported, [date], [method]".
+- Draft their first two campaigns from the discovery answers (for example a weekday special and a Lunar New Year offer) for the Week 3 session.
 - Order a few sample cards (English, Chinese and Korean) to show at onboarding, and confirm the provider's Chinese and Korean handwriting support.

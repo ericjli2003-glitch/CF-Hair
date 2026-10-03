@@ -1,6 +1,6 @@
 # CF Hair Salon: Never Miss a Client Again
 
-**A proposal for a multilingual website with online booking, a 24/7 phone receptionist, and personal handwritten cards**
+**A proposal for a multilingual website with online booking, a 24/7 phone receptionist, text message promotions, and personal handwritten cards**
 
 | | |
 |---|---|
@@ -39,13 +39,13 @@ A caller who doesn't get through rarely leaves a message. They call the next sal
 
 ### Keeping clients matters even more than finding them
 
-Salons with the best retention bring back about **70% of first-time clients for a second visit**, compared with about 45% for the average salon [7]. A regular client visits around 5 times a year [8], so a single loyal client is worth hundreds of dollars a year to you, and much more over several years. A small, personal gesture, like a real thank-you card, is one of the oldest ways to earn that loyalty, and research on handwritten personal touches backs it up [9][10].
+Salons with the best retention bring back about **70% of first-time clients for a second visit**, compared with about 45% for the average salon [7]. A regular client visits around 5 times a year [8], so a single loyal client is worth hundreds of dollars a year to you, and much more over several years. A small, personal gesture, like a real thank-you card, is one of the oldest ways to earn that loyalty, and research on handwritten personal touches backs it up [9][10]. A friendly, well-timed text ("we haven't seen you in a while, here's 15% off a weekday cut") is one of the cheapest ways to invite a client back, as long as it goes only to people who want it.
 
 ---
 
 ## 2. What we will build
 
-Three pieces that work together. You can start with one and add the others later.
+Four pieces that work together. You can start with one and add the others later.
 
 ### A. A beautiful multilingual website with online booking
 
@@ -60,7 +60,8 @@ Three pieces that work together. You can start with one and add the others later
   - a calendar showing every stylist's day,
   - a one-tap way to add **walk-ins** so the calendar always matches reality,
   - your **customer list** (who came, when, how often, with which stylist),
-  - **callback messages** left by phone callers, in one place.
+  - **callback messages** left by phone callers, in one place,
+  - a **Promotions** screen for sending text offers to clients who want them (see D below).
 - We also claim and tidy up your **Google Business Profile and Yelp listing**, so your real hours, photos and booking link show up in search and on Google Maps.
 
 ### B. A 24/7 AI phone receptionist that speaks English, Mandarin, Cantonese and Korean
@@ -94,17 +95,42 @@ Three pieces that work together. You can start with one and add the others later
 
 **How it works for you:** our system drafts each card based on the client's history, in English or, where our handwriting partner supports Chinese or Korean characters, in the client's own language (we will confirm this and show you samples during setup). **Nothing is mailed until you approve it.** You see every card in your dashboard, edit any word you like, and approve the batch with one tap. You also set a monthly limit, so the cost never surprises you.
 
+### D. Text message promotions
+
+**What your clients receive:** a short, friendly text from CF Hair Salon, in their own language, with a link to book. For example: *"CF Hair Salon: Hi Amy, we miss you! 15% off any cut Mon to Thu until Nov 20. Book: [link] Reply STOP to opt out."* Only clients who have agreed to hear from you get these texts.
+
+**What you do, from the Promotions screen in your dashboard:**
+1. **Choose who gets it.** For example: all clients who said yes to texts, clients you haven't seen in a while, one stylist's clients, or clients with a birthday this month.
+2. **Write the message, or have it drafted for you.** Describe the idea ("15% off weekday cuts for clients we haven't seen since summer") and we draft it. You can change any word.
+3. **Preview it in every language.** See exactly what each client will receive, in English, Simplified Chinese, Traditional Chinese (for Cantonese-speaking clients) or Korean, matched to each client's language.
+4. **Send a test to your own phone** first.
+5. **Send it now, or schedule it** for a better time.
+6. **See the results:** how many texts were delivered, how many people opted out, and how many people who got the text booked within 14 days.
+
+**Built to follow Canada's anti-spam law (CASL), so you don't have to think about it:**
+- **Clients choose to join, in three easy ways:** a checkbox when they book online (left unticked, so they decide), a note your front desk adds in the dashboard when a client says yes in person, and the phone receptionist, which politely offers texts once after a booking.
+- **Every promotion names the salon and says "Reply STOP to opt out".** A STOP reply takes effect straight away; that client gets no more promotions.
+- **Polite hours only:** no promotions before 9 am or after 8 pm.
+- **No overload:** each client gets at most 4 promotions a month (you can set a lower limit).
+- **Only people who said yes, by default.** If you choose, you can also include recent clients who have paid for a visit in the last two years, which the law allows. They can opt out at any time, like everyone else.
+- **Booking confirmations and reminders stay separate.** They are not promotions and are never counted as promotions.
+
+**Why texts?** Texts are hard to miss, and good independent research on appointment reminders shows texts get people through the door [18]. The big numbers you may hear about text marketing come mostly from companies that sell it [19], so we will not promise you those. Instead, the dashboard shows you, for every campaign, how many people who got the text booked within 14 days. You'll see what works for your clients.
+
 ---
 
 ## 3. How it all works together: one calendar, one client list
 
-The website, the phone receptionist and the cards all share **one booking system**. That means:
+The website, the phone receptionist, the text promotions and the cards all share **one booking system**. That means:
 
 - A booking made online, on the phone with the assistant, by a walk-in, or by you in the dashboard **all land in the same calendar**. No double bookings.
-- Every visit builds your **client list automatically**, which is what lets us send the right card to the right person at the right time.
-- You check **one place** for everything: today's appointments, phone messages, and cards waiting for approval.
+- Every visit builds your **client list automatically**, which is what lets us send the right card or text to the right person at the right time.
+- **Each client's language is remembered once and used everywhere**: the phone greeting, booking texts, promotions and cards.
+- **Permission to text is recorded wherever the client gives it**: the online booking checkbox, the front desk, or a phone booking. One list, always up to date, and a STOP reply removes a client from promotions everywhere at once.
+- **Results are real bookings, not guesses.** Because promotions and bookings share one calendar, the dashboard can show who booked after a text.
+- You check **one place** for everything: today's appointments, phone messages, promotions, and cards waiting for approval.
 
-A note on the client list: since bookings today happen by phone and in person, you may not have a list of client names, birthdays and addresses yet. That is fine. We will build it gradually from new bookings, with a simple, optional sign-up at the front desk (a small QR card) for clients who want birthday cards. If you keep a paper appointment book or client cards, we can help bring those in too.
+A note on the client list: since bookings today happen by phone and in person, you may not have a list of client names, birthdays and addresses yet. That is fine. We will build it gradually from new bookings, with a simple, optional sign-up at the front desk (a small QR card) for clients who want birthday cards or text offers. If you keep a paper appointment book or client cards, we can help bring those in too. (One rule to know: under Canada's anti-spam law, a text that *asks* someone whether they want texts counts as a promotion itself, so we can't mass-text people who haven't agreed just to ask. The list grows from bookings and in-person sign-ups.)
 
 ---
 
@@ -114,12 +140,12 @@ We can have you taking online bookings in about two weeks, and everything runnin
 
 | When | What happens |
 |---|---|
-| **Week 1** (Oct 13 to 16; Monday Oct 12 is Thanksgiving) | **Onboarding session** at the salon (about 60 to 90 minutes): we go through your menu, prices, stylists, hours, policies and photos together. We set up your domain and claim your Google and Yelp listings. |
-| **Week 2** (Oct 19 to 23) | You review the website on your phone and tell us what to change. **Website and online booking go live.** Short dashboard training for you and your staff (about 30 minutes). |
-| **Week 3** (Oct 26 to 30) | Phone receptionist built and tested on a private test line, in all four languages, using your real menu. You call it yourself and try to trip it up. Then we switch on **after-hours mode** first, and **backup mode** once you are comfortable. |
+| **Week 1** (Oct 13 to 16; Monday Oct 12 is Thanksgiving) | **Onboarding session** at the salon (about 60 to 90 minutes): we go through your menu, prices, stylists, hours, policies and photos together. We set up your domain and claim your Google and Yelp listings. We register the salon's texting number with the phone carriers (a free check that takes a few business days and helps your texts get delivered). |
+| **Week 2** (Oct 19 to 23) | You review the website on your phone and tell us what to change. **Website and online booking go live, with the "yes, text me offers" checkbox from day one**, so your opt-in list starts growing with the very first booking. Short dashboard training for you and your staff (about 30 minutes), including how to record a client's "yes" at the front desk. |
+| **Week 3** (Oct 26 to 30) | Phone receptionist built and tested on a private test line, in all four languages, using your real menu. You call it yourself and try to trip it up. Then we switch on **after-hours mode** first, and **backup mode** once you are comfortable. From then on, it offers texts once after each phone booking. **Promotions screen goes live**: we write your first campaign together, preview it in each language, and send a test to your phone. |
 | **Week 4** (Nov 2 to 6) | Handwritten cards set up. You approve the card designs and the first small batch (for example, thank-you cards to recent new clients). |
-| **Day 30 review** (end of November) | We sit down together with real numbers: calls answered, bookings made after hours, cards sent, and what you would like to change. |
-| **Mid-January** | Lunar New Year cards approved and mailed in time for February 6. |
+| **Day 30 review** (end of November) | We sit down together with real numbers: calls answered, bookings made after hours, texts sent and bookings that followed, cards sent, and what you would like to change. |
+| **Mid-January** | Lunar New Year cards approved and mailed in time for February 6. A Lunar New Year text offer scheduled for late January, in each client's language. |
 
 ---
 
@@ -133,7 +159,8 @@ To get started we need about two hours of your time in total, mostly in the onbo
 4. **Photos**: your logo (if you have one), the salon, and some of your best work. We can also take photos during onboarding.
 5. **Phone access**: who your phone provider is, so we can set up call forwarding together (about 10 minutes).
 6. **Your voice**: how you like to greet clients and how formal or casual you want the receptionist and the cards to sound. A few sample texts or messages you've sent clients are perfect.
-7. **A contact for approvals**: who approves card batches and gets callback messages (you, or a manager).
+7. **A contact for approvals**: who approves card batches and promotions, and gets callback messages (you, or a manager).
+8. **Your texting plans**: whether any clients have already agreed to get texts from you (and how they agreed, for example a sign-up sheet), and two or three offers you'd like to run, such as a weekday special or a back-to-school kids' cut.
 
 ---
 
@@ -149,13 +176,17 @@ All prices are in Canadian dollars, plus GST/PST where applicable. There are no 
 | Google Business Profile and Yelp listing set-up | Yes | Yes | Yes |
 | Hosting, domain, security updates, small changes | Yes | Yes | Yes |
 | AI phone receptionist (English, Mandarin, Cantonese, Korean) that remembers each caller's language | | Yes, 400 minutes a month included | Yes, 400 minutes a month included |
+| Text message promotions in English, Chinese and Korean, with anti-spam (CASL) safeguards built in | Add-on: $49 a month, 500 segments included ($150 one-time setup) | Yes, 500 segments a month included | Yes, 500 segments a month included |
 | Handwritten card program with your approval on every card | | | Yes |
 | **One-time setup** | **$1,200** | **$2,200** | **$2,700** |
 | **Monthly** | **$99** | **$279** | **$349** |
 
-**Usage costs, explained honestly.** Two things cost us real money every time they are used, so we pass them on simply and openly:
+Promotional texting is included in Growth and Complete at no extra monthly fee. On Starter, you can add it any time.
+
+**Usage costs, explained honestly.** Three things cost us real money every time they are used, so we pass them on simply and openly:
 
 - **Phone minutes (Growth and Complete).** 400 minutes a month are included, which is roughly 200 typical calls of about 2 minutes. Beyond that, extra minutes are **$0.25 per minute** (a typical call costs about 50 cents). Our own cost for phone service plus the AI is roughly 16 to 17 cents a minute; the difference covers monitoring and currency swings. In backup or after-hours mode, the assistant only handles the calls you would have missed, so we expect you to stay inside the included minutes (we will confirm this with your real numbers in the first month). You'll see minutes used in your monthly report.
+- **Promotional texts (Growth and Complete, or the Starter add-on).** Phone companies charge for texts by the **segment**, one "unit" of text: up to 160 letters in English, but only up to 70 characters in Chinese or Korean, because those characters take more space to send [16]. So a promotion that fits in 1 segment in English often takes 2 or 3 segments in Chinese or Korean. With a typical mix of your clients' languages, **500 segments covers roughly 250 to 300 promotional texts a month**. Beyond that, extra segments are **5 cents each** (a 150-person campaign costs at most about $14). Our own cost is about 2.3 cents a segment (the text itself plus the fee each phone company adds) [15]. The composer shows the segment count as you type and helps you keep messages short. Booking confirmations and reminders are included in every package and never count toward the 500.
 - **Handwritten cards (Complete).** **$8.50 per card, all in**: the card, the real-pen handwriting, the envelope and the postage. Most of that is the handwriting service and the stamp. You set a monthly cap, and nothing is mailed without your approval.
 
 **Payment terms.** Half of the setup fee when we start, half when the website goes live. Monthly fees for each product start only when that product goes live. After the 30-day pilot, everything is month to month with 30 days' notice. No long contract.
@@ -170,7 +201,7 @@ All prices are in Canadian dollars, plus GST/PST where applicable. There are no 
 |---|---|---|---|
 | Fresha | about $63 (3 team members) | 20% fee on each new client found through the Fresha marketplace (minimum about $8), plus card processing | No |
 | Booksy | about $98 (1 user plus 2 staff) | Optional "Boost": 30% of a new client's first visit (minimum about $14, maximum about $140) | No |
-| Vagaro | about $63 (3 calendars) | Website, text marketing and other features cost extra | No |
+| Vagaro | about $63 (3 calendars) | Website, text marketing (from about $28 a month) and other features cost extra | No |
 | Square Appointments | about $35 to $85 per location | Card processing | No |
 | **CF Hair Starter** | **$99** | **None. No commissions, no new-client fees.** | **Add it with Growth** |
 
@@ -198,6 +229,23 @@ We don't yet know your real call numbers, so here is a deliberately cautious exa
 
 **For the handwritten cards**, a simple test: send 20 "we miss you" cards to clients who haven't been in for 4 months or more. Cost: $170. If 3 of the 20 come back for a $60 visit, the cards have paid for themselves, and every later visit is profit. We'll track exactly who comes back after receiving a card, so you'll know whether it works for your clients.
 
+**For text promotions**, one example campaign: a "we miss you" text to 150 clients you haven't seen in 4 months or more.
+
+| Assumption | Value | Why |
+|---|---|---|
+| Clients who receive the text | 150 | Clients who said yes to texts, plus (if you choose) clients with a paid visit in the last 2 years |
+| Offer | 15% off any cut, Monday to Thursday, for 2 weeks | Fills quieter weekday chairs; to confirm with you |
+| Language mix | About two thirds English, one third Chinese or Korean | Estimate; to confirm with you |
+| Segments used | About 280 | Chinese and Korean texts use more segments (see above) |
+| Cost of sending | **$0 on Growth or Complete** (inside the 500 included); at most about $14 if you were already over | |
+| Recipients who book within 14 days | 5%, about 7 clients | Cautious; companies that sell texting report much higher numbers [19] |
+| Of those, how many would have come back anyway | 2 | So we only count 5 as extra visits |
+| Average spend per visit | $60, less the 15% discount | Same as above; to confirm with you |
+
+**Result:** 5 extra visits at $51 after the discount is about **$255**, minus $18 of discount given to the 2 clients who would have come anyway: **about $237 of extra business from one text that takes about 10 minutes to set up.** Expect 1 to 3 people to reply STOP; that is normal and healthy, and they simply stop getting promotions.
+
+**Break-even:** even if you paid for every segment, **one extra visit** covers the campaign. And if 2 of those 5 clients become regulars again, at around 5 visits a year [8], that is about $600 a year from a single text.
+
 ---
 
 ## 7. Risks, and how we handle them
@@ -214,11 +262,19 @@ No. Every card waits for your approval, and you can edit or remove any card. You
 **Privacy (BC's Personal Information Protection Act).**
 We collect only what is needed to book appointments and, with permission, to send cards. Clients are told why we collect their information, birthdays and mailing addresses are optional, the only thing the phone line remembers about a caller's language is the language itself (linked to their phone number, never to a blocked or private number), and clients can ask to see, correct or delete their information. Your website will include a clear privacy policy. Data is stored with established, secure service providers; some of these providers process data in the United States, and the privacy policy says so. Our AI provider's business terms do not use your callers' conversations to train its models.
 
+**"Will clients find promotional texts annoying?"**
+Not if they are few, useful and wanted. Texts go only to clients who agreed (or, if you choose, recent paying clients, which the law allows), never more than 4 a month per client, never before 9 am or after 8 pm, and always with an easy way out: reply STOP. You see the opt-out count after every campaign, so if a message misses the mark, you'll know straight away and can adjust.
+
 **Call recording.**
 Every call starts with a short notice that the caller is speaking with the salon's virtual assistant and that the call may be recorded to help serve them. Recording is optional; if you keep it on, recordings are deleted automatically after 30 days unless you ask us to keep a specific one.
 
-**Text messages.**
-Booking confirmations and reminders are sent only to clients who book. Promotional texts are never sent without a client's permission.
+**Text messages and Canada's anti-spam law (CASL).**
+Booking confirmations and reminders are sent only to clients who book; they are not promotions. Promotional texts are covered by CASL, which the CRTC enforces, with penalties for businesses of up to $10 million per violation [17]. The system is built to follow it:
+- **Permission first.** Promotions go to clients who said yes: the online booking checkbox (never pre-ticked, as the CRTC requires), a front-desk "yes" recorded in the dashboard, or a "yes" on a phone booking. If you choose, you can also include clients with a paid visit in the last two years, which CASL treats as implied permission [17][20]; the system checks that two-year window against your real booking records every time you send.
+- **Proof of permission.** The law puts the burden of proof on the sender, so every "yes" is saved with when and how it was given, and every STOP is saved too.
+- **Every promotion names the salon** and links to your website, which shows your address and contact details, and **says "Reply STOP to opt out."** The law allows up to 10 business days to act on an opt-out; we act on it immediately [17][20].
+- **Sensible limits:** no promotions before 9 am or after 8 pm (stricter than the usual industry guideline of 9 pm), and at most 4 a month per client by default.
+- **Privacy:** phone numbers and text permissions are covered by the same privacy policy as the rest of your client data, and are never shared or sold.
 
 **"What if something breaks?"**
 If the phone system is ever unavailable, calls simply ring through to the salon as they do today. We monitor the system and fix problems quickly.
@@ -268,3 +324,9 @@ All accessed October 3, 2026. Some figures come from industry software companies
 12. Booking app prices (USD list prices converted at 1.40 CAD per USD; Square is listed in CAD). Fresha: https://pabau.com/blog/fresha-pricing/ ; Booksy: https://koalendar.com/blog/booksy-pricing ; Vagaro: https://koalendar.com/blog/vagaro-pricing ; Square Appointments Canada: https://square.com/ca/en/appointments/pricing . Prices change often; please check current pricing.
 13. AI receptionist pricing roundups: https://dupple.com/learn/best-ai-receptionists ; https://fast.io/resources/smith-ai-review-2026
 14. Coquitlam's Korean community and the North Road "Koreatown" (on the Burnaby, Coquitlam and New Westminster border, near Lougheed): https://en.wikipedia.org/wiki/Korean_Canadians ; Korean as a home language for about 9% of Burquitlam to Lougheed residents (City of Coquitlam neighbourhood profile, census data): https://coquitlam.ca/DocumentCenter/View/217/2019-Burquitlam-Lougheed-PDF
+15. Twilio SMS pricing for Canada: price per segment plus a per-message fee set by each Canadian carrier (Bell, Rogers, Telus and others). https://www.twilio.com/en-us/sms/pricing/ca . Prices change; we re-check before billing.
+16. How text message length works: 160 characters per segment for standard English text, 70 for Chinese, Korean and other Unicode text (153 and 67 when a message runs over one segment). https://www.twilio.com/docs/glossary/what-sms-character-limit
+17. CRTC, Frequently Asked Questions about Canada's Anti-Spam Legislation (consent, identification, unsubscribe within 10 business days; penalties up to $10 million per violation for businesses). https://crtc.gc.ca/eng/com500/faq500.htm ; pre-ticked boxes are not valid consent: Compliance and Enforcement Information Bulletin CRTC 2012-548, https://www.crtc.gc.ca/eng/archive/2012/2012-548.htm
+18. Gurol-Urganci et al., Cochrane Review, "Mobile phone messaging reminders for attendance at scheduled healthcare appointments" (8 trials, 6,615 people): text reminders improved attendance compared with no reminder. https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD007458/abstract (Healthcare, not salons, but independent research.)
+19. Text marketing benchmarks from texting companies, for example click rates of about 19 to 36% and opt-out rates of about 1 to 2% per send: https://sakari.io/blog/sms-marketing-benchmarks-2025-performance-metrics-and-industry-insights ; https://infobip.com/blog/sms-marketing-benchmarks . The often-quoted "98% of texts are opened" goes back to Gartner and is an estimate, not a measurement: https://www.clickminded.com/sms-marketing-statistics/ . (These companies sell texting services; we treat their numbers as optimistic.)
+20. CRTC, Guidance on Implied Consent (existing business relationship: a purchase within the past two years). https://crtc.gc.ca/eng/com500/guide.htm ; Government of Canada, "Texting for good client relations": https://ised-isde.canada.ca/site/canada-anti-spam-legislation/en/texting-good-client-relations
