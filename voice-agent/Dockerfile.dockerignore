@@ -1,0 +1,8 @@
+# Used by BuildKit for voice-agent/Dockerfile (context is the repo root).
+*
+!voice-agent/package.json
+!voice-agent/package-lock.json
+!voice-agent/tsconfig.json
+!voice-agent/tsconfig.build.json
+!voice-agent/src
+!shared/salon.json
