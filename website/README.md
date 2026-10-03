@@ -150,14 +150,8 @@ curl -s -X PUT -H "$K" -H 'content-type: application/json' "$B/api/callers/%2B16
 1. Create a Postgres database on [Neon](https://neon.tech) or [Supabase](https://supabase.com) and copy its connection string (use the pooled URL on Neon, or the "Transaction pooler" URL on Supabase, with `sslmode=require`).
 2. In Vercel, import the repository and set **Root Directory** to `website`. Keep "Include files outside the root directory" enabled so `shared/salon.json` is picked up (a committed copy in `src/data/salon.json` is used otherwise).
 3. Environment variables: `DATABASE_URL` (Postgres URL), `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` (a long random string), `AGENT_API_KEY`, and optionally the `TWILIO_*` variables (two senders, see [Twilio setup for Canada](#twilio-setup-for-canada)), `PUBLIC_BASE_URL`, `CRON_SECRET` and `ANTHROPIC_API_KEY`.
-4. Deploy. The build runs `scripts/prepare-db.mjs`, which switches the Prisma provider to `postgresql` because the URL starts with `postgres`, then `prisma generate` and `next build`.
-5. Create the tables once from your machine:
-   ```bash
-   DATABASE_URL="postgresql://..." npm run db:push
-   # optional demo data on a fresh database:
-   DATABASE_URL="postgresql://..." SEED_ALLOW_REMOTE=1 npm run db:seed
-   ```
-   After the first push, `scripts/prepare-db.mjs` will have set the provider to `postgresql` in your working copy; run `npm run db:prepare` with the SQLite URL to switch back for local work.
+4. Deploy. On Vercel, npm runs the `vercel-build` script (`scripts/vercel-build.mjs`) instead of `build`. It switches the Prisma provider to `postgresql`, runs `prisma generate` and `prisma db push` to create or update the tables, seeds the demo data only when the database is empty (set `SEED_ON_DEPLOY=1` for one deploy to force a fresh demo reset), then runs `next build`. Redeploys never wipe real bookings.
+5. To manage the database from your machine instead, use `DATABASE_URL="postgresql://..." npm run db:push` (and `SEED_ALLOW_REMOTE=1 npm run db:seed` for demo data). This switches the provider in your working copy to `postgresql`; run `npm run db:prepare` with the SQLite URL to switch back for local work.
 6. Point the phone agent and notes pipeline at the deployed URL with `BOOKING_API_URL` and the same `AGENT_API_KEY`.
 
 ## Project layout

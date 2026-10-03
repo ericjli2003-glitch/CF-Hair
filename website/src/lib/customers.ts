@@ -42,20 +42,20 @@ export async function upsertCustomer(
   db: Db,
   input: { phone: string; name: string; email?: string | null },
 ) {
-  const existing = await db.customer.findUnique({ where: { phone: input.phone } });
-  if (existing) {
-    return db.customer.update({
-      where: { id: existing.id },
-      data: { name: input.name || existing.name, email: input.email || existing.email },
-    });
-  }
   const caller = await db.callerProfile.findUnique({ where: { phone: input.phone } });
-  const customer = await db.customer.create({
-    data: {
+  // A single atomic upsert (INSERT ... ON CONFLICT on Postgres and SQLite), so two
+  // simultaneous first bookings from the same new phone cannot both try to insert.
+  const customer = await db.customer.upsert({
+    where: { phone: input.phone },
+    create: {
       phone: input.phone,
       name: input.name,
       email: input.email || null,
       preferredLanguage: caller?.preferredLanguage ?? DEFAULT_LANGUAGE,
+    },
+    update: {
+      ...(input.name ? { name: input.name } : {}),
+      ...(input.email ? { email: input.email } : {}),
     },
   });
   if (caller && !caller.customerId) {
