@@ -7,10 +7,10 @@
   "design": "cf-holiday",
   "guidelines": "A warm, inclusive end-of-year greeting (say 'holidays' or 'the season', not a specific religious holiday). Thank them for the year and wish them rest and good things in the new year. No offers, no booking push.",
   "maxChars": 340,
-  "maxCharsZh": 110,
+  "maxCharsAlt": 110,
   "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
   "offer": null,
   "dedupe": "year",
-  "chinese": true,
+  "secondLanguage": true,
   "handwrytten": { "cardId": null, "font": null }
 }

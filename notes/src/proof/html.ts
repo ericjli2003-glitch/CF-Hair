@@ -8,6 +8,7 @@ import { loadSettings, providerSettings, salonReturnAddress } from "../config.js
 import type { RunManifest } from "../types.js";
 import { DESIGNS, designFor } from "./designs.js";
 import type { FontBundle } from "./fonts.js";
+import { ALT_LABEL, ALT_TAG } from "../language.js";
 
 export interface ProofOptions {
   provider: string;
@@ -51,6 +52,8 @@ export function renderProof(run: RunManifest, opts: ProofOptions): string {
     designSvg: design.svg,
     designPaper: design.paper,
     darkFront: ["cf-lunar-new-year", "cf-holiday"].includes(design.id),
+    altLabels: ALT_LABEL,
+    altTags: ALT_TAG,
     notes: run.notes,
   };
 
@@ -135,7 +138,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 18px 32px 64px; }
 .row-head h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 22px; margin: 0; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .tag { font-size: 12px; line-height: 18px; color: var(--muted); background: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; }
-.tag.lang-zh { font-family: Jost, "Noto Sans SC", sans-serif; color: #8c1d1d; border-color: #e7c2bd; background: #fbefed; }
+.tag.lang-alt { color: #8c1d1d; border-color: #e7c2bd; background: #fbefed; }
 .stage { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; padding: 6px 2px 4px; }
 .panel-label { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px 2px; }
 .paper {
@@ -153,12 +156,13 @@ main { max-width: 1180px; margin: 0 auto; padding: 18px 32px 64px; }
   text-shadow: 0 0 .5px rgba(29, 42, 92, .55); transform: rotate(-.5deg); transform-origin: 0 0;
 }
 .w { display: inline-block; white-space: nowrap; margin-right: .14em; }
-.zh .w { margin-right: 0; }
+.alt.cjk .w { margin-right: 0; }
 .c { display: inline-block; }
 .br { display: block; height: 0; }
 .sig { margin-top: .55em; margin-left: 38%; }
-.zh { font-family: "LXGW WenKai TC", "Ma Shan Zheng", Caveat, cursive; font-size: 17px; line-height: 1.45; margin-top: .7em; color: #24306a; }
-.zh-note { position: absolute; right: 8px; bottom: 6px; font: 10px Jost, sans-serif; color: #a3352f; letter-spacing: .04em; opacity: .75; }
+.alt { font-family: "LXGW WenKai TC", "Ma Shan Zheng", Caveat, cursive; font-size: 17px; line-height: 1.45; margin-top: .7em; color: #24306a; }
+.alt.ko { font-family: "Nanum Pen Script", Caveat, cursive; line-height: 1.25; }
+.alt-note { position: absolute; right: 8px; bottom: 6px; font: 10px Jost, sans-serif; color: #a3352f; letter-spacing: .04em; opacity: .75; }
 .mock-stamp { position: absolute; left: 10px; bottom: 7px; font: 600 9px Jost, sans-serif; letter-spacing: .12em; color: var(--mock); background: var(--mock-soft); padding: 1px 5px; border-radius: 3px; }
 .envelope { width: var(--env-w); height: var(--env-h); background: #fcfaf6; transform: rotate(.9deg); }
 .envelope .ret { position: absolute; left: 18px; top: 16px; font-family: Caveat, cursive; color: var(--ink); font-size: 14.5px; line-height: 1.12; }
@@ -227,7 +231,7 @@ ${
     <div class="seg" role="group" aria-label="Filter">
       <button type="button" data-filter="all" aria-pressed="true">All</button>
       <button type="button" data-filter="attention" aria-pressed="false">Needs attention</button>
-      <button type="button" data-filter="zh" aria-pressed="false">Chinese</button>
+      <button type="button" data-filter="alt" aria-pressed="false">Second language</button>
     </div>
     <input class="reviewer" id="reviewer" placeholder="Reviewed by" aria-label="Reviewed by">
     <button type="button" class="btn" id="approve-all">Approve all valid</button>
@@ -275,6 +279,13 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
       const words = opts.cjk ? cjkUnits(line) : line.split(/ +/);
       words.forEach((word, wi) => {
         if (!word) return;
+        if (opts.cjk && word === " ") {
+          const sp = document.createElement("span");
+          sp.className = "c";
+          sp.style.width = "0.28em";
+          el.appendChild(sp);
+          return;
+        }
         drift = Math.max(-2.2, Math.min(2.2, drift + j(0.9)));
         const w = document.createElement("span");
         w.className = "w";
@@ -301,6 +312,7 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
     const units = [];
     for (const g of graphemes(line)) {
       const prev = units[units.length - 1];
+      if (g === " ") { if (prev !== " ") units.push(" "); continue; }
       if (prev !== undefined && (/^[\uFF0C\u3002\uFF01\uFF1F\uFF1A\uFF1B\u3001\uFF09\u300D\u300F,.!?:;)]$/.test(g) || (/^[A-Za-z0-9%]$/.test(g) && /[A-Za-z0-9%]$/.test(prev)))) units[units.length - 1] = prev + g;
       else units.push(g);
     }
@@ -314,31 +326,32 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
     for (const h of hands) h.style.fontSize = "";
     for (let i = 0; i < 14 && wrap.scrollHeight > wrap.clientHeight + 1; i++) {
       size -= 0.75;
-      for (const h of hands) h.style.fontSize = (h.classList.contains("zh") ? size * 0.9 : size) + "px";
+      for (const h of hands) h.style.fontSize = (h.classList.contains("alt") ? size * (h.classList.contains("ko") ? 1.12 : 0.82) : size) + "px";
     }
   }
 
   const BAD_DASH = /[\\u2012-\\u2015\\u2212\\u2E3A\\u2E3B]/;
   const EMOJI = /\\p{Extended_Pictographic}/u;
-  function liveIssues(n, msg, zh, sig) {
+  function liveIssues(n, msg, alt, sig) {
     const out = [];
     const len = graphemes(msg).length;
     if (!msg.trim()) out.push("Message is empty.");
     if (len > n.maxChars) out.push("Message is " + len + " characters; the limit is " + n.maxChars + ".");
-    if (BAD_DASH.test(msg) || (zh && BAD_DASH.test(zh))) out.push("Contains an em or en dash.");
-    if (EMOJI.test(msg) || (zh && EMOJI.test(zh))) out.push("Contains an emoji.");
+    if (BAD_DASH.test(msg) || (alt && BAD_DASH.test(alt))) out.push("Contains an em or en dash.");
+    if (EMOJI.test(msg) || (alt && EMOJI.test(alt))) out.push("Contains an emoji.");
     if (/[^\\x20-\\x7E\\n\\u00C0-\\u00FF]/.test(msg)) out.push("Has characters the pen font cannot write.");
     if (!msg.toLowerCase().includes(n.recipient.firstName.toLowerCase())) out.push("Does not use " + n.recipient.firstName + "'s name.");
-    if (zh && graphemes(zh).length > n.maxCharsZh) out.push("Chinese version is over " + n.maxCharsZh + " characters.");
+    if (alt && graphemes(alt).length > n.maxCharsAlt) out.push(altLabel(n) + " version is over " + n.maxCharsAlt + " characters.");
     if (graphemes(sig).length > DATA.maxSignatureChars) out.push("Signature over " + DATA.maxSignatureChars + " characters.");
     return out;
   }
 
-  const current = (n) => state.edits[n.noteId] || { message: n.message, messageZh: n.messageZh || "", signature: n.signature };
+  const altLabel = (n) => (n.altScript ? DATA.altLabels[n.altScript] : "Second-language");
+  const current = (n) => state.edits[n.noteId] || { message: n.message, messageAlt: n.messageAlt || "", signature: n.signature };
   const decision = (n) => state.decisions[n.noteId] || (n.status === "ok" ? "approve" : "skip");
   const issuesFor = (n) => {
     const e = state.edits[n.noteId];
-    return e ? liveIssues(n, e.message, e.messageZh, e.signature) : n.issues.map((i) => i.message);
+    return e ? liveIssues(n, e.message, e.messageAlt, e.signature) : n.issues.map((i) => i.message);
   };
 
   const STAMP = '<svg class="stamp" viewBox="0 0 46 56" aria-hidden="true"><defs><mask id="perf"><rect width="46" height="56" fill="#fff"/>' +
@@ -361,17 +374,22 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
       '<div class="row-head"><h2></h2><div class="tags"></div></div>' +
       '<div class="stage">' +
         '<div><p class="panel-label">Front</p><div class="paper front" style="background:' + DATA.designPaper + '"><svg viewBox="0 0 108 140" preserveAspectRatio="xMidYMid slice">' + DATA.designSvg + '</svg></div></div>' +
-        '<div><p class="panel-label">Inside</p><div class="paper inside"><div class="hand-wrap"><div class="hand msg"></div><div class="hand zh hidden"></div><div class="hand sig"></div></div></div></div>' +
+        '<div><p class="panel-label">Inside</p><div class="paper inside"><div class="hand-wrap"><div class="hand msg"></div><div class="hand alt hidden"></div><div class="hand sig"></div></div></div></div>' +
         '<div><p class="panel-label">Envelope</p><div class="paper envelope"><div class="ret"></div><div class="to"></div>' + STAMP + '</div></div>' +
       '</div>' +
       '<div class="meta"><div class="meter"><span class="bar"><i></i></span><span class="count"></span></div><ul class="issues"></ul>' +
         '<div class="decide"><button type="button" class="btn edit">Edit</button><div class="seg" role="group" aria-label="Decision"><button type="button" data-v="approve">Approve</button><button type="button" data-v="skip">Skip</button></div></div>' +
-        '<div class="editor"><label class="hint">Message</label><textarea class="e-msg"></textarea><label class="hint e-zh-label">Chinese version (added by hand)</label><textarea class="e-zh"></textarea><label class="hint">Signature</label><input class="e-sig"><div><button type="button" class="btn primary e-save">Save edit</button> <button type="button" class="btn e-reset">Restore original</button></div></div>' +
+        '<div class="editor"><label class="hint">Message</label><textarea class="e-msg"></textarea><label class="hint e-alt-label"></label><textarea class="e-alt"></textarea><label class="hint">Signature</label><input class="e-sig"><div><button type="button" class="btn primary e-save">Save edit</button> <button type="button" class="btn e-reset">Restore original</button></div></div>' +
       '</div>';
     row.querySelector("h2").textContent = n.recipient.firstName + " " + n.recipient.lastName;
     const tagBox = row.querySelector(".tags");
     for (const t of tags) { const s = document.createElement("span"); s.className = "tag"; s.textContent = t; tagBox.appendChild(s); }
-    if (n.preferredLanguage === "zh") { const s = document.createElement("span"); s.className = "tag lang-zh"; s.textContent = "中文 version"; tagBox.appendChild(s); }
+    if (n.altScript) { const s = document.createElement("span"); s.className = "tag lang-alt"; s.textContent = DATA.altLabels[n.altScript] + " version"; tagBox.appendChild(s); }
+    if (n.altScript) {
+      const el = row.querySelector(".hand.alt");
+      el.classList.add(n.altScript === "ko" ? "ko" : "cjk");
+      el.lang = n.altScript === "ko" ? "ko" : n.altScript === "zh-Hant" ? "zh-HK" : "zh-CN";
+    }
 
     const a = n.recipient.address || {};
     hand(row.querySelector(".ret"), [DATA.returnAddress.name, DATA.returnAddress.line1, DATA.returnAddress.city + " " + DATA.returnAddress.province + "  " + DATA.returnAddress.postalCode].join("\\n"), n.noteId + "r");
@@ -384,14 +402,15 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
     row.querySelector(".edit").addEventListener("click", () => {
       const c = current(n);
       ed.querySelector(".e-msg").value = c.message;
-      ed.querySelector(".e-zh").value = c.messageZh || "";
-      ed.querySelector(".e-zh").classList.toggle("hidden", n.preferredLanguage !== "zh");
-      ed.querySelector(".e-zh-label").classList.toggle("hidden", n.preferredLanguage !== "zh");
+      ed.querySelector(".e-alt").value = c.messageAlt || "";
+      ed.querySelector(".e-alt").classList.toggle("hidden", !n.altScript);
+      ed.querySelector(".e-alt-label").classList.toggle("hidden", !n.altScript);
+      ed.querySelector(".e-alt-label").textContent = altLabel(n) + " version (added by hand)";
       ed.querySelector(".e-sig").value = c.signature;
       ed.classList.toggle("open");
     });
     ed.querySelector(".e-save").addEventListener("click", () => {
-      state.edits[n.noteId] = { message: ed.querySelector(".e-msg").value.trim(), messageZh: ed.querySelector(".e-zh").value.trim(), signature: ed.querySelector(".e-sig").value.trim() };
+      state.edits[n.noteId] = { message: ed.querySelector(".e-msg").value.trim(), messageAlt: ed.querySelector(".e-alt").value.trim(), signature: ed.querySelector(".e-sig").value.trim() };
       if (issuesFor(n).length === 0) state.decisions[n.noteId] = "approve";
       save(); paint(row, n); ed.classList.remove("open");
     });
@@ -407,19 +426,20 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
     const c = current(n);
     const wrap = row.querySelector(".hand-wrap");
     hand(row.querySelector(".msg"), c.message, n.noteId);
-    const zhEl = row.querySelector(".hand.zh");
-    zhEl.classList.toggle("hidden", !c.messageZh);
-    if (c.messageZh) hand(zhEl, c.messageZh, n.noteId + "zh", { cjk: true });
+    const altEl = row.querySelector(".hand.alt");
+    altEl.classList.toggle("hidden", !c.messageAlt);
+    // Chinese breaks between characters; Korean breaks between words like English.
+    if (c.messageAlt) hand(altEl, c.messageAlt, n.noteId + "alt", { cjk: n.altScript !== "ko" });
     hand(row.querySelector(".sig"), c.signature, n.noteId + "s");
-    let note = row.querySelector(".zh-note");
-    if (c.messageZh && !note) { note = document.createElement("span"); note.className = "zh-note"; note.textContent = "Chinese lines added by hand"; row.querySelector(".inside").appendChild(note); }
-    if (!c.messageZh && note) note.remove();
+    let note = row.querySelector(".alt-note");
+    if (c.messageAlt && !note) { note = document.createElement("span"); note.className = "alt-note"; note.textContent = DATA.altTags[n.altScript] + " added by hand"; row.querySelector(".inside").appendChild(note); }
+    if (!c.messageAlt && note) note.remove();
     fit(wrap);
     const len = graphemes(c.message).length;
     const meter = row.querySelector(".meter");
     meter.classList.toggle("over", len > n.maxChars);
     meter.querySelector("i").style.width = Math.min(100, (len / n.maxChars) * 100).toFixed(1) + "%";
-    meter.querySelector(".count").textContent = len + " / " + n.maxChars + " characters" + (c.messageZh ? " · 中文 " + graphemes(c.messageZh).length + " / " + n.maxCharsZh : "") + (state.edits[n.noteId] ? " · edited" : "");
+    meter.querySelector(".count").textContent = len + " / " + n.maxChars + " characters" + (c.messageAlt ? " · " + DATA.altTags[n.altScript] + " " + graphemes(c.messageAlt).length + " / " + n.maxCharsAlt : "") + (state.edits[n.noteId] ? " · edited" : "");
     const list = row.querySelector(".issues");
     list.textContent = "";
     for (const msg of issuesFor(n)) { const li = document.createElement("li"); li.textContent = msg; list.appendChild(li); }
@@ -430,7 +450,7 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
     ap.title = ap.disabled ? "Fix the issues (Edit) before approving" : "";
     row.classList.toggle("skipped", d === "skip");
     row.dataset.attention = String(issuesFor(n).length > 0);
-    row.dataset.zh = String(n.preferredLanguage === "zh");
+    row.dataset.alt = String(!!n.altScript);
     counts();
   }
 
@@ -451,7 +471,7 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
     document.querySelectorAll("[data-filter]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     for (const [el] of rows) {
       const f = b.dataset.filter;
-      el.classList.toggle("hidden", (f === "attention" && el.dataset.attention !== "true") || (f === "zh" && el.dataset.zh !== "true"));
+      el.classList.toggle("hidden", (f === "attention" && el.dataset.attention !== "true") || (f === "alt" && el.dataset.alt !== "true"));
     }
   }));
   document.getElementById("approve-all").addEventListener("click", () => {
@@ -464,7 +484,7 @@ Run <b>${esc(run.runId)}</b> &middot; generated ${esc(run.generatedAt)} &middot;
   document.getElementById("export").addEventListener("click", () => {
     const approved = approvedNotes().map((n) => {
       const c = current(n);
-      return { noteId: n.noteId, idempotencyKey: n.idempotencyKey, message: c.message, messageZh: c.messageZh || undefined, signature: c.signature, edited: !!state.edits[n.noteId] };
+      return { noteId: n.noteId, idempotencyKey: n.idempotencyKey, message: c.message, messageAlt: c.messageAlt || undefined, signature: c.signature, edited: !!state.edits[n.noteId] };
     });
     const file = { runId: DATA.runId, campaignId: DATA.campaignId, exportedAt: new Date().toISOString(), approvedBy: reviewer.value || undefined, approved };
     const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });

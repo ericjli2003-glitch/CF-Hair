@@ -81,17 +81,17 @@ export class ClaudeWriter implements NoteWriter {
   }
 
   private parse(stopReason: string | null | undefined, content: ContentLike[]): Draft {
-    if (stopReason === "refusal") return { message: "", messageZh: "", refusal: true };
-    if (stopReason === "max_tokens") return { message: "", messageZh: "", error: "response hit max_tokens" };
+    if (stopReason === "refusal") return { message: "", messageAlt: "", refusal: true };
+    if (stopReason === "max_tokens") return { message: "", messageAlt: "", error: "response hit max_tokens" };
     const text = content.find((b) => b.type === "text")?.text ?? "";
     try {
-      const obj = JSON.parse(text) as { message?: unknown; message_zh?: unknown };
+      const obj = JSON.parse(text) as { message?: unknown; message_alt?: unknown };
       return {
         message: typeof obj.message === "string" ? obj.message : "",
-        messageZh: typeof obj.message_zh === "string" ? obj.message_zh : "",
+        messageAlt: typeof obj.message_alt === "string" ? obj.message_alt : "",
       };
     } catch {
-      return { message: "", messageZh: "", error: "response was not valid JSON" };
+      return { message: "", messageAlt: "", error: "response was not valid JSON" };
     }
   }
 
@@ -108,8 +108,8 @@ export class ClaudeWriter implements NoteWriter {
       return this.parse(res.stop_reason, res.content as ContentLike[]);
     } catch (err) {
       if (err instanceof Anthropic.AuthenticationError) throw err;
-      if (err instanceof Anthropic.BadRequestError) return { message: "", messageZh: "", error: `bad request: ${err.message}` };
-      if (err instanceof Anthropic.APIError) return { message: "", messageZh: "", error: `API error ${err.status}: ${err.message}` };
+      if (err instanceof Anthropic.BadRequestError) return { message: "", messageAlt: "", error: `bad request: ${err.message}` };
+      if (err instanceof Anthropic.APIError) return { message: "", messageAlt: "", error: `API error ${err.status}: ${err.message}` };
       throw err;
     }
   }
@@ -154,7 +154,7 @@ export class ClaudeWriter implements NoteWriter {
         this.addUsage(item.result.message.usage, 0.5);
         out.set(item.custom_id, this.parse(item.result.message.stop_reason, item.result.message.content as ContentLike[]));
       } else {
-        out.set(item.custom_id, { message: "", messageZh: "", error: `batch result ${item.result.type}` });
+        out.set(item.custom_id, { message: "", messageAlt: "", error: `batch result ${item.result.type}` });
       }
     }
     return out;

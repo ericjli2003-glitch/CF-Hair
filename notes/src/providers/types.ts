@@ -5,7 +5,8 @@ export interface SendItem {
   note: Note;
   campaign: Campaign;
   message: string;
-  messageZh?: string;
+  /** Second-language lines (Chinese or Korean), written by hand at the salon. */
+  messageAlt?: string;
   signature: string;
   address: MailingAddress;
 }

@@ -34,7 +34,7 @@ async function makeRun(): Promise<{ manifest: RunManifest; approvedFile: string;
     runId: manifest.runId,
     campaignId: manifest.campaignId,
     exportedAt: new Date().toISOString(),
-    approved: manifest.notes.map((n) => ({ noteId: n.noteId, idempotencyKey: n.idempotencyKey, message: n.message, messageZh: n.messageZh, signature: n.signature })),
+    approved: manifest.notes.map((n) => ({ noteId: n.noteId, idempotencyKey: n.idempotencyKey, message: n.message, messageAlt: n.messageAlt, signature: n.signature })),
   };
   const approvedFile = path.join(dir, "approved.json");
   writeFileSync(approvedFile, JSON.stringify(approved));
@@ -45,10 +45,10 @@ const quiet = () => {};
 
 describe("send is gated, dry by default and idempotent", () => {
   it("dry run sends nothing and records nothing", async () => {
-    const { approvedFile, historyFile } = await makeRun();
+    const { approvedFile, historyFile, manifest } = await makeRun();
     const s = await run.sendApproved({ approvedFile, provider: "plotter", send: false, historyFile, today: TODAY, log: quiet });
     expect(s.dryRun).toBe(true);
-    expect(s.sent).toHaveLength(7);
+    expect(s.sent).toHaveLength(manifest.notes.length);
     expect(existsSync(historyFile)).toBe(false);
     expect(existsSync(path.join(OUT, "plotter"))).toBe(false);
   });
@@ -64,18 +64,24 @@ describe("send is gated, dry by default and idempotent", () => {
     const { approvedFile, historyFile, manifest } = await makeRun();
     // Plotter output is local, so mock copy may be "sent" there; it exercises the same ledger.
     const first = await run.sendApproved({ approvedFile, provider: "plotter", send: true, historyFile, today: TODAY, log: quiet });
-    expect(first.sent).toHaveLength(7);
+    const total = manifest.notes.length;
+    expect(total).toBe(8);
+    expect(first.sent).toHaveLength(total);
     const second = await run.sendApproved({ approvedFile, provider: "plotter", send: true, historyFile, today: TODAY, log: quiet });
     expect(second.sent).toHaveLength(0);
     expect(second.skipped.every((s) => /already sent/.test(s.reason))).toBe(true);
     const h = new History(historyFile);
-    expect(h.records.filter((r) => r.status === "sent")).toHaveLength(7);
+    expect(h.records.filter((r) => r.status === "sent")).toHaveLength(total);
     // And the next plan excludes them too.
     const p = await run.plan({ campaign: "win-back", csv: path.join(__dirname, "..", "sample", "clients.csv"), today: TODAY, historyFile });
     expect(p.selection.matches).toHaveLength(0);
     expect(p.selection.excluded.filter((e) => e.reason === "already sent this card")).toHaveLength(manifest.notes.length);
     const svgs = readdirSync(path.join(OUT, "plotter", `${manifest.runId}-plotter`)).filter((f) => f.endsWith(".svg"));
-    expect(svgs).toHaveLength(14);
+    expect(svgs).toHaveLength(total * 2);
+    // Chinese and Korean lines are listed for a person to add by hand.
+    const handFinish = readFileSync(path.join(OUT, "plotter", `${manifest.runId}-plotter`, "hand-finish.txt"), "utf8");
+    expect(handFinish).toMatch(/Traditional Chinese lines/);
+    expect(handFinish).toMatch(/Korean lines/);
     expect(existsSync(path.join(OUT, "plotter", `${manifest.runId}-plotter`, "MOCK-COPY-DO-NOT-MAIL.txt"))).toBe(true);
   });
 
@@ -84,7 +90,7 @@ describe("send is gated, dry by default and idempotent", () => {
     const n = manifest.notes[0];
     new History(historyFile).upsert({ idempotencyKey: n.idempotencyKey, campaignId: "win-back", clientId: n.clientId, noteId: n.noteId, runId: manifest.runId, provider: "handwrytten", status: "submitting" });
     const s = await run.sendApproved({ approvedFile, provider: "plotter", send: true, historyFile, today: TODAY, log: quiet });
-    expect(s.sent).toHaveLength(6);
+    expect(s.sent).toHaveLength(manifest.notes.length - 1);
     expect(s.skipped[0].reason).toMatch(/interrupted/);
   });
 

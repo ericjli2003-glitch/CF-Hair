@@ -13,6 +13,7 @@ const RULES = new Set([
   "hasTag",
   "preferredLanguage",
   "referredSomeoneWithinDays",
+  "hasUpcomingBooking",
 ]);
 
 function checkRule(r: AudienceRule, where: string): void {
@@ -22,16 +23,20 @@ function checkRule(r: AudienceRule, where: string): void {
   if (!RULES.has((r as { rule: string }).rule)) throw new Error(`${where}: unknown rule "${(r as { rule: string }).rule}"`);
 }
 
-export function validateCampaign(c: Campaign, file = c.id): Campaign {
+export function validateCampaign(input: Campaign, file = input.id): Campaign {
+  // Older configs used maxCharsZh / chinese; accept them.
+  const legacy = input as Campaign & { maxCharsZh?: number; chinese?: boolean };
+  const c: Campaign = { ...input };
+  c.maxCharsAlt ??= legacy.maxCharsZh ?? 140;
+  c.secondLanguage ??= legacy.chinese ?? false;
   const need = ["id", "name", "occasion", "audience", "design", "guidelines", "maxChars", "signature", "dedupe"] as const;
   for (const k of need) if (c[k] == null) throw new Error(`${file}: missing "${k}"`);
   if (!/^[a-z0-9-]+$/.test(c.id)) throw new Error(`${file}: id must be lowercase letters, digits and hyphens`);
   if (c.maxChars < 80 || c.maxChars > 600) throw new Error(`${file}: maxChars should be between 80 and 600`);
   if (!["once", "year", "lastVisit", "firstVisit", "referral"].includes(c.dedupe)) throw new Error(`${file}: bad dedupe "${c.dedupe}"`);
   checkRule(c.audience, `${file}: audience`);
-  c.maxCharsZh ??= 140;
-  c.chinese ??= false;
   c.description ??= "";
+  c.excludeIfBooked ??= false;
   return c;
 }
 

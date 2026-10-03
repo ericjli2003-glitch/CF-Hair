@@ -6,10 +6,11 @@
 import { monthDay, roughlyAgo } from "../dates.js";
 import type { AudienceMatch, Campaign, IsoDate } from "../types.js";
 import { daysBetween } from "../dates.js";
+import { ALT_INSTRUCTION, altLimit, altScriptFor } from "../language.js";
 
 export interface PromptLimits {
   maxChars: number;
-  maxCharsZh: number;
+  maxCharsAlt: number;
 }
 
 export const OUTPUT_SCHEMA = {
@@ -19,12 +20,12 @@ export const OUTPUT_SCHEMA = {
       type: "string",
       description: "The English note body, greeting included, no sign-off or signature.",
     },
-    message_zh: {
+    message_alt: {
       type: "string",
-      description: "Simplified Chinese version of the note, or an empty string when not requested.",
+      description: "The second-language version (Simplified Chinese, Traditional Chinese or Korean, as requested), or an empty string when not requested.",
     },
   },
-  required: ["message", "message_zh"],
+  required: ["message", "message_alt"],
   additionalProperties: false,
 } as const;
 
@@ -52,12 +53,15 @@ Format rules (strict, because a pen writes this)
 - Respect the character limit given below. Characters include spaces and punctuation. Aim for the target range; a card that is a little short is far better than one that is cut off.
 - If an offer is provided, mention it exactly once, naturally, including the code exactly as written. If no offer is provided, do not invent one.
 
-Simplified Chinese version (only when the client context says write_chinese_version: true)
-- Write message_zh in natural, warm Simplified Chinese, as a Chinese-speaking stylist would write it. It should carry the same meaning, but do not translate word for word.
-- Address the client by name in a natural way (for example "亲爱的美琳：" or the given name followed by a colon). Keep the stylist's first name in its original spelling if you use it.
-- Use full-width Chinese punctuation. No emoji, no dashes of any kind, no sign-off or signature.
-- Stay within the Chinese character limit given below.
-- When write_chinese_version is false, message_zh must be an empty string.
+Second-language version (only when the client context has second_language set)
+- Write message_alt in the language and script named in second_language, as a stylist who speaks it would write it: same meaning and warmth, not a word-for-word translation. A team member copies it onto the card by hand.
+- Simplified Chinese (zh-CN clients): simplified characters only, mainland conventions, e.g. "亲爱的美琳：".
+- Traditional Chinese (zh-HK clients): traditional characters only (們, 這, 時, 來, 歡迎, 謝謝), standard written Chinese with Hong Kong word choices, e.g. "親愛的嘉欣：". Do not use colloquial Cantonese characters such as 嘅, 咗, 啲, 唔.
+- Korean (ko-KR clients): Hangul, warm polite 해요체, address the client as "<name>님", e.g. "서연님께,". No Chinese characters.
+- Keep the client's and stylist's names in their original spelling unless the client context gives a native-script name. Keep any offer code exactly as written.
+- Chinese uses full-width punctuation. No emoji, no dashes of any kind, no sign-off or signature.
+- Stay within the second-language limit given below.
+- When second_language is null, message_alt must be an empty string.
 
 Examples of the tone (do not copy them; every note must be written fresh for its client)
 - Win-back, men's perm: "Hi Daniel, I was thinking about that textured perm we did, and I hope it has been easy to style on busy mornings. Whenever you feel like a refresh, your chair is here. As a small welcome back, WELCOME15 takes 15% off your next visit."
@@ -65,18 +69,18 @@ Examples of the tone (do not copy them; every note must be written fresh for its
 - Birthday: "Hi Joyce, happy birthday from all of us at CF Hair! I hope your day is full of good food and the people you love. Your next visit comes with a little birthday treat from us: just mention BDAYTREAT."
 
 Output
-- Return JSON with exactly two fields: message (English body) and message_zh (Chinese body or empty string).`;
+- Return JSON with exactly two fields: message (English body) and message_alt (second-language body or empty string).`;
 
 export function buildSystemPrompt(campaign: Campaign, limits: PromptLimits): string {
   const target = `${Math.round(limits.maxChars * 0.6)} to ${Math.round(limits.maxChars * 0.88)}`;
-  const targetZh = `${Math.round(limits.maxCharsZh * 0.5)} to ${Math.round(limits.maxCharsZh * 0.85)}`;
+  const ko = altLimit(limits.maxCharsAlt, "ko");
   return `${SALON_VOICE}
 
 This campaign
 - Campaign: ${campaign.name} (${campaign.occasion}).
 - Guidelines from the salon owner: ${campaign.guidelines}
 - English limit: at most ${limits.maxChars} characters; target ${target}.
-- Chinese limit: at most ${limits.maxCharsZh} characters; target ${targetZh}.`;
+- Second-language limit: Chinese at most ${limits.maxCharsAlt} characters, Korean at most ${ko} characters (spaces count); aim for about 70% of the limit.`;
 }
 
 export interface ClientContext {
@@ -88,7 +92,8 @@ export interface ClientContext {
   occasion_details: Record<string, string>;
   stylist_note: string | null;
   offer: { code: string; description: string } | null;
-  write_chinese_version: boolean;
+  /** e.g. "Traditional Chinese for a Cantonese-speaking Hong Kong reader ...", or null. */
+  second_language: string | null;
 }
 
 export function buildClientContext(match: AudienceMatch, campaign: Campaign, today: IsoDate): ClientContext {
@@ -100,6 +105,7 @@ export function buildClientContext(match: AudienceMatch, campaign: Campaign, tod
   }
   if (match.occasion.referred) occasion.referred_friend_first_name = match.occasion.referred.firstName;
   if (match.occasion.daysSinceFirstVisit != null) occasion.first_visit = roughlyAgo(match.occasion.daysSinceFirstVisit);
+  const altScript = campaign.secondLanguage ? altScriptFor(c.preferredLanguage) : undefined;
   const relationship =
     c.visitCount <= 1 ? "new client, first visit" : c.visitCount <= 3 ? "fairly new client" : c.visitCount <= 8 ? "regular client" : "long-time regular client";
   return {
@@ -111,7 +117,7 @@ export function buildClientContext(match: AudienceMatch, campaign: Campaign, tod
     occasion_details: occasion,
     stylist_note: c.notes ?? null,
     offer: campaign.offer ? { code: campaign.offer.code, description: campaign.offer.description.replace(/\s*\(PLACEHOLDER[^)]*\)/i, "") } : null,
-    write_chinese_version: campaign.chinese && c.preferredLanguage === "zh",
+    second_language: altScript ? ALT_INSTRUCTION[altScript] : null,
   };
 }
 

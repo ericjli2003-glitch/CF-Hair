@@ -7,10 +7,10 @@
   "design": "cf-gratitude",
   "guidelines": "Thank them sincerely for being part of the CF Hair family. Reference their stylist and, lightly, the kind of service they usually come in for. Make it feel like a note from a person who knows them, not a loyalty programme. You may add one gentle line that a Google review helps a small neighbourhood salon.",
   "maxChars": 380,
-  "maxCharsZh": 130,
+  "maxCharsAlt": 130,
   "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
   "offer": null,
   "dedupe": "year",
-  "chinese": true,
+  "secondLanguage": true,
   "handwrytten": { "cardId": null, "font": null }
 }

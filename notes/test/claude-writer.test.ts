@@ -8,7 +8,7 @@ function req(i: number): DraftRequest {
     id: `win-back-c${i}`,
     system: "SHARED SYSTEM PROMPT",
     user: `client ${i}`,
-    ctx: { client_first_name: `C${i}`, stylist_first_name: null, last_service: null, relationship: "", last_visit: null, occasion_details: {}, stylist_note: null, offer: null, write_chinese_version: false },
+    ctx: { client_first_name: `C${i}`, stylist_first_name: null, last_service: null, relationship: "", last_visit: null, occasion_details: {}, stylist_note: null, offer: null, second_language: null },
     meta: { campaignId: "win-back" },
   };
 }
@@ -27,7 +27,7 @@ describe("ClaudeWriter", () => {
         messages: {
           create: async (p: Record<string, unknown>) => {
             seen.push(p);
-            return okMessage(JSON.stringify({ message: `Hi ${String(p.messages && (p.messages as Array<{ content: string }>)[0].content)}`, message_zh: "" }));
+            return okMessage(JSON.stringify({ message: `Hi ${String(p.messages && (p.messages as Array<{ content: string }>)[0].content)}`, message_alt: "" }));
           },
         },
       },
@@ -70,7 +70,7 @@ describe("ClaudeWriter", () => {
                   yield { custom_id: r.custom_id, result: { type: "errored", error: { type: "api_error" } } };
                   continue;
                 }
-                yield { custom_id: r.custom_id, result: { type: "succeeded", message: okMessage(JSON.stringify({ message: `Hi ${r.custom_id}`, message_zh: "" })) } };
+                yield { custom_id: r.custom_id, result: { type: "succeeded", message: okMessage(JSON.stringify({ message: `Hi ${r.custom_id}`, message_alt: "" })) } };
               }
             })(),
         },

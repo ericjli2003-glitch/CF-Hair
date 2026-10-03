@@ -2,6 +2,7 @@
  * Fonts for the proof sheet, embedded so the page renders identically offline
  * (e.g. on a laptop at a sales meeting).
  * - Latin fonts are vendored in assets/web-fonts (all SIL Open Font License, from Google Fonts).
+ * - Korean uses Nanum Pen Script (a pen handwriting face) the same way.
  * - Chinese fonts (LXGW WenKai for pen-style handwriting; it draws Simplified forms correctly,
  *   unlike Long Cang which writes 时 as 時) are large, so we ask Google Fonts for a subset containing only the
  *   characters this proof uses (the css2 `text=` parameter) and cache it under out/.fontcache.
@@ -20,7 +21,9 @@ const LATIN: Array<{ family: string; file: string; weight: string; style?: strin
   { family: "Cormorant Garamond", file: "cormorant-garamond-500i-latin.woff2", weight: "500", style: "italic" },
 ];
 
-const CJK_FAMILIES = ["LXGW WenKai TC", "Ma Shan Zheng", "Noto Sans SC"];
+// Han fonts get the Chinese characters; Nanum Pen Script (a real-pen Korean hand) gets Hangul.
+const HAN_FAMILIES = ["LXGW WenKai TC", "Ma Shan Zheng", "Noto Sans SC"];
+const HANGUL_FAMILIES = ["Nanum Pen Script"];
 const UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36";
 
 export function latinFontFaces(): string {
@@ -30,11 +33,13 @@ export function latinFontFaces(): string {
   }).join("\n");
 }
 
-function cjkChars(text: string): string {
+function charsMatching(text: string, re: RegExp): string {
   const set = new Set<string>();
-  for (const ch of text) if (/[⺀-鿿豈-﫿＀-￯　-〿]/.test(ch)) set.add(ch);
+  for (const ch of text) if (re.test(ch)) set.add(ch);
   return [...set].sort().join("");
 }
+const HAN_RE = /[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]/;
+const HANGUL_RE = /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/;
 
 async function fetchSubset(family: string, chars: string): Promise<string> {
   const key = createHash("sha1").update(`${family}|${chars}`).digest("hex").slice(0, 16);
@@ -65,16 +70,27 @@ export interface FontBundle {
   fallbackLink?: string;
 }
 
-export async function buildFonts(textForCjk: string): Promise<FontBundle> {
+export async function buildFonts(textForAlt: string): Promise<FontBundle> {
   const css = [latinFontFaces()];
-  const chars = cjkChars(`${textForCjk}中文新年快乐`);
-  try {
-    for (const fam of CJK_FAMILIES) css.push(await fetchSubset(fam, chars));
-    return { css: css.join("\n") };
-  } catch {
-    return {
-      css: css.join("\n"),
-      fallbackLink: `<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500&display=block" rel="stylesheet">`,
-    };
+  // Tag labels and the Lunar New Year card front are always on the page.
+  const sample = `${textForAlt}\u4E2D\u6587\u7B80\u4F53\u7E41\u9AD4\u65B0\u5E74\u5FEB\u4E50\uD55C\uAD6D\uC5B4`;
+  const jobs: Array<[string, string]> = [
+    ...HAN_FAMILIES.map((f): [string, string] => [f, charsMatching(sample, HAN_RE)]),
+    ...HANGUL_FAMILIES.map((f): [string, string] => [f, charsMatching(sample, HANGUL_RE)]),
+  ];
+  let failed = false;
+  for (const [family, chars] of jobs) {
+    if (!chars) continue;
+    try {
+      css.push(await fetchSubset(family, chars));
+    } catch {
+      failed = true;
+    }
   }
+  return {
+    css: css.join("\n"),
+    fallbackLink: failed
+      ? `<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC&family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@400;500&family=Nanum+Pen+Script&display=block" rel="stylesheet">`
+      : undefined,
+  };
 }

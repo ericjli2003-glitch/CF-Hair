@@ -52,6 +52,14 @@ async function main() {
           const one = path.join(outDir, `${name}-card.png`);
           await card.screenshot({ path: one, timeout: 60_000 });
           console.log(one);
+          // Also capture a Korean card when the run has one.
+          const ko = page.locator("article.row", { has: page.locator(".hand.alt.ko") }).first();
+          if (await ko.count()) {
+            const koFile = path.join(outDir, `${name}-korean-card.png`);
+            await ko.scrollIntoViewIfNeeded();
+            await ko.screenshot({ path: koFile, timeout: 60_000 });
+            console.log(koFile);
+          }
           const fontsOk = await page.evaluate(() => document.fonts.check("21px Caveat"));
           if (!fontsOk) console.warn("warning: Caveat web font did not load (offline?); screenshot uses a fallback font");
         }

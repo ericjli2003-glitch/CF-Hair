@@ -7,11 +7,11 @@
   "design": "cf-referral",
   "guidelines": "Thank them for sending their friend (use the friend's first name only) our way. Say it means a lot to a small neighbourhood salon. Do not share anything about the friend's appointment. If there is an offer, mention it once as a thank-you.",
   "maxChars": 360,
-  "maxCharsZh": 120,
+  "maxCharsAlt": 120,
   "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
   "offer": null,
   "dedupe": "referral",
-  "chinese": true,
+  "secondLanguage": true,
   "ignoreCooldown": true,
   "handwrytten": { "cardId": null, "font": null }
 }

@@ -44,13 +44,22 @@ Data source: `--csv <file>` or, with no `--csv`, the live booking API (`BOOKING_
 
 ## How it works
 
-**Audience** (`src/audience.ts`). Each campaign has a rule built from `firstVisitWithinDays`, `birthdayWithinDays`, `lastVisitBetweenDays`, `minVisits`, `maxVisits`, `hasTag`, `preferredLanguage`, `referredSomeoneWithinDays` and `everyone`, combined with `all` / `any` / `not`. A matching client is still skipped, with the reason shown in `plan`, if they have no complete Canadian address or a valid-format postal code, are tagged `do-not-mail` (or `no-mail`, `opt-out`, `moved`), already got this card for this occasion, or got any card in the last 30 days (`cooldownDays` in `settings.json`; birthday and referral cards ignore it).
+**Audience** (`src/audience.ts`). Each campaign has a rule built from `firstVisitWithinDays`, `birthdayWithinDays`, `lastVisitBetweenDays`, `minVisits`, `maxVisits`, `hasTag`, `preferredLanguage`, `referredSomeoneWithinDays` and `everyone`, combined with `all` / `any` / `not`. A matching client is still skipped, with the reason shown in `plan`, if they have no complete Canadian address or a valid-format postal code, are tagged `do-not-mail` (or `no-mail`, `opt-out`, `moved`), already have an upcoming booking (`nextBookingAt` today or later) in a "come back" campaign (`"excludeIfBooked": true`, set on win-back; `hasUpcomingBooking` is also available as a rule), already got this card for this occasion, or got any card in the last 30 days (`cooldownDays` in `settings.json`; birthday and referral cards ignore it). Referral thanks finds the referrer through each client's `referredBy`.
 
 **Writing** (`src/writer/`). One shared system prompt per run (salon voice, style and privacy rules, the campaign's guidelines, the character limit) is sent with `cache_control`, so every note after the first reads it from the prompt cache; only a short JSON client context changes per note (first name, stylist, last service, a fuzzy "about three months ago", a stylist note, the offer). Output is constrained to `{message, message_zh}` JSON. Runs of 25 or more notes go through the Message Batches API at half price; smaller runs use regular calls (first call alone to warm the cache, then 4 at a time) with server-side refusal fallback. Model `claude-opus-5-5` at `medium` effort (`settings.json`).
 
 Every draft is then sanitised (smart quotes straightened, any em or en dash turned into a comma) and validated: within the character limit (the stricter of the campaign's and the provider's), no emoji, only characters a pen font can write, greets the client by name, never mentions their street, postal code, phone, email or birth year, no salesy phrases, includes the offer code if there is one, signature within Handwrytten's 50-character limit. A failing draft is sent back with the specific problems ("312 characters; the limit is 280, cut at least 57") up to 3 attempts; anything still failing is marked "needs attention" and cannot be approved until edited.
 
-Clients whose preferred language is Chinese also get a Simplified Chinese version. Robot and plotter fonts are Latin-only, so the Chinese lines are shown on the proof as "added by hand" and listed in `hand-finish.txt` for the plotter.
+**Second language** (`src/language.ts`). Every card is written in English (that is what the pen robot or plotter writes). When a campaign has `"secondLanguage": true`, clients get a second version from their `preferredLanguage`:
+
+| `preferredLanguage` | Second version |
+|---|---|
+| `zh-CN` (Mandarin) | Simplified Chinese |
+| `zh-HK` (Cantonese) | Traditional Chinese, standard written Chinese with Hong Kong word choices |
+| `ko-KR` | Korean (Hangul, polite 해요체 with 님); limit is 1.4x the Chinese one because Hangul needs word spaces |
+| `en-US` | none |
+
+Why Traditional for Cantonese clients: Hong Kong readers learn and read Traditional characters, so a card in Simplified would read as mainland and slightly off. We use standard written Chinese rather than colloquial Cantonese characters (嘅, 咗, 啲): those are common in chats and ads, but a handwritten card from a business reads as more respectful in standard written Chinese, especially for the older Cantonese-speaking clients typical of Henderson Place. Validation checks the script too (for example a 们 or 这 in a Traditional card, or a Korean card without Hangul, is sent back for a rewrite). Robot and plotter fonts are Latin-only, so these lines are shown on the proof as "added by hand" (LXGW WenKai for Chinese, Nanum Pen Script for Korean) and listed in `hand-finish.txt` for the plotter.
 
 **Proof** (`src/proof/`). A self-contained HTML page: the printed card front for the campaign's design, the inside in a ballpoint-style hand (Caveat with seeded per-letter tilt, baseline drift and ink-pressure variation on a paper texture), and the addressed envelope. Each card shows why the client was picked, a character meter and any problems, with Approve / Skip and Edit (live re-validation). "Export approved list" downloads `approved-<run>.json`: the only input `send` accepts. Fonts are embedded so the page works offline.
 
@@ -93,25 +102,26 @@ Create `campaigns/<id>.json` (copy `win-back.json`):
   "design": "cf-gratitude",
   "guidelines": "Ask how the colour is settling in and share one care tip. No offer.",
   "maxChars": 340,
-  "maxCharsZh": 120,
+  "maxCharsAlt": 120,
   "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
   "offer": null,
   "dedupe": "lastVisit",
-  "chinese": true,
+  "excludeIfBooked": false,
+  "secondLanguage": true,
   "handwrytten": { "cardId": null, "font": null }
 }
 ```
 
-`dedupe` decides what "the same card" means: `once` (ever), `year`, `lastVisit` (once per lapse), `firstVisit`, or `referral` (once per referred friend). Designs: `cf-thank-you`, `cf-birthday`, `cf-thinking-of-you`, `cf-gratitude`, `cf-referral`, `cf-lunar-new-year`, `cf-holiday` (`src/proof/designs.ts`); for Handwrytten, upload the matching front as a custom card and put its id in `handwrytten.cardId`. Run `npm run notes -- plan --campaign <id>` to check the audience before generating.
+Set `excludeIfBooked` to true for any "come back" campaign so clients with an upcoming booking are skipped. `dedupe` decides what "the same card" means: `once` (ever), `year`, `lastVisit` (once per lapse), `firstVisit`, or `referral` (once per referred friend). Designs: `cf-thank-you`, `cf-birthday`, `cf-thinking-of-you`, `cf-gratitude`, `cf-referral`, `cf-lunar-new-year`, `cf-holiday` (`src/proof/designs.ts`); for Handwrytten, upload the matching front as a custom card and put its id in `handwrytten.cardId`. Run `npm run notes -- plan --campaign <id>` to check the audience before generating.
 
 ## Sample data
 
-`sample/clients.csv`: 25 fictional clients across Coquitlam and Port Moody (valid-format postal codes, invented addresses and contact details) anchored to 2026-10-09, covering every campaign plus the edge cases: just outside the win-back window on both sides, a missing address, a do-not-mail tag, a Feb 29 birthday, Chinese-preference clients and two referrals. `sample/staff.sample.json` gives the placeholder stylists sample first names (Vivian, Jason, Anna); `shared/salon.json` still has "Stylist A/B/C", which are never printed on a card (the signature falls back to "The CF Hair team").
+`sample/clients.csv`: 27 fictional clients across Coquitlam and Port Moody (valid-format postal codes, invented addresses and contact details) anchored to 2026-10-09, covering every campaign plus the edge cases: just outside the win-back window on both sides, a lapsed client who has already rebooked, a missing address, a do-not-mail tag, a Feb 29 birthday, Mandarin, Cantonese and Korean speakers, and two referrals. Columns mirror the API: `preferred_language` (en-US, zh-CN, zh-HK, ko-KR), `last_service_id`, `last_service_name`, `next_booking_at`, `referred_by`; every column except `id` and `first_name` may be missing. `sample/staff.sample.json` gives the placeholder stylists sample first names (Vivian, Jason, Anna); `shared/salon.json` still has "Stylist A/B/C", which are never printed on a card (the signature falls back to "The CF Hair team").
 
 ## Known gaps
 
 - The live Claude path is covered by tests against a stubbed SDK client but has not been run against the real API from this environment (no API key here). Run `generate` once with a key and read the proof before the first real send.
 - Handwrytten prices come from search extracts and third-party listings because the vendor site was not reachable from the build sandbox; confirm Canadian postage and the card id/font on the account (`catalog`, then `send --send --test-mode`).
-- `/api/customers` has no last-service, language, referral or stylist-notes fields yet. The notes pipeline uses them when present (`lastServiceId`, `preferredLanguage` or a `lang:zh` tag, `referredBy`, `notes`) and writes a slightly less specific card without them.
-- Win-back does not yet know about upcoming bookings; a client who already rebooked could still get a card. Add an `upcoming` flag to the API or tag them.
-- Chinese text is never robot-written; it needs a person or a printed insert.
+- `/api/customers` now carries `preferredLanguage`, `lastServiceId`/`lastServiceName`, `nextBookingAt`, `referredBy` and a structured `mailingAddress`; all are mapped and optional. It has no stylist-notes field, so live cards are a little less specific than the sample ones (which use the CSV `notes` column).
+- Chinese and Korean are never robot-written; they need a person or a printed insert.
+- The Korean and Traditional Chinese copy has only been checked by validation rules, not by a native reader. Have a Cantonese- and a Korean-speaking team member read the first proofs.

@@ -50,7 +50,7 @@ async function main() {
       approvedBy: "demo auto-approval (every note that passed all checks)",
       approved: run.notes
         .filter((n) => n.status === "ok")
-        .map((n) => ({ noteId: n.noteId, idempotencyKey: n.idempotencyKey, message: n.message, messageZh: n.messageZh, signature: n.signature })),
+        .map((n) => ({ noteId: n.noteId, idempotencyKey: n.idempotencyKey, message: n.message, messageAlt: n.messageAlt, signature: n.signature })),
     };
     const approvedFile = path.join(dir, `approved-${run.runId}.json`);
     writeFileSync(approvedFile, JSON.stringify(approved, null, 2) + "\n");

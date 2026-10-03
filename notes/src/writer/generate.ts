@@ -1,7 +1,8 @@
 /** Turns an audience into validated notes: draft, sanitise, validate, retry with feedback. */
 import { renderSignature } from "../campaigns.js";
-import { charCount, retryable, sanitizeForPen, sanitizeZh, validateNote } from "../text.js";
-import type { AudienceMatch, Campaign, IsoDate, Note, NoteIssue } from "../types.js";
+import { altLimit, altScriptFor } from "../language.js";
+import { charCount, retryable, sanitizeAlt, sanitizeForPen, validateNote } from "../text.js";
+import type { AltScript, AudienceMatch, Campaign, IsoDate, Note, NoteIssue } from "../types.js";
 import { buildClientContext, buildSystemPrompt, buildUserPrompt } from "./prompt.js";
 import type { Draft, DraftRequest, NoteWriter } from "./types.js";
 
@@ -10,7 +11,7 @@ export interface GenerateOptions {
   today: IsoDate;
   /** Effective limits: min(campaign limit, provider limit). */
   maxChars: number;
-  maxCharsZh: number;
+  maxCharsAlt: number;
   maxSignatureChars: number;
   maxAttempts: number;
   log?: (m: string) => void;
@@ -34,7 +35,7 @@ export function forbiddenDetails(m: AudienceMatch): string[] {
 
 export async function generateNotes(campaign: Campaign, matches: AudienceMatch[], opts: GenerateOptions): Promise<Note[]> {
   const log = opts.log ?? (() => {});
-  const system = buildSystemPrompt(campaign, { maxChars: opts.maxChars, maxCharsZh: opts.maxCharsZh });
+  const system = buildSystemPrompt(campaign, { maxChars: opts.maxChars, maxCharsAlt: opts.maxCharsAlt });
 
   type Slot = {
     match: AudienceMatch;
@@ -42,10 +43,11 @@ export async function generateNotes(campaign: Campaign, matches: AudienceMatch[]
     attempts: number;
     draft?: Draft;
     message: string;
-    messageZh: string;
+    messageAlt: string;
+    altScript?: AltScript;
     issues: NoteIssue[];
     charCount: number;
-    charCountZh?: number;
+    charCountAlt?: number;
     signature: string;
   };
 
@@ -59,11 +61,17 @@ export async function generateNotes(campaign: Campaign, matches: AudienceMatch[]
         system,
         user: buildUserPrompt(ctx),
         ctx,
-        meta: { campaignId: campaign.id, serviceId: m.client.lastServiceId, stylist: ctx.stylist_first_name },
+        meta: {
+          campaignId: campaign.id,
+          serviceId: m.client.lastServiceId,
+          stylist: ctx.stylist_first_name,
+          altScript: campaign.secondLanguage ? altScriptFor(m.client.preferredLanguage) : undefined,
+        },
       },
       attempts: 0,
       message: "",
-      messageZh: "",
+      messageAlt: "",
+      altScript: campaign.secondLanguage ? altScriptFor(m.client.preferredLanguage) : undefined,
       issues: [],
       charCount: 0,
       signature: renderSignature(campaign, m.client.favouriteStaffName),
@@ -81,20 +89,20 @@ export async function generateNotes(campaign: Campaign, matches: AudienceMatch[]
       return;
     }
     s.message = sanitizeForPen(d.message);
-    s.messageZh = s.req.ctx.write_chinese_version ? sanitizeZh(d.messageZh) : "";
-    const v = validateNote(s.message, s.messageZh || undefined, {
+    s.messageAlt = s.altScript ? sanitizeAlt(d.messageAlt, s.altScript) : "";
+    const v = validateNote(s.message, s.messageAlt || undefined, {
       firstName: s.match.client.firstName,
       maxChars: opts.maxChars,
-      maxCharsZh: opts.maxCharsZh,
+      maxCharsAlt: altLimit(opts.maxCharsAlt, s.altScript),
       maxSignatureChars: opts.maxSignatureChars,
       signature: s.signature,
-      requireZh: s.req.ctx.write_chinese_version,
+      altScript: s.altScript,
       offerCode: campaign.offer?.code,
       forbidden: forbiddenDetails(s.match),
     });
     s.issues = v.issues;
     s.charCount = v.charCount;
-    s.charCountZh = v.charCountZh;
+    s.charCountAlt = v.charCountAlt;
   };
 
   let pending = slots;
@@ -108,7 +116,7 @@ export async function generateNotes(campaign: Campaign, matches: AudienceMatch[]
     );
     for (const s of pending) {
       s.attempts++;
-      s.draft = drafts.get(s.req.id) ?? { message: "", messageZh: "", error: "no result returned" };
+      s.draft = drafts.get(s.req.id) ?? { message: "", messageAlt: "", error: "no result returned" };
       evaluate(s);
     }
     pending = pending.filter((s) => s.issues.length > 0 && retryable(s.issues) && !s.draft?.refusal);
@@ -129,17 +137,18 @@ export async function generateNotes(campaign: Campaign, matches: AudienceMatch[]
       clientId: c.id,
       recipient: { firstName: c.firstName, lastName: c.lastName, address: c.address },
       preferredLanguage: c.preferredLanguage,
+      altScript: s.altScript,
       stylistName: c.favouriteStaffName,
       lastServiceName: c.lastServiceName,
       visitCount: c.visitCount,
       reasons: s.match.reasons,
       message: s.message,
-      messageZh: s.messageZh || undefined,
+      messageAlt: s.messageAlt || undefined,
       signature: s.signature,
       charCount: s.charCount || charCount(s.message),
-      charCountZh: s.charCountZh,
+      charCountAlt: s.charCountAlt,
       maxChars: opts.maxChars,
-      maxCharsZh: opts.maxCharsZh,
+      maxCharsAlt: altLimit(opts.maxCharsAlt, s.altScript),
       issues: s.issues,
       status: s.issues.length === 0 ? "ok" : "needs_attention",
       writer: opts.writer.name,

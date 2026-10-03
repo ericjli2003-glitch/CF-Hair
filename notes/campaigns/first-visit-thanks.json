@@ -7,10 +7,10 @@
   "design": "cf-thank-you",
   "guidelines": "Thank them for choosing CF Hair Salon for their first visit. Mention the service they had and that it was a pleasure for their stylist to meet them. If there is a client note, use one small detail naturally. Invite them back warmly without pushing a booking. You may add one gentle line that a Google review helps a small neighbourhood salon, phrased as a favour, never as a demand.",
   "maxChars": 380,
-  "maxCharsZh": 130,
+  "maxCharsAlt": 130,
   "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
   "offer": null,
   "dedupe": "firstVisit",
-  "chinese": true,
+  "secondLanguage": true,
   "handwrytten": { "cardId": null, "font": null }
 }

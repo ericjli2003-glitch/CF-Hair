@@ -1,8 +1,14 @@
 /** Audience selection: evaluates campaign rules against clients and applies mailing exclusions. */
-import { daysBetween, nextBirthday } from "./dates.js";
+import { daysBetween, nextBirthday, toIsoDate } from "./dates.js";
 import type { History } from "./history.js";
 import type { AudienceMatch, AudienceRule, Campaign, Client, Exclusion, IsoDate } from "./types.js";
 import { isValidCanadianPostal } from "./data/csv.js";
+
+/** Upcoming confirmed booking on or after today (salon time), if any. */
+export function upcomingBookingDate(c: Client, today: IsoDate): IsoDate | undefined {
+  const d = toIsoDate(c.nextBookingAt);
+  return d && d >= today ? d : undefined;
+}
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -72,8 +78,14 @@ function evalRule(rule: AudienceRule, c: Client, ctx: EvalContext): RuleResult {
       return c.visitCount <= rule.count ? yes(plural(c.visitCount, "visit")) : no();
     case "hasTag":
       return c.tags.map((t) => t.toLowerCase()).includes(rule.tag.toLowerCase()) ? yes(`tagged ${rule.tag}`) : no();
-    case "preferredLanguage":
-      return c.preferredLanguage === rule.language ? yes(`prefers ${rule.language}`) : no();
+    case "preferredLanguage": {
+      const match = rule.language === "zh" ? c.preferredLanguage.startsWith("zh-") : c.preferredLanguage === rule.language;
+      return match ? yes(`prefers ${c.preferredLanguage}`) : no();
+    }
+    case "hasUpcomingBooking": {
+      const d = upcomingBookingDate(c, ctx.today);
+      return d ? yes(`booked for ${d}`) : no();
+    }
     case "referredSomeoneWithinDays": {
       const referred = (ctx.referralsByReferrer.get(c.id) ?? [])
         .filter((r) => r.firstVisit && daysBetween(r.firstVisit, ctx.today) >= 0 && daysBetween(r.firstVisit, ctx.today) <= rule.days)
@@ -119,7 +131,8 @@ export interface Selection {
 
 /**
  * Pick the campaign audience. A client must match the rule AND be mailable:
- * has a complete Canadian address, is not opted out, has not already received
+ * has a complete Canadian address, is not opted out, is not already booked (for
+ * "come back" campaigns with excludeIfBooked), has not already received
  * this campaign for this occasion, and has not had any card in the cooldown window.
  */
 export function selectAudience(campaign: Campaign, clients: Client[], opts: SelectOptions): Selection {
@@ -154,6 +167,11 @@ export function selectAudience(campaign: Campaign, clients: Client[], opts: Sele
     }
     if (c.address.country === "CA" && !isValidCanadianPostal(c.address.postalCode)) {
       excluded.push({ client: c, reason: `invalid postal code "${c.address.postalCode}"` });
+      continue;
+    }
+    const booked = campaign.excludeIfBooked ? upcomingBookingDate(c, opts.today) : undefined;
+    if (booked) {
+      excluded.push({ client: c, reason: `already booked for ${booked}` });
       continue;
     }
     const key = idempotencyKey(campaign, c, res.occasion, opts.today);

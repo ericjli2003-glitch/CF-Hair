@@ -11,7 +11,10 @@ export interface MailingAddress {
   country: string; // ISO 3166 alpha-2, "CA" for every salon client so far
 }
 
-export type Language = "en" | "zh";
+/** Booking API language codes (docs/ARCHITECTURE.md, "Languages"). */
+export type LanguageCode = "en-US" | "zh-CN" | "zh-HK" | "ko-KR";
+/** Script of the optional second-language version of a card. */
+export type AltScript = "zh-Hans" | "zh-Hant" | "ko";
 
 export interface Client {
   id: string;
@@ -30,7 +33,9 @@ export interface Client {
   lastServiceName?: string;
   /** "MM-DD" or "YYYY-MM-DD". Only month and day are ever used. */
   birthday?: string;
-  preferredLanguage: Language;
+  preferredLanguage: LanguageCode;
+  /** ISO timestamp of the earliest upcoming confirmed booking, if any. */
+  nextBookingAt?: string;
   tags: string[];
   /** Client id of whoever referred this client, if known. */
   referredBy?: string;
@@ -55,7 +60,8 @@ export type AudienceRule =
   | { rule: "minVisits"; count: number }
   | { rule: "maxVisits"; count: number }
   | { rule: "hasTag"; tag: string }
-  | { rule: "preferredLanguage"; language: Language }
+  | { rule: "preferredLanguage"; language: LanguageCode | "zh" }
+  | { rule: "hasUpcomingBooking" }
   | { rule: "referredSomeoneWithinDays"; days: number };
 
 export type DedupeScope = "once" | "year" | "lastVisit" | "firstVisit" | "referral";
@@ -75,12 +81,15 @@ export interface Campaign {
   design: string;
   guidelines: string;
   maxChars: number;
-  maxCharsZh: number;
+  /** Limit for the Chinese version; Korean gets 1.4x because Hangul needs spaces. */
+  maxCharsAlt: number;
   signature: { template: string; fallback: string };
   offer?: Offer | null;
   dedupe: DedupeScope;
-  /** Write a Simplified Chinese version for clients whose preferred language is zh. */
-  chinese: boolean;
+  /** Write a second version in the client's language (zh-CN, zh-HK or ko-KR). */
+  secondLanguage: boolean;
+  /** Skip clients who already have an upcoming booking ("come back" campaigns). */
+  excludeIfBooked?: boolean;
   /** Ignore the global "no two cards within N days" cooldown (e.g. birthdays). */
   ignoreCooldown?: boolean;
   handwrytten?: { cardId?: string | number | null; font?: string | null };
@@ -109,7 +118,7 @@ export type NoteStatus = "ok" | "needs_attention";
 export interface NoteIssue {
   code:
     | "too_long"
-    | "too_long_zh"
+    | "too_long_alt"
     | "empty"
     | "emoji"
     | "dash"
@@ -119,7 +128,8 @@ export interface NoteIssue {
     | "salesy"
     | "signature_too_long"
     | "offer_missing"
-    | "zh_missing"
+    | "alt_missing"
+    | "wrong_script"
     | "refusal"
     | "api_error";
   message: string;
@@ -135,18 +145,20 @@ export interface Note {
     lastName: string;
     address?: MailingAddress;
   };
-  preferredLanguage: Language;
+  preferredLanguage: LanguageCode;
+  /** Script of messageAlt, when a second-language version was requested. */
+  altScript?: AltScript;
   stylistName?: string;
   lastServiceName?: string;
   visitCount: number;
   reasons: string[];
   message: string;
-  messageZh?: string;
+  messageAlt?: string;
   signature: string;
   charCount: number;
-  charCountZh?: number;
+  charCountAlt?: number;
   maxChars: number;
-  maxCharsZh: number;
+  maxCharsAlt: number;
   issues: NoteIssue[];
   status: NoteStatus;
   writer: string; // "claude:<model>" or "mock"
@@ -178,7 +190,7 @@ export interface ApprovedFile {
     noteId: string;
     idempotencyKey: string;
     message: string;
-    messageZh?: string;
+    messageAlt?: string;
     signature: string;
     edited?: boolean;
   }>;

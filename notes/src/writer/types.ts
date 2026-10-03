@@ -1,3 +1,4 @@
+import type { AltScript } from "../types.js";
 import type { ClientContext } from "./prompt.js";
 
 export interface DraftRequest {
@@ -7,12 +8,12 @@ export interface DraftRequest {
   user: string;
   ctx: ClientContext;
   /** Extra data for template writers; Claude never sees this. */
-  meta: { campaignId: string; serviceId?: string; stylist?: string | null };
+  meta: { campaignId: string; serviceId?: string; stylist?: string | null; altScript?: AltScript };
 }
 
 export interface Draft {
   message: string;
-  messageZh: string;
+  messageAlt: string;
   refusal?: boolean;
   error?: string;
 }

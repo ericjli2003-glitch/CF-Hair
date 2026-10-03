@@ -1,16 +1,16 @@
 {
   "id": "lunar-new-year",
   "name": "Happy Lunar New Year",
-  "description": "Year of the Goat begins 2027-02-06. Mail in the last week of January to every client with 2 or more visits. Chinese-speaking clients get a Simplified Chinese version.",
+  "description": "Year of the Goat begins 2027-02-06. Mail in the last week of January to every client with 2 or more visits. Mandarin speakers get a Simplified Chinese version, Cantonese speakers Traditional Chinese, Korean speakers a Seollal (Korean New Year) greeting in Korean.",
   "occasion": "Lunar New Year greeting (Year of the Goat, 2027)",
   "audience": { "all": [ { "rule": "minVisits", "count": 2 }, { "rule": "lastVisitBetweenDays", "min": 0, "max": 365 } ] },
   "design": "cf-lunar-new-year",
-  "guidelines": "Wish them a happy and healthy Lunar New Year, the Year of the Goat, from their stylist and the salon. Warm, traditional good wishes (health, peace, good fortune) are welcome. If they prefer Chinese, the Chinese version should use natural New Year greetings rather than a literal translation. No offers, no booking push.",
+  "guidelines": "Wish them a happy and healthy Lunar New Year, the Year of the Goat, from their stylist and the salon. Warm, traditional good wishes (health, peace, good fortune) are welcome. The second-language version should use natural New Year greetings rather than a literal translation (Chinese: 新春快乐 style wishes; Korean: 설날 and 새해 복 많이 받으세요). No offers, no booking push.",
   "maxChars": 340,
-  "maxCharsZh": 110,
+  "maxCharsAlt": 110,
   "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
   "offer": null,
   "dedupe": "year",
-  "chinese": true,
+  "secondLanguage": true,
   "handwrytten": { "cardId": null, "font": null }
 }

@@ -2,7 +2,8 @@
  * Text rules for cards that a pen robot or plotter will write:
  * character counting, sanitising, and validation against campaign and provider limits.
  */
-import type { NoteIssue } from "./types.js";
+import { ALT_LABEL, wrongScriptChars } from "./language.js";
+import type { AltScript, NoteIssue } from "./types.js";
 
 const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
 
@@ -33,11 +34,16 @@ export function sanitizeForPen(input: string): string {
   return s.trim();
 }
 
-/** Simplified Chinese clean-up: full-width punctuation stays, long dashes go. */
-export function sanitizeZh(input: string): string {
+/**
+ * Second-language clean-up. Chinese keeps full-width punctuation and turns long dashes
+ * into a full-width comma; Korean uses ordinary punctuation and a comma.
+ */
+export function sanitizeAlt(input: string, script: AltScript): string {
   let s = input.normalize("NFC");
-  s = s.replace(/\s*[\u2012\u2013\u2014\u2015\u2212\u2E3A\u2E3B]+\s*/g, "\uFF0C");
-  s = s.replace(/\uFF0C\uFF0C/g, "\uFF0C").replace(/[ \t\u00A0]+/g, " ").replace(/\n{3,}/g, "\n\n");
+  const comma = script === "ko" ? ", " : "\uFF0C";
+  s = s.replace(/\s*[\u2012\u2013\u2014\u2015\u2212\u2E3A\u2E3B]+\s*/g, comma);
+  s = s.replace(/\uFF0C\uFF0C/g, "\uFF0C").replace(/,\s*,/g, ",");
+  s = s.replace(/[ \t\u00A0]+/g, " ").replace(/ *\n */g, "\n").replace(/\n{3,}/g, "\n\n");
   return s.trim();
 }
 
@@ -77,10 +83,12 @@ const SALESY = [
 export interface ValidateOptions {
   firstName: string;
   maxChars: number;
-  maxCharsZh: number;
+  /** Limit for the second-language version (already adjusted for its script). */
+  maxCharsAlt: number;
   maxSignatureChars: number;
   signature: string;
-  requireZh: boolean;
+  /** Script of the required second-language version, if any. */
+  altScript?: AltScript;
   offerCode?: string;
   /** Strings that must never appear in a note (street line, postal code, phone digits, birth year...). */
   forbidden?: string[];
@@ -89,21 +97,21 @@ export interface ValidateOptions {
 export interface ValidationResult {
   issues: NoteIssue[];
   charCount: number;
-  charCountZh?: number;
+  charCountAlt?: number;
 }
 
 /** Validate a finished note. Callers sanitise first; this only reports. */
-export function validateNote(message: string, messageZh: string | undefined, opts: ValidateOptions): ValidationResult {
+export function validateNote(message: string, messageAlt: string | undefined, opts: ValidateOptions): ValidationResult {
   const issues: NoteIssue[] = [];
   const n = charCount(message);
   if (!message.trim()) issues.push({ code: "empty", message: "Message is empty." });
   if (n > opts.maxChars) {
     issues.push({ code: "too_long", message: `Message is ${n} characters; the limit is ${opts.maxChars}.` });
   }
-  if (hasEmoji(message) || (messageZh && hasEmoji(messageZh))) {
+  if (hasEmoji(message) || (messageAlt && hasEmoji(messageAlt))) {
     issues.push({ code: "emoji", message: "Contains an emoji; pen plotters cannot write emoji." });
   }
-  if (hasLongDash(message) || (messageZh && hasLongDash(messageZh))) {
+  if (hasLongDash(message) || (messageAlt && hasLongDash(messageAlt))) {
     issues.push({ code: "dash", message: "Contains an em or en dash." });
   }
   const bad = unsupportedChars(message);
@@ -131,18 +139,23 @@ export function validateNote(message: string, messageZh: string | undefined, opt
   if (sigLen > opts.maxSignatureChars) {
     issues.push({ code: "signature_too_long", message: `Signature is ${sigLen} characters; limit ${opts.maxSignatureChars}.` });
   }
-  let nZh: number | undefined;
-  if (opts.requireZh) {
-    if (!messageZh || !messageZh.trim()) {
-      issues.push({ code: "zh_missing", message: "Chinese version requested but missing." });
+  let nAlt: number | undefined;
+  if (opts.altScript) {
+    const label = ALT_LABEL[opts.altScript];
+    if (!messageAlt || !messageAlt.trim()) {
+      issues.push({ code: "alt_missing", message: `${label} version requested but missing.` });
     } else {
-      nZh = charCount(messageZh);
-      if (nZh > opts.maxCharsZh) {
-        issues.push({ code: "too_long_zh", message: `Chinese version is ${nZh} characters; the limit is ${opts.maxCharsZh}.` });
+      nAlt = charCount(messageAlt);
+      if (nAlt > opts.maxCharsAlt) {
+        issues.push({ code: "too_long_alt", message: `${label} version is ${nAlt} characters; the limit is ${opts.maxCharsAlt}.` });
+      }
+      const wrong = wrongScriptChars(messageAlt, opts.altScript);
+      if (wrong.length) {
+        issues.push({ code: "wrong_script", message: `${label} version has characters from the wrong script: ${wrong.join(" ")}` });
       }
     }
   }
-  return { issues, charCount: n, charCountZh: nZh };
+  return { issues, charCount: n, charCountAlt: nAlt };
 }
 
 /** Issues the writer should retry on (everything except problems with our own inputs). */

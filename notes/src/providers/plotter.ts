@@ -7,12 +7,13 @@
  * Plot with Evil Mad Scientist's CLI, e.g. `axicli <file>.svg`, or open in Inkscape.
  * Stamp with a Canada Post Permanent stamp and drop in the mailbox.
  *
- * Chinese text cannot be plotted with Hershey fonts; those cards are listed in
- * hand-finish.txt for a team member to add the Chinese lines by hand.
+ * Chinese and Korean cannot be plotted with Hershey fonts; those cards are listed in
+ * hand-finish.txt for a team member to add the second-language lines by hand.
  */
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { providerSettings, salonReturnAddress } from "../config.js";
+import { ALT_LABEL } from "../language.js";
 import { charCount } from "../text.js";
 import { layoutText, type PlotterFontName } from "./hershey.js";
 import type { ProviderAdapter, SendContext, SendItem, SendResult } from "./types.js";
@@ -148,7 +149,7 @@ export class PlotterAdapter implements ProviderAdapter {
       files: [`${item.note.noteId}-inside.svg`, `${item.note.noteId}-envelope.svg`],
       capHeightMm: l.capHeightMm,
       fits: l.fits,
-      handFinishChinese: !!item.messageZh,
+      handFinishSecondLanguage: item.messageAlt ? item.note.altScript : false,
     };
   }
 
@@ -161,10 +162,11 @@ export class PlotterAdapter implements ProviderAdapter {
     const envelope = path.join(dir, `${item.note.noteId}-envelope.svg`);
     writeFileSync(inside, l.inside);
     writeFileSync(envelope, l.envelope);
-    if (item.messageZh) {
+    if (item.messageAlt) {
+      const label = item.note.altScript ? ALT_LABEL[item.note.altScript] : "Second-language";
       appendFileSync(
         path.join(dir, "hand-finish.txt"),
-        `${item.note.noteId} (${item.note.recipient.firstName} ${item.note.recipient.lastName}): add by hand below the English message:\n${item.messageZh}\n\n`,
+        `${item.note.noteId} (${item.note.recipient.firstName} ${item.note.recipient.lastName}): add these ${label} lines by hand below the English message:\n${item.messageAlt}\n\n`,
       );
     }
     return { providerRef: `svg:${path.basename(inside)}`, detail: `${path.relative(process.cwd(), inside)}, ${path.relative(process.cwd(), envelope)}` };

@@ -8,6 +8,7 @@ import { layoutCard } from "../src/providers/plotter.js";
 import { effectiveLimits } from "../src/run.js";
 import { charCount, sanitizeForPen, validateNote } from "../src/text.js";
 import { generateNotes } from "../src/writer/generate.js";
+import { altScriptFor, normaliseLanguage, wrongScriptChars } from "../src/language.js";
 import { MockWriter } from "../src/writer/mock.js";
 import { emptyUsage, type Draft, type DraftRequest, type NoteWriter } from "../src/writer/types.js";
 
@@ -16,10 +17,9 @@ const SAMPLE = loadClientsCsv(path.join(__dirname, "..", "sample", "clients.csv"
 const base = {
   firstName: "Arash",
   maxChars: 120,
-  maxCharsZh: 40,
+  maxCharsAlt: 40,
   maxSignatureChars: 50,
   signature: "Warmly,\nJason\nCF Hair Salon",
-  requireZh: false,
 };
 
 describe("character limits and pen-safe text", () => {
@@ -60,6 +60,12 @@ describe("character limits and pen-safe text", () => {
   });
 });
 
+const ALT_OK = {
+  "zh-Hans": "\u597D\u4E45\u4E0D\u89C1\uFF0C\u968F\u65F6\u6B22\u8FCE\u56DE\u6765\u3002",
+  "zh-Hant": "\u597D\u4E45\u4E0D\u898B\uFF0C\u96A8\u6642\u6B61\u8FCE\u56DE\u4F86\u3002",
+  ko: "\uC5B8\uC81C\uB4E0 \uB4E4\uB7EC \uC8FC\uC138\uC694.",
+} as const;
+
 /** Writer that returns a too-long draft first, then whatever the feedback asks for. */
 class ScriptedWriter implements NoteWriter {
   readonly name = "scripted";
@@ -83,7 +89,7 @@ class ScriptedWriter implements NoteWriter {
 describe("generation retries until the note fits", () => {
   const campaign = loadCampaign("win-back");
   const matches = selectAudience(campaign, SAMPLE, { today: TODAY, cooldownDays: 30 }).matches.slice(0, 2);
-  const limits = { maxChars: 200, maxCharsZh: 130, maxSignatureChars: 50 };
+  const limits = { maxChars: 200, maxCharsAlt: 130, maxSignatureChars: 50 };
 
   it("rewrites a too-long note with feedback, using regular calls for the retry", async () => {
     const writer = new ScriptedWriter((r, attempt) => ({
@@ -91,7 +97,7 @@ describe("generation retries until the note fits", () => {
         attempt === 1
           ? `Hi ${r.ctx.client_first_name}, ${"we really do hope everything is wonderful. ".repeat(8)} WELCOME15`
           : `Hi ${r.ctx.client_first_name}, your chair is here whenever you want a refresh. WELCOME15 is a small welcome back.`,
-      messageZh: r.ctx.write_chinese_version ? "好久不见，随时欢迎回来。凭WELCOME15下次可享八五折。" : "",
+      messageAlt: r.meta.altScript ? ALT_OK[r.meta.altScript] : "",
     }));
     const notes = await generateNotes(campaign, matches, { writer, today: TODAY, ...limits, maxAttempts: 3 });
     expect(notes.every((n) => n.status === "ok")).toBe(true);
@@ -102,14 +108,14 @@ describe("generation retries until the note fits", () => {
   });
 
   it("gives up after maxAttempts and marks the note for attention", async () => {
-    const writer = new ScriptedWriter((r) => ({ message: `Hi ${r.ctx.client_first_name}, ${"x".repeat(300)} WELCOME15`, messageZh: "好" }));
+    const writer = new ScriptedWriter((r) => ({ message: `Hi ${r.ctx.client_first_name}, ${"x".repeat(300)} WELCOME15`, messageAlt: "好" }));
     const notes = await generateNotes(campaign, matches, { writer, today: TODAY, ...limits, maxAttempts: 3 });
     expect(notes.every((n) => n.status === "needs_attention" && n.attempts === 3)).toBe(true);
     expect(notes[0].issues.map((i) => i.code)).toContain("too_long");
   });
 
   it("does not retry a refusal; it flags it for a human", async () => {
-    const writer = new ScriptedWriter(() => ({ message: "", messageZh: "", refusal: true }));
+    const writer = new ScriptedWriter(() => ({ message: "", messageAlt: "", refusal: true }));
     const notes = await generateNotes(campaign, matches, { writer, today: TODAY, ...limits, maxAttempts: 3 });
     expect(writer.calls).toHaveLength(1);
     expect(notes[0].issues[0].code).toBe("refusal");
@@ -152,5 +158,49 @@ describe("provider limits", () => {
     expect(ok.inside).not.toContain("<text");
     const tooLong = layoutCard({ note, campaign, message: "word ".repeat(400), signature: "Jason", address });
     expect(tooLong.fits).toBe(false);
+  });
+});
+
+describe("second-language versions", () => {
+  it("normalises language codes, names and legacy tags", () => {
+    expect(normaliseLanguage("zh-HK")).toBe("zh-HK");
+    expect(normaliseLanguage("Cantonese")).toBe("zh-HK");
+    expect(normaliseLanguage("zh")).toBe("zh-CN");
+    expect(normaliseLanguage("mandarin")).toBe("zh-CN");
+    expect(normaliseLanguage("KO-kr")).toBe("ko-KR");
+    expect(normaliseLanguage("", ["lang:zh"])).toBe("zh-CN");
+    expect(normaliseLanguage(undefined)).toBe("en-US");
+    expect(altScriptFor("zh-CN")).toBe("zh-Hans");
+    expect(altScriptFor("zh-HK")).toBe("zh-Hant");
+    expect(altScriptFor("ko-KR")).toBe("ko");
+    expect(altScriptFor("en-US")).toBeUndefined();
+  });
+
+  it("catches the wrong Chinese script and Korean without Hangul", () => {
+    expect(wrongScriptChars("谢谢你们，随时欢迎回来。", "zh-Hant")).toEqual(
+      expect.arrayContaining(["谢", "们", "欢", "来"]),
+    );
+    expect(wrongScriptChars("謝謝你們，隨時歡迎回來。", "zh-Hant")).toEqual([]);
+    expect(wrongScriptChars("謝謝你們", "zh-Hans")).toEqual(expect.arrayContaining(["謝", "們"]));
+    expect(wrongScriptChars("서연님께, 감사해요.", "ko")).toEqual([]);
+    expect(wrongScriptChars("Thank you", "ko")).toEqual(["(no Hangul)"]);
+    const v = validateNote("Hi Ka Yan, see you.", "谢谢你们。", { ...base, maxCharsAlt: 130, altScript: "zh-Hant" });
+    expect(v.issues.map((i) => i.code)).toContain("wrong_script");
+  });
+
+  it("writes Simplified for zh-CN, Traditional for zh-HK and Korean for ko-KR, with a longer Korean limit", async () => {
+    const c = loadCampaign("win-back");
+    const m = selectAudience(c, SAMPLE, { today: TODAY, cooldownDays: 30 }).matches;
+    const notes = await generateNotes(c, m, { writer: new MockWriter(), today: TODAY, ...effectiveLimits(c, "handwrytten"), maxAttempts: 1 });
+    const by = Object.fromEntries(notes.map((n) => [n.clientId, n]));
+    expect(by.c014.altScript).toBe("zh-Hans");
+    expect(by.c027.altScript).toBe("zh-Hant");
+    expect(wrongScriptChars(by.c027.messageAlt!, "zh-Hant")).toEqual([]);
+    expect(by.c026.altScript).toBe("ko");
+    expect(by.c026.messageAlt).toMatch(/님께/);
+    expect(by.c026.maxCharsAlt).toBe(Math.round(c.maxCharsAlt * 1.4));
+    expect(by.c012.altScript).toBeUndefined();
+    expect(by.c012.messageAlt).toBeUndefined();
+    expect(notes.every((n) => n.status === "ok")).toBe(true);
   });
 });

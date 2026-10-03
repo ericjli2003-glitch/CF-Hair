@@ -11,7 +11,8 @@ import { buildFonts } from "./proof/fonts.js";
 import { renderProof } from "./proof/html.js";
 import { createProvider } from "./providers/index.js";
 import type { SendItem } from "./providers/types.js";
-import { charCount, sanitizeForPen, sanitizeZh, validateNote } from "./text.js";
+import { altLimit } from "./language.js";
+import { charCount, sanitizeAlt, sanitizeForPen, validateNote } from "./text.js";
 import type { ApprovedFile, Campaign, IsoDate, RunManifest } from "./types.js";
 import { ClaudeWriter } from "./writer/claude.js";
 import { forbiddenDetails, generateNotes } from "./writer/generate.js";
@@ -32,7 +33,7 @@ export function effectiveLimits(campaign: Campaign, provider: string) {
   const p = providerSettings(provider);
   return {
     maxChars: Math.min(campaign.maxChars, p.maxMessageChars),
-    maxCharsZh: campaign.maxCharsZh,
+    maxCharsAlt: campaign.maxCharsAlt,
     maxSignatureChars: p.maxSignatureChars,
   };
 }
@@ -84,7 +85,7 @@ export function printPlan(p: PlanResult, log: Log = console.log): void {
   for (const m of selection.matches) {
     const c = m.client;
     log(
-      `  + ${`${c.firstName} ${c.lastName}`.padEnd(22)} ${(c.favouriteStaffName ?? "-").padEnd(8)} ${(c.lastServiceName ?? "-").padEnd(26)} ${c.preferredLanguage === "zh" ? "zh " : "   "} ${m.reasons.join(", ")}`,
+      `  + ${`${c.firstName} ${c.lastName}`.padEnd(22)} ${(c.favouriteStaffName ?? "-").padEnd(8)} ${(c.lastServiceName ?? "-").padEnd(26)} ${(c.preferredLanguage === "en-US" ? "" : c.preferredLanguage).padEnd(5)} ${m.reasons.join(", ")}`,
     );
   }
   if (selection.excluded.length) {
@@ -163,13 +164,13 @@ export async function generate(opts: CommonOptions & { writer?: NoteWriter; mock
 export function notesCsv(run: RunManifest): string {
   const header = [
     "note_id", "client_id", "first_name", "last_name", "address_line1", "address_line2", "city", "province", "postal_code",
-    "language", "stylist", "last_service", "visit_count", "reasons", "message", "message_zh", "signature",
+    "language", "stylist", "last_service", "visit_count", "reasons", "message", "second_script", "message_alt", "signature",
     "chars", "max_chars", "status", "issues", "writer", "idempotency_key",
   ];
   const rows = run.notes.map((n) => [
     n.noteId, n.clientId, n.recipient.firstName, n.recipient.lastName, n.recipient.address?.line1, n.recipient.address?.line2,
     n.recipient.address?.city, n.recipient.address?.province, n.recipient.address?.postalCode, n.preferredLanguage,
-    n.stylistName, n.lastServiceName, n.visitCount, n.reasons.join("; "), n.message, n.messageZh, n.signature,
+    n.stylistName, n.lastServiceName, n.visitCount, n.reasons.join("; "), n.message, n.altScript, n.messageAlt, n.signature,
     n.charCount, n.maxChars, n.status, n.issues.map((i) => i.message).join(" | "), n.writer, n.idempotencyKey,
   ]);
   return toCsv(header, rows);
@@ -187,8 +188,8 @@ export async function proof(dirOrRunId: string, opts: { provider?: string; log?:
   const { run, dir } = loadRun(dirOrRunId);
   const provider = opts.provider ?? run.providerForLimits ?? loadSettings().defaultProvider;
   const adapter = createProvider(provider, { outDir: OUT_DIR });
-  const fonts = await buildFonts(run.notes.map((n) => n.messageZh ?? "").join(""));
-  if (fonts.fallbackLink) log("Note: could not embed Chinese font subsets (offline?); the proof will load them from Google Fonts when opened.");
+  const fonts = await buildFonts(run.notes.map((n) => n.messageAlt ?? "").join(""));
+  if (fonts.fallbackLink) log("Note: could not embed Chinese and Korean font subsets (offline?); the proof will load them from Google Fonts when opened.");
   const html = renderProof(run, { provider, costPerCardCAD: adapter.costPerCardCAD(), fonts });
   const file = path.join(dir, "proof.html");
   writeFileSync(file, html);
@@ -272,15 +273,18 @@ export async function sendApproved(opts: SendOptions): Promise<SendSummary> {
         continue;
       }
       const message = sanitizeForPen(a.message);
-      const messageZh = a.messageZh ? sanitizeZh(a.messageZh) : undefined;
+      // Tolerate approved lists exported before the field was renamed.
+      const altRaw = a.messageAlt ?? (a as { messageZh?: string }).messageZh;
+      const messageAlt = altRaw && note.altScript ? sanitizeAlt(altRaw, note.altScript) : undefined;
       const client = { firstName: note.recipient.firstName };
-      const v = validateNote(message, messageZh, {
+      const v = validateNote(message, messageAlt, {
         firstName: client.firstName,
         maxChars: limits.maxChars,
-        maxCharsZh: limits.maxCharsZh,
+        maxCharsAlt: altLimit(limits.maxCharsAlt, note.altScript),
         maxSignatureChars: limits.maxSignatureChars,
         signature: a.signature,
-        requireZh: false,
+        // The second-language lines are optional at send time (hand-written), but checked if present.
+        altScript: messageAlt ? note.altScript : undefined,
         offerCode: campaign.offer?.code,
         forbidden: forbiddenDetails({
           client: { ...note.recipient, id: note.clientId, visitCount: note.visitCount, preferredLanguage: note.preferredLanguage, tags: [] },
@@ -289,7 +293,7 @@ export async function sendApproved(opts: SendOptions): Promise<SendSummary> {
           idempotencyKey: note.idempotencyKey,
         }),
       });
-      const item: SendItem = { note, campaign, message, messageZh, signature: a.signature, address: note.recipient.address };
+      const item: SendItem = { note, campaign, message, messageAlt, signature: a.signature, address: note.recipient.address };
       const problems = [...v.issues.map((i) => i.message), ...adapter.validate(item)];
       if (problems.length) {
         summary.skipped.push({ noteId: a.noteId, reason: problems.join("; ") });
