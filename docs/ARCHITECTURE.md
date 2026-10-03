@@ -46,7 +46,7 @@ or an admin session.
 | POST | `/api/bookings/{id}/cancel` **(agent)** | cancel; returns `{booking}` |
 | POST | `/api/bookings/{id}/reschedule` **(agent)** | body `{start, staffId?}` |
 | POST | `/api/messages` **(agent)** | body `{callerName, phone, message, urgency:"low"\|"normal"\|"high"}` for callback requests |
-| GET | `/api/customers?since=&tag=` **(admin)** | `[{id, name, phone, email, mailingAddress?, firstVisit, lastVisit, visitCount, favouriteStaffId, birthday?, preferredLanguage, tags[]}]` |
+| GET | `/api/customers?since=&tag=` **(admin)** | `[{id, name, phone, email, mailingAddress?, firstVisit, lastVisit, visitCount, favouriteStaffId, birthday?, preferredLanguage, lastServiceId?, lastServiceName?, nextBookingAt?, referredBy?, tags[]}]`. `nextBookingAt` is the start of the earliest upcoming confirmed booking, or null. |
 | GET | `/api/callers/{phone}` **(agent)** | `{phone, name?, preferredLanguage, lastCallAt?, callCount}`; unknown numbers return `200` with `preferredLanguage:"en-US"`, `callCount:0` |
 | PUT | `/api/callers/{phone}` **(agent)** | body `{preferredLanguage?, name?, incrementCallCount?: boolean}`; upserts a caller profile keyed by E.164 phone (linked to the customer with that phone if one exists) |
 
