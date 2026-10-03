@@ -46,7 +46,16 @@ or an admin session.
 | POST | `/api/bookings/{id}/cancel` **(agent)** | cancel; returns `{booking}` |
 | POST | `/api/bookings/{id}/reschedule` **(agent)** | body `{start, staffId?}` |
 | POST | `/api/messages` **(agent)** | body `{callerName, phone, message, urgency:"low"\|"normal"\|"high"}` for callback requests |
-| GET | `/api/customers?since=&tag=` **(admin)** | `[{id, name, phone, email, mailingAddress?, firstVisit, lastVisit, visitCount, favouriteStaffId, birthday?, tags[]}]` |
+| GET | `/api/customers?since=&tag=` **(admin)** | `[{id, name, phone, email, mailingAddress?, firstVisit, lastVisit, visitCount, favouriteStaffId, birthday?, preferredLanguage, tags[]}]` |
+| GET | `/api/callers/{phone}` **(agent)** | `{phone, name?, preferredLanguage, lastCallAt?, callCount}`; unknown numbers return `200` with `preferredLanguage:"en-US"`, `callCount:0` |
+| PUT | `/api/callers/{phone}` **(agent)** | body `{preferredLanguage?, name?, incrementCallCount?: boolean}`; upserts a caller profile keyed by E.164 phone (linked to the customer with that phone if one exists) |
+
+### Languages
+
+Supported codes: `en-US` (English), `zh-CN` (Mandarin), `zh-HK` (Cantonese), `ko-KR` (Korean).
+`preferredLanguage` defaults to `en-US`. The phone agent always greets in English, then uses
+the remembered language for that number (see `voice-agent/README.md`). The website and notes
+pipeline may also use `preferredLanguage` (e.g. Chinese or Korean card text).
 
 `booking` shape:
 `{id, serviceId, serviceName, staffId, staffName, start, end, status:"confirmed"|"cancelled"|"completed"|"no-show", customer:{name, phone, email}, source, notes, createdAt}`
