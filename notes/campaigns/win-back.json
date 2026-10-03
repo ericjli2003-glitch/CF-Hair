@@ -1,0 +1,16 @@
+{
+  "id": "win-back",
+  "name": "We miss you",
+  "description": "For clients whose last visit was 60 to 120 days ago: lapsed, but not lost. A personal card from their stylist is the gentlest nudge there is.",
+  "occasion": "win-back for a client who has not visited in a while",
+  "audience": { "all": [ { "rule": "lastVisitBetweenDays", "min": 60, "max": 120 }, { "rule": "minVisits", "count": 1 } ] },
+  "design": "cf-thinking-of-you",
+  "guidelines": "Write as their stylist simply thinking of them. Recall the service they last had in a natural way (for example, hoping their colour or cut has been treating them well). Never guilt-trip, never say 'we noticed you have not been in', never count days or months. Say the chair is ready whenever they are. If there is an offer, mention it once near the end as a welcome-back gift with the code.",
+  "maxChars": 380,
+  "maxCharsZh": 130,
+  "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
+  "offer": { "code": "WELCOME15", "description": "15% off their next visit, valid until the end of the year (PLACEHOLDER: confirm with owner)", "expires": "2026-12-31" },
+  "dedupe": "lastVisit",
+  "chinese": true,
+  "handwrytten": { "cardId": null, "font": null }
+}

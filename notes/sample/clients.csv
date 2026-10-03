@@ -1,0 +1,26 @@
+id,first_name,last_name,phone,email,address_line1,address_line2,city,province,postal_code,country,first_visit,last_visit,visit_count,favourite_staff_id,last_service_id,birthday,preferred_language,tags,referred_by,notes
+c001,Mei Lin,Chen,+16045550101,meilin.chen@example.com,1203-1180 Pinetree Way,,Coquitlam,BC,V3B 7L2,CA,2023-02-11,2026-09-26,14,stylist-a,balayage,03-08,zh,regular;lang:zh,,Keeps her balayage soft and low-maintenance; always asks about her daughter's school
+c002,Liam,O'Connor,+16045550102,liam.oconnor@example.com,2876 Westwood Street,,Coquitlam,BC,V3C 3L4,CA,2024-05-03,2026-09-18,7,stylist-b,mens-cut,05-21,en,regular,,Same tidy fade every month; plays rec hockey
+c003,Ji-woo,Park,+16045550103,jiwoo.park@example.com,407-3008 Glen Drive,,Coquitlam,BC,V3B 0L8,CA,2026-10-03,2026-10-03,1,stylist-a,womens-cut,12-02,en,new,,Went from long hair to a collarbone lob; nervous but loved it
+c004,Diego,Ramirez,+16045550104,diego.ramirez@example.com,1452 Johnson Street,,Coquitlam,BC,V3E 2Y9,CA,2026-10-06,2026-10-06,1,stylist-b,mens-cut,07-14,en,new,c002,Wanted a low taper before starting a new job
+c005,Yu-Ting,Huang,+16045550105,yuting.huang@example.com,2209-1188 Pinetree Way,,Coquitlam,BC,V3B 0K7,CA,2026-10-07,2026-10-07,1,stylist-a,balayage,01-30,zh,new;lang:zh,c001,First balayage; wanted something natural for photos
+c006,Aisha,Rahman,+16045550106,aisha.rahman@example.com,3367 Plateau Boulevard,,Coquitlam,BC,V3E 3B8,CA,2026-10-08,2026-10-08,1,stylist-a,root-colour,06-19,en,new,,Engaged; asked about a trial updo for a spring wedding
+c007,Grace,Wong,+16045550107,,1027 Cecile Drive,,Port Moody,BC,V3H 1M9,CA,2019-08-22,2026-09-30,22,stylist-c,senior-cut,10-14,zh,regular;lang:zh;cantonese,,Comes in with her sister; likes her set kept short and neat
+c008,Harjit,Gill,+16045550108,harjit.gill@example.com,1645 Harbour Drive,,Coquitlam,BC,V3J 5V3,CA,2025-01-14,2026-09-12,5,stylist-b,mens-cut,10-11,en,,,Beard line-up with every cut
+c009,Emily,Thompson,+16045550109,emily.thompson@example.com,535 Foster Avenue,,Coquitlam,BC,V3J 2L9,CA,2025-06-02,2026-08-29,3,stylist-a,womens-cut,10-20,en,,,Growing out her bangs
+c010,Kenji,Sato,+16045550110,kenji.sato@example.com,906-301 Maude Road,,Port Moody,BC,V3H 5B1,CA,2026-04-18,2026-09-05,2,stylist-b,mens-perm,10-22,en,,,First perm with us; wanted loose texture on top
+c011,Sophie,Tremblay,+16045550111,sophie.tremblay@example.com,2280 Austin Avenue,,Coquitlam,BC,V3K 3S2,CA,2024-09-10,2026-09-20,4,stylist-a,full-colour,10-25,en,,,Rich copper colour; cycles to the salon
+c012,Arash,Rahimi,+16045550112,arash.rahimi@example.com,1194 Lansdowne Drive,,Coquitlam,BC,V3E 1K8,CA,2024-11-30,2026-07-20,4,stylist-b,mens-perm,08-03,en,,,Likes the textured perm with the sides kept short
+c013,Linh,Nguyen,+16045550113,linh.nguyen@example.com,1508-3080 Lincoln Avenue,,Coquitlam,BC,V3B 0L9,CA,2023-10-07,2026-06-25,6,stylist-a,highlights,09-01,en,regular,,Bright face-framing highlights for summer
+c014,Wei,Zhang,+16045550114,wei.zhang@example.com,3135 Dunkirk Avenue,,Coquitlam,BC,V3B 4R2,CA,2025-03-22,2026-08-01,3,stylist-b,down-perm,12-19,zh,lang:zh,,Down perm keeps the sides flat; works long shifts
+c015,Maria,Santos,+16045550115,maria.santos@example.com,621 Gauthier Avenue,,Coquitlam,BC,V3K 1Y3,CA,2025-11-15,2026-07-05,2,stylist-a,keratin,04-27,en,,,Keratin before a summer trip to Manila
+c016,Marco,Rossi,+16045550116,marco.rossi@example.com,2950 Panorama Drive,,Coquitlam,BC,V3E 2W8,CA,2022-04-02,2026-06-15,9,stylist-c,mens-cut,02-12,en,regular,,Classic scissor cut; talks about his espresso machine
+c017,Shirin,Mohammadi,+16045550117,shirin.m@example.com,1375 Burkemont Place,,Coquitlam,BC,V3E 3N4,CA,2024-07-19,2026-08-08,5,stylist-a,root-colour,11-09,en,,,Covers greys every six weeks; prefers a warm brown
+c018,Na,Li,+16045550118,na.li@example.com,2702-1155 The High Street,,Coquitlam,BC,V3B 0C4,CA,2026-01-09,2026-07-28,2,stylist-a,digital-perm,05-05,zh,lang:zh,,Digital perm for soft waves; asked how to style without heat
+c019,Priya,Sharma,+16045550119,priya.sharma@example.com,,,,BC,,CA,2025-02-08,2026-07-10,4,stylist-c,braiding,08-25,en,,,Braids for dance competitions
+c020,Daniel,Kowalski,+16045550120,dan.kowalski@example.com,744 Rochester Avenue,,Coquitlam,BC,V3K 2V3,CA,2024-12-01,2026-07-15,3,stylist-b,mens-cut,03-30,en,do-not-mail,,Asked not to receive mail
+c021,Olena,Kovalenko,+16045550121,olena.k@example.com,88 Ioco Road,,Port Moody,BC,V3H 2V7,CA,2025-08-16,2026-09-02,3,stylist-c,scalp-treatment,1992-02-29,en,,,Loves the scalp treatment massage
+c022,Ethan,Brooks,+16045550122,ethan.brooks@example.com,1310 Como Lake Avenue,,Coquitlam,BC,V3J 3P1,CA,2026-03-14,2026-08-11,2,stylist-b,mens-cut,06-06,en,,,Short back and sides
+c023,Hana,Yoshida,+16045550123,hana.yoshida@example.com,2463 Mariner Way,,Coquitlam,BC,V3C 4R5,CA,2025-04-26,2026-06-10,3,stylist-a,womens-cut,09-14,en,,,Long layers; donates her hair every few years
+c024,Minjun,Kim,+16045550124,minjun.kim@example.com,1401-1199 Seymour Drive,,Coquitlam,BC,V3B 0G2,CA,2023-06-30,2026-09-28,11,stylist-b,down-perm,11-30,en,regular,,Down perm and a trim every two months
+c025,Rosa,Delgado,+16045550125,,1789 Hampton Drive,,Coquitlam,BC,V3E 3C6,CA,2021-09-04,2026-09-24,8,stylist-c,senior-cut,04-02,en,regular,,Brings photos of her grandchildren

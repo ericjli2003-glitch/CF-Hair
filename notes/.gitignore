@@ -1,0 +1,9 @@
+node_modules/
+out/
+.env
+.env.*
+!.env.example
+data/
+*.history.json
+history.json
+history.lock

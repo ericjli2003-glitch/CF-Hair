@@ -1,0 +1,17 @@
+{
+  "id": "birthday",
+  "name": "Happy birthday",
+  "description": "Arrives a few days before the client's birthday. Never mentions age or year.",
+  "occasion": "birthday",
+  "audience": { "all": [ { "rule": "birthdayWithinDays", "days": 14 }, { "rule": "minVisits", "count": 1 } ] },
+  "design": "cf-birthday",
+  "guidelines": "Wish them a happy birthday from the whole salon. Keep it light and joyful. Do not mention age, birth year or the exact date. If there is an offer, present it as a small birthday treat from the team, once, with the code, and nothing pushy.",
+  "maxChars": 360,
+  "maxCharsZh": 120,
+  "signature": { "template": "With love,\n{stylistFirstName} and the CF Hair team", "fallback": "With love,\nEveryone at CF Hair Salon" },
+  "offer": { "code": "BDAYTREAT", "description": "a complimentary scalp massage add-on at their next visit this month (PLACEHOLDER: confirm with owner)" },
+  "dedupe": "year",
+  "chinese": true,
+  "ignoreCooldown": true,
+  "handwrytten": { "cardId": null, "font": null }
+}

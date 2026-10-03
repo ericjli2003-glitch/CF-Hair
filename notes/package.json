@@ -1,0 +1,27 @@
+{
+  "name": "cf-hair-notes",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Personalised handwritten cards for CF Hair Salon clients: audience rules, Claude-written notes, proof sheet, provider and pen-plotter output.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "notes": "tsx src/cli.ts",
+    "demo": "tsx src/demo.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "screenshot": "tsx scripts/screenshot.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "playwright-core": "^1.56.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.3"
+  }
+}

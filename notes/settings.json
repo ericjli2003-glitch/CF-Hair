@@ -1,0 +1,43 @@
+{
+  "cooldownDays": 30,
+  "defaultProvider": "handwrytten",
+  "claude": {
+    "model": "claude-opus-5-5",
+    "effort": "medium",
+    "batchThreshold": 25,
+    "concurrency": 4,
+    "maxAttempts": 3,
+    "batchPollSeconds": 20,
+    "pricePerMTokUSD": { "input": 4.0, "output": 20.0, "cacheRead": 0.2, "cacheWrite5m": 5.0 },
+    "estimateTokensPerNote": { "systemCached": 1900, "user": 260, "output": 900 }
+  },
+  "fxUsdToCad": 1.37,
+  "providers": {
+    "handwrytten": {
+      "label": "Handwrytten (real pen robots, mailed from the US)",
+      "maxMessageChars": 450,
+      "maxSignatureChars": 50,
+      "envelopeCountryLine": true,
+      "pricingUSD": {
+        "cardPayAsYouGo": 3.75,
+        "internationalStamp": 1.8,
+        "internationalSurcharge": 0.1
+      },
+      "pricingNote": "Pay-as-you-go retail card price plus flat international stamp and manual-processing surcharge for Canadian addresses. Subscriptions cut the card price by 10 to 20 percent; business plans go as low as USD 1.49 per card. See docs/research/handwritten-notes-providers.md (checked 2026-10-03)."
+    },
+    "plotter": {
+      "label": "In-house AxiDraw pen plotter (Canada Post stamp)",
+      "maxMessageChars": 420,
+      "maxSignatureChars": 50,
+      "envelopeCountryLine": false,
+      "pricingCAD": {
+        "cardAndEnvelope": 0.85,
+        "stamp": 1.24,
+        "inkAndWear": 0.05,
+        "labourMinutesPerCard": 4,
+        "labourRatePerHour": 20
+      },
+      "pricingNote": "A2 card + envelope bought in packs of 50, Canada Post booklet stamp (CAD 1.24 since 2025-01-13), front-desk time to load cards. Hardware (AxiDraw SE/A4 or V3, about USD 550 to 800) is a one-time cost not included per card."
+    }
+  }
+}

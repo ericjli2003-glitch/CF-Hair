@@ -1,0 +1,16 @@
+{
+  "id": "loyal-regulars",
+  "name": "Thank you for being a regular",
+  "description": "Once a year, every client with 3 or more visits gets a plain thank-you. No offer, no ask beyond an optional review line.",
+  "occasion": "thank-you to a loyal regular client",
+  "audience": { "all": [ { "rule": "minVisits", "count": 3 }, { "rule": "lastVisitBetweenDays", "min": 0, "max": 180 } ] },
+  "design": "cf-gratitude",
+  "guidelines": "Thank them sincerely for being part of the CF Hair family. Reference their stylist and, lightly, the kind of service they usually come in for. Make it feel like a note from a person who knows them, not a loyalty programme. You may add one gentle line that a Google review helps a small neighbourhood salon.",
+  "maxChars": 380,
+  "maxCharsZh": 130,
+  "signature": { "template": "Warmly,\n{stylistFirstName}\nCF Hair Salon", "fallback": "Warmly,\nThe CF Hair team" },
+  "offer": null,
+  "dedupe": "year",
+  "chinese": true,
+  "handwrytten": { "cardId": null, "font": null }
+}
