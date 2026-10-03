@@ -1,0 +1,80 @@
+{
+  "name": "CF Hair Salon",
+  "tagline": "PLACEHOLDER: Modern cuts, colour and perms in Coquitlam Town Centre",
+  "type": "unisex-salon",
+  "address": {
+    "street": "2140-1163 Pinetree Way (Henderson Place Mall)",
+    "city": "Coquitlam",
+    "province": "BC",
+    "postal": "V3B 8A9",
+    "country": "CA"
+  },
+  "phone": "+16044757705",
+  "email": "PLACEHOLDER@cfhairsalon.example",
+  "website": "PLACEHOLDER: https://cfhairsalon.example",
+  "social": {
+    "instagram": "",
+    "facebook": ""
+  },
+  "timezone": "America/Vancouver",
+  "hours": {
+    "mon": { "open": "10:00", "close": "18:00" },
+    "tue": { "open": "10:00", "close": "18:00" },
+    "wed": { "open": "10:00", "close": "18:00" },
+    "thu": { "open": "10:00", "close": "18:00" },
+    "fri": { "open": "10:00", "close": "18:00" },
+    "sat": { "open": "10:00", "close": "18:00" },
+    "sun": { "open": "12:00", "close": "18:00" }
+  },
+  "services": [
+    { "id": "mens-cut", "name": "Men's Haircut", "category": "Haircuts", "durationMin": 30, "priceCAD": 30, "description": "PLACEHOLDER: Cut and style, includes wash." },
+    { "id": "womens-cut", "name": "Women's Haircut", "category": "Haircuts", "durationMin": 45, "priceCAD": 50, "description": "PLACEHOLDER: Consultation, wash, cut and blow-dry." },
+    { "id": "kids-cut", "name": "Children's Haircut (12 and under)", "category": "Haircuts", "durationMin": 30, "priceCAD": 25, "description": "PLACEHOLDER: Quick, gentle cut for kids." },
+    { "id": "senior-cut", "name": "Senior Haircut (65+)", "category": "Haircuts", "durationMin": 30, "priceCAD": 25, "description": "PLACEHOLDER: Cut and style for seniors." },
+    { "id": "wash-blowdry", "name": "Wash and Blow-dry", "category": "Styling", "durationMin": 30, "priceCAD": 35, "description": "PLACEHOLDER: Shampoo, condition and blow-dry style." },
+    { "id": "updo", "name": "Special Occasion Updo", "category": "Styling", "durationMin": 60, "priceCAD": 85, "description": "PLACEHOLDER: Event or bridal-party updo." },
+    { "id": "braiding", "name": "Hair Braiding", "category": "Styling", "durationMin": 45, "priceCAD": 45, "description": "PLACEHOLDER: Braided style; price varies by length and complexity." },
+    { "id": "root-colour", "name": "Root Touch-up Colour", "category": "Colour", "durationMin": 75, "priceCAD": 85, "description": "PLACEHOLDER: Regrowth colour up to 1 inch, includes blow-dry." },
+    { "id": "full-colour", "name": "Full Colour", "category": "Colour", "durationMin": 120, "priceCAD": 120, "description": "PLACEHOLDER: Single-process all-over colour; long hair extra." },
+    { "id": "highlights", "name": "Highlights (Full Foil)", "category": "Colour", "durationMin": 150, "priceCAD": 170, "description": "PLACEHOLDER: Full foil highlights with toner." },
+    { "id": "balayage", "name": "Balayage", "category": "Colour", "durationMin": 180, "priceCAD": 230, "description": "PLACEHOLDER: Hand-painted dimensional colour with toner and style." },
+    { "id": "mens-perm", "name": "Men's Perm", "category": "Perm", "durationMin": 90, "priceCAD": 110, "description": "PLACEHOLDER: Texture perm for short hair, includes cut." },
+    { "id": "down-perm", "name": "Korean Down Perm", "category": "Perm", "durationMin": 45, "priceCAD": 60, "description": "PLACEHOLDER: Flattens side hair for men's styles." },
+    { "id": "digital-perm", "name": "Digital Perm", "category": "Perm", "durationMin": 180, "priceCAD": 220, "description": "PLACEHOLDER: Soft, loose heat-set waves; long hair extra." },
+    { "id": "straightening", "name": "Permanent Hair Straightening", "category": "Treatment", "durationMin": 180, "priceCAD": 250, "description": "PLACEHOLDER: Japanese-style thermal straightening; long hair extra." },
+    { "id": "keratin", "name": "Keratin Smoothing Treatment", "category": "Treatment", "durationMin": 150, "priceCAD": 220, "description": "PLACEHOLDER: Frizz-control smoothing treatment." },
+    { "id": "scalp-treatment", "name": "Scalp Treatment", "category": "Treatment", "durationMin": 45, "priceCAD": 55, "description": "PLACEHOLDER: Cleansing scalp care with massage." },
+    { "id": "extensions-consult", "name": "Hair Extensions Consultation", "category": "Extensions", "durationMin": 30, "priceCAD": 0, "description": "PLACEHOLDER: Free consultation; install priced by method and length." }
+  ],
+  "staff": [
+    { "id": "stylist-a", "name": "Stylist A", "role": "Owner / Senior Stylist", "bio": "PLACEHOLDER: Senior stylist specializing in colour and perms.", "serviceIds": ["mens-cut", "womens-cut", "kids-cut", "senior-cut", "wash-blowdry", "updo", "root-colour", "full-colour", "highlights", "balayage", "digital-perm", "straightening", "keratin"] },
+    { "id": "stylist-b", "name": "Stylist B", "role": "Stylist", "bio": "PLACEHOLDER: Stylist focused on cuts, men's perms and texture.", "serviceIds": ["mens-cut", "womens-cut", "kids-cut", "senior-cut", "wash-blowdry", "mens-perm", "down-perm", "digital-perm", "scalp-treatment"] },
+    { "id": "stylist-c", "name": "Stylist C", "role": "Junior Stylist", "bio": "PLACEHOLDER: Junior stylist for cuts, styling, braiding and treatments.", "serviceIds": ["mens-cut", "kids-cut", "senior-cut", "wash-blowdry", "braiding", "scalp-treatment", "extensions-consult"] }
+  ],
+  "languages": ["English", "Mandarin", "Cantonese"],
+  "policies": {
+    "cancellationHours": 24,
+    "lateMinutes": 10,
+    "walkIns": true
+  },
+  "verified": {
+    "name": { "status": "verified", "sources": ["https://www.yelp.ca/biz/cf-hair-salon-coquitlam", "https://www.yellowpages.ca/bus/British-Columbia/Coquitlam/CF-Hair-Salon/102033947.html"] },
+    "address.street": { "status": "verified", "sources": ["https://www.yelp.ca/biz/cf-hair-salon-coquitlam", "https://www.yellowpages.ca/bus/British-Columbia/Coquitlam/CF-Hair-Salon/102033947.html"] },
+    "address.city": { "status": "verified", "sources": ["https://www.yelp.ca/biz/cf-hair-salon-coquitlam"] },
+    "address.province": { "status": "verified", "sources": ["https://www.yelp.ca/biz/cf-hair-salon-coquitlam"] },
+    "address.postal": { "status": "verified", "sources": ["https://www.yellowpages.ca/bus/British-Columbia/Coquitlam/CF-Hair-Salon/102033947.html"], "note": "Fresha directory page shows V3B 0A7; V3B 8A9 preferred." },
+    "phone": { "status": "verified", "sources": ["https://www.yellowpages.ca/bus/British-Columbia/Coquitlam/CF-Hair-Salon/102033947.html", "https://www.yelp.ca/biz/cf-hair-salon-coquitlam", "https://www.fresha.com/lvp/cf-hair-salon-coquitlam-VEv0oQ"] },
+    "hours": { "status": "reported", "sources": ["https://www.fresha.com/lvp/cf-hair-salon-coquitlam-VEv0oQ"], "note": "From an auto-generated, non-bookable Fresha directory page. Confirm with owner." },
+    "type": { "status": "inferred", "note": "Listed as a hair salon; no barber evidence. Unisex assumed." },
+    "languages": { "status": "inferred", "note": "Henderson Place is a Chinese-themed mall; Mandarin/Cantonese assumed. Confirm with owner." },
+    "tagline": { "status": "placeholder" },
+    "email": { "status": "placeholder" },
+    "website": { "status": "placeholder", "note": "No website found." },
+    "social": { "status": "unknown", "note": "No confirmed accounts. @cf_hair_studio on Instagram exists but location unconfirmed; do not assume." },
+    "services": { "status": "placeholder", "note": "No published menu. Fresha directory tags hint at kids cuts, curly hair, braiding, extensions, weaves, permanent straightening." },
+    "staff": { "status": "placeholder" },
+    "policies": { "status": "placeholder" },
+    "bookingSystem": { "status": "inferred", "value": "phone-and-walk-in", "note": "No Booksy, Square, bookable Fresha, Yocale or website booking found." },
+    "reviews": { "status": "verified", "value": "No ratings on YellowPages; Yelp listing unclaimed with no reviews surfaced; Google unknown.", "sources": ["https://www.canpages.ca/page/BC/coquitlam/cf-hair-salon/102033947"] }
+  }
+}
