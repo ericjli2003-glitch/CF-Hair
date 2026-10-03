@@ -1,0 +1,296 @@
+"use client";
+
+import { parsePhoneNumberFromString } from "libphonenumber-js";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import type { CatalogService, CatalogStaff } from "@/lib/catalog";
+import { dayLabel, time12 } from "@/lib/admin-format";
+import { LANGUAGE_LABELS, type LanguageCode } from "@/lib/languages";
+import { SALON_TZ } from "@/lib/salon";
+import { toZonedISO } from "@/lib/time";
+
+interface Slot {
+  start: string;
+  end: string;
+  staffId: string;
+  staffName: string;
+}
+interface Found {
+  name: string;
+  email: string | null;
+  visitCount: number;
+  preferredLanguage: LanguageCode;
+  lastVisit: string | null;
+}
+
+export function NewBookingForm({
+  services,
+  staff,
+  categories,
+  initialDate,
+  today,
+}: {
+  services: CatalogService[];
+  staff: CatalogStaff[];
+  categories: string[];
+  initialDate: string;
+  today: string;
+}) {
+  const [source, setSource] = useState<"phone" | "walk-in" | "admin">("phone");
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [notes, setNotes] = useState("");
+  const [lookup, setLookup] = useState<{ phone: string; found: Found | null } | null>(null);
+  const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
+  const [staffId, setStaffId] = useState("any");
+  const [date, setDate] = useState(initialDate);
+  const [slots, setSlots] = useState<Slot[] | null>(null);
+  const [start, setStart] = useState<string | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ id: string; when: string; staff: string; name: string } | null>(null);
+
+  const service = services.find((s) => s.id === serviceId);
+  const eligible = staff.filter((s) => s.serviceIds.includes(serviceId));
+  const e164 = (() => {
+    const p = parsePhoneNumberFromString(phone, "CA");
+    return p && p.isValid() ? p.number : null;
+  })();
+
+  const found = lookup && lookup.phone === e164 ? lookup.found : null;
+
+  // Look up the client as soon as the number is complete.
+  useEffect(() => {
+    if (!e164) return;
+    let off = false;
+    fetch(`/api/customers?phone=${encodeURIComponent(e164)}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: Found[]) => {
+        if (off) return;
+        const c = rows[0] ?? null;
+        setLookup({ phone: e164, found: c });
+        if (c) {
+          setName((n) => n || c.name);
+          setEmail((x) => x || c.email || "");
+        }
+      })
+      .catch(() => {});
+    return () => {
+      off = true;
+    };
+  }, [e164]);
+
+  useEffect(() => {
+    if (!serviceId || !date) return;
+    let off = false;
+    const qs = new URLSearchParams({ serviceId, date });
+    if (staffId !== "any") qs.set("staffId", staffId);
+    fetch(`/api/availability?${qs}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (off) return;
+        setSlots(d.slots ?? []);
+        setStart(null);
+      });
+    return () => {
+      off = true;
+    };
+  }, [serviceId, staffId, date]);
+
+  function walkInNow() {
+    const now = new Date();
+    const rounded = new Date(Math.floor(now.getTime() / 900000) * 900000);
+    setSource("walk-in");
+    setDate(today);
+    setStart(toZonedISO(rounded, SALON_TZ));
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!name.trim()) return setError("Add the client's name.");
+    if (!e164) return setError("Enter a valid phone number.");
+    if (!start) return setError("Pick a time.");
+    setBusy(true);
+    const res = await fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        serviceId,
+        staffId: staffId === "any" ? undefined : staffId,
+        start,
+        customer: { name: name.trim(), phone: e164, email: email.trim() || undefined },
+        notes: notes.trim() || undefined,
+        source,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (res.status === 201) {
+      setDone({ id: body.booking.id, when: `${dayLabel(body.booking.start.slice(0, 10))}, ${time12(body.booking.start)}`, staff: body.booking.staffName, name: body.booking.customer.name });
+      return;
+    }
+    if (res.status === 409) setError("That time was just taken. Pick another.");
+    else setError(body.message ?? body.error ?? "Could not create the booking.");
+  }
+
+  if (done) {
+    return (
+      <div className="mt-8 rounded-3xl bg-paper p-10 text-center ring-1 ring-line">
+        <p className="text-xs uppercase tracking-[0.2em] text-clay">Booked</p>
+        <p className="display mt-3 text-[2.4rem]">{done.name}</p>
+        <p className="mt-2 text-ink-soft">
+          {done.when} with {done.staff}
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href={`/admin?date=${start?.slice(0, 10) ?? today}`} className="btn-primary !normal-case !tracking-normal">
+            Open schedule
+          </Link>
+          <button
+            type="button"
+            className="btn-ghost !normal-case !tracking-normal"
+            onClick={() => {
+              setDone(null);
+              setPhone("");
+              setName("");
+              setEmail("");
+              setNotes("");
+              setStart(null);
+              setLookup(null);
+              setDate(today);
+            }}
+          >
+            Another booking
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const seg = (v: typeof source, label: string) => (
+    <button
+      type="button"
+      onClick={() => setSource(v)}
+      className={`flex-1 rounded-full px-4 py-2.5 text-sm transition ${source === v ? "bg-ink text-paper" : "text-ink-soft"}`}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <form onSubmit={submit} className="mt-8 grid gap-6 lg:grid-cols-2">
+      <section className="space-y-5 rounded-3xl bg-paper p-6 ring-1 ring-line">
+        <div className="flex rounded-full bg-[#f3eee7] p-1">
+          {seg("phone", "Phone call")}
+          {seg("walk-in", "Walk-in")}
+          {seg("admin", "Other")}
+        </div>
+        <div>
+          <label className="label" htmlFor="n-phone">Phone</label>
+          <input id="n-phone" type="tel" className="field !py-3.5 text-lg" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="604 555 0123" />
+          {found && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+              Returning client: <strong>{found.name}</strong> · {found.visitCount} visit{found.visitCount === 1 ? "" : "s"}
+              <span className="rounded-full bg-white px-2 py-0.5 text-xs ring-1 ring-emerald-200">
+                {LANGUAGE_LABELS[found.preferredLanguage]?.native}
+              </span>
+            </div>
+          )}
+          {e164 && lookup?.phone === e164 && !found && <p className="mt-2 text-sm text-mute">New client</p>}
+        </div>
+        <div>
+          <label className="label" htmlFor="n-name">Name</label>
+          <input id="n-name" className="field !py-3.5" value={name} onChange={(e) => setName(e.target.value)} />
+        </div>
+        <div>
+          <label className="label" htmlFor="n-email">Email (optional)</label>
+          <input id="n-email" type="email" className="field !py-3.5" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div>
+          <label className="label" htmlFor="n-notes">Notes</label>
+          <textarea id="n-notes" rows={3} className="field resize-none" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+      </section>
+
+      <section className="space-y-5 rounded-3xl bg-paper p-6 ring-1 ring-line">
+        <div>
+          <label className="label" htmlFor="n-service">Service</label>
+          <select
+            id="n-service"
+            className="field !py-3.5"
+            value={serviceId}
+            onChange={(e) => {
+              setServiceId(e.target.value);
+              setStaffId("any");
+            }}
+          >
+            {categories.map((c) => (
+              <optgroup key={c} label={c}>
+                {services
+                  .filter((s) => s.category === c)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} · {s.durationMin} min · ${s.priceCAD}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <div>
+          <span className="label">Stylist</span>
+          <div className="flex flex-wrap gap-2">
+            {[{ id: "any", name: "Anyone" }, ...eligible].map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setStaffId(s.id)}
+                className={`rounded-full px-4 py-2.5 text-sm ring-1 ${staffId === s.id ? "bg-ink text-paper ring-ink" : "ring-line"}`}
+              >
+                {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-end gap-3">
+          <div className="flex-1">
+            <label className="label" htmlFor="n-date">Date</label>
+            <input id="n-date" type="date" min={today} className="field !py-3" value={date} onChange={(e) => setDate(e.target.value)} />
+          </div>
+          <button type="button" onClick={walkInNow} className="rounded-xl bg-clay px-4 py-3.5 text-sm text-paper hover:bg-clay-deep">
+            Start now
+          </button>
+        </div>
+        <div>
+          <span className="label">Time {service ? `(${service.durationMin} min)` : ""}</span>
+          {start && !slots?.some((s) => s.start === start) && (
+            <p className="mb-2 rounded-xl bg-clay/10 px-3 py-2 text-sm text-clay-deep">Walk-in starting {time12(start)}</p>
+          )}
+          {slots === null ? (
+            <p className="text-sm text-mute">Loading...</p>
+          ) : slots.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-mute">No open times for this day.</p>
+          ) : (
+            <div className="grid max-h-64 grid-cols-4 gap-2 overflow-y-auto p-1 sm:grid-cols-5">
+              {slots.map((s) => (
+                <button
+                  key={s.start}
+                  type="button"
+                  onClick={() => setStart(s.start)}
+                  className={`rounded-lg px-1 py-2.5 text-sm tabular-nums ring-1 ${start === s.start ? "bg-clay text-paper ring-clay" : "ring-line hover:ring-clay"}`}
+                >
+                  {time12(s.start).replace(" ", "")}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
+        <button type="submit" disabled={busy} className="btn-primary w-full !py-4 !normal-case !tracking-normal !text-base disabled:opacity-60">
+          {busy ? "Booking..." : "Create booking"}
+        </button>
+      </section>
+    </form>
+  );
+}

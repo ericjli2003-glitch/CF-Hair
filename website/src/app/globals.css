@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bone: #f4eee6;
+  --color-paper: #fbf8f3;
+  --color-sand: #e9ddcd;
+  --color-line: #dacdbb;
+  --color-ink: #1d1915;
+  --color-ink-soft: #574d45;
+  --color-mute: #8a7f75;
+  --color-clay: #a2532f;
+  --color-clay-deep: #7a3b1f;
+  --color-blush: #ecd0bd;
+  --color-champagne: #c6a477;
+  --color-espresso: #251c16;
+  --color-espresso-2: #33271f;
+  --color-moss: #5f6a52;
+
+  --font-display: var(--font-cormorant), var(--font-serif-sc), var(--font-serif-kr), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jost), var(--font-sans-sc), var(--font-sans-kr), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --animate-marquee: marquee 38s linear infinite;
+  --animate-spin-slow: spin 28s linear infinite;
+  --animate-draw: draw 3.2s var(--ease-soft) both;
+  --animate-float: float 9s ease-in-out infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: 1; opacity: 0; }
+    20% { opacity: 1; }
+    to { stroke-dashoffset: 0; opacity: 1; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(1.5deg); }
+  }
+}
+
+:root {
+  color-scheme: light;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-bone);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "kern", "liga";
+  text-rendering: optimizeLegibility;
+}
+
+:lang(ko) {
+  word-break: keep-all;
+}
+:lang(zh-Hans) .display {
+  letter-spacing: 0.01em;
+  line-height: 1.12;
+}
+:lang(ko) .display {
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+}
+
+::selection {
+  background: var(--color-clay);
+  color: var(--color-paper);
+}
+
+/* Paper grain over the public site (absolute, so full-page captures look right). */
+.grain {
+  position: relative;
+}
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 60;
+  opacity: 0.09;
+  background-image: var(--grain);
+  mix-blend-mode: multiply;
+}
+
+@utility eyebrow {
+  @apply text-[0.7rem] font-medium uppercase tracking-[0.24em] text-clay;
+}
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+@utility container-x {
+  @apply mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-10;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.82rem] font-medium uppercase tracking-[0.14em] transition-all duration-300;
+}
+@utility btn-primary {
+  @apply btn bg-ink text-paper hover:bg-clay;
+}
+@utility btn-clay {
+  @apply btn bg-clay text-paper hover:bg-clay-deep;
+}
+@utility btn-ghost {
+  @apply btn border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-paper;
+}
+@utility btn-light {
+  @apply btn border border-paper/30 text-paper hover:bg-paper hover:text-espresso;
+}
+@utility link-u {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  transition: background-size 0.4s var(--ease-soft);
+  &:hover {
+    background-size: 100% 1px;
+  }
+}
+@utility field {
+  @apply w-full rounded-xl border border-line bg-paper px-4 py-3 text-[0.95rem] text-ink outline-none transition placeholder:text-mute/70 focus:border-clay focus:ring-4 focus:ring-clay/10;
+}
+@utility label {
+  @apply mb-1.5 block text-[0.72rem] font-medium uppercase tracking-[0.16em] text-ink-soft;
+}
+
+/* Scroll reveal (see components/Reveal.tsx). */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft);
+  transition-delay: var(--d, 0ms);
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+.strand {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.arch {
+  border-radius: 999px 999px 18px 18px;
+}
+
+.leader {
+  flex: 1;
+  border-bottom: 1px dotted color-mix(in srgb, var(--color-ink) 28%, transparent);
+  transform: translateY(-0.32em);
+  min-width: 1.5rem;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .strand { stroke-dashoffset: 0; animation: none !important; }
+  [class*="animate-"] { animation: none !important; }
+  html { scroll-behavior: auto; }
+}

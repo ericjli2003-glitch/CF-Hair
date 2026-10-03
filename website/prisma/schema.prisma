@@ -1,0 +1,128 @@
+// CF Hair Salon booking schema.
+// Dev uses SQLite. Production uses Postgres: scripts/prepare-db.mjs switches the
+// provider below automatically based on DATABASE_URL (file: vs postgres://).
+// The schema avoids provider-specific features (no enums, no scalar lists) so it
+// works unchanged on both.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Service {
+  id          String         @id
+  name        String
+  category    String
+  durationMin Int
+  priceCAD    Int
+  description String
+  sortOrder   Int            @default(0)
+  active      Boolean        @default(true)
+  staff       StaffService[]
+  bookings    Booking[]
+}
+
+model Staff {
+  id        String         @id
+  name      String
+  role      String
+  bio       String
+  sortOrder Int            @default(0)
+  active    Boolean        @default(true)
+  services  StaffService[]
+  bookings  Booking[]
+  locks     SlotLock[]
+}
+
+model StaffService {
+  staffId   String
+  serviceId String
+  staff     Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, serviceId])
+}
+
+model Customer {
+  id                String         @id @default(cuid())
+  name              String
+  phone             String         @unique // E.164
+  email             String?
+  // JSON: {line1, line2?, city, province, postalCode, country}
+  mailingAddress    String?
+  birthday          String? // YYYY-MM-DD
+  preferredLanguage String         @default("en-US") // en-US | zh-CN | zh-HK | ko-KR
+  tags              String         @default("[]") // JSON string array
+  referredBy        String? // free text, editable by the owner
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  bookings          Booking[]
+  caller            CallerProfile?
+}
+
+// Phone agent memory, keyed by E.164 phone. Linked to the Customer with the same
+// phone when one exists; preferredLanguage is kept in sync on both rows.
+model CallerProfile {
+  phone             String    @id
+  name              String?
+  preferredLanguage String    @default("en-US")
+  callCount         Int       @default(0)
+  lastCallAt        DateTime?
+  customerId        String?   @unique
+  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Booking {
+  id         String     @id @default(cuid())
+  serviceId  String
+  staffId    String
+  customerId String
+  start      DateTime
+  end        DateTime
+  status     String     @default("confirmed") // confirmed | cancelled | completed | no-show
+  source     String     @default("web") // web | phone | walk-in | admin
+  notes      String?
+  priceCAD   Int        @default(0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  service    Service    @relation(fields: [serviceId], references: [id])
+  staff      Staff      @relation(fields: [staffId], references: [id])
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  locks      SlotLock[]
+
+  @@index([staffId, start])
+  @@index([start])
+  @@index([customerId])
+}
+
+// One row per occupied 15-minute block per stylist. The composite primary key is
+// the database-level guarantee against double-booking, even under concurrent
+// requests: the second insert for the same stylist and block fails.
+model SlotLock {
+  staffId   String
+  slotStart DateTime
+  bookingId String
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, slotStart])
+  @@index([bookingId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  callerName String
+  phone      String
+  message    String
+  urgency    String   @default("normal") // low | normal | high
+  source     String   @default("phone") // phone | web
+  status     String   @default("new") // new | done
+  createdAt  DateTime @default(now())
+}

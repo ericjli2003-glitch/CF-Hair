@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/build
+*.tsbuildinfo
+next-env.d.ts
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# env files (never commit secrets); .env.example is the template
+.env
+.env*.local
+.env.production
+!.env.example
+
+# local databases
+prisma/*.db
+prisma/*.db-journal
+*.sqlite
+
+# vercel
+.vercel
