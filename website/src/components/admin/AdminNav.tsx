@@ -10,6 +10,7 @@ const TABS = [
   { href: "/admin/new", label: "New booking" },
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/customers", label: "Clients" },
+  { href: "/admin/promotions", label: "Promotions" },
 ];
 
 export function AdminNav({ newMessages }: { newMessages: number }) {

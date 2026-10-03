@@ -42,7 +42,7 @@ export default async function MessagesPage() {
     <div className="mx-auto max-w-4xl">
       <h1 className="display text-[2.8rem] leading-none">Messages</h1>
       <p className="mt-2 text-ink-soft">
-        Callback requests taken by the phone assistant and the website contact form. {open} waiting.
+        Callback requests from the phone assistant and the website contact form, plus text replies that were not STOP, START or HELP. {open} waiting.
       </p>
       <MessageList items={items} />
     </div>

@@ -67,6 +67,11 @@ export interface CallerInfo {
   callCount: number;
   /** Where the profile came from. */
   source: "api" | "local" | "default";
+  /**
+   * True only when the website says this number has no promotional SMS answer on file
+   * (never opted in, never opted out, never declined). False when unknown (API down).
+   */
+  smsOptInAskable: boolean;
 }
 
 /**
@@ -86,7 +91,7 @@ export class CallerMemory {
     const anonymous = isAnonymousCaller(rawPhone);
     const phone = anonymous ? null : toE164(rawPhone);
     if (!phone) {
-      return { phone: null, anonymous: true, preferredLanguage: DEFAULT_LANGUAGE, name: null, callCount: 0, source: "default" };
+      return { phone: null, anonymous: true, preferredLanguage: DEFAULT_LANGUAGE, name: null, callCount: 0, source: "default", smsOptInAskable: false };
     }
     const localRec = this.local.get(phone);
     try {
@@ -122,6 +127,7 @@ export class CallerMemory {
         name: rec.name ?? null,
         callCount: localRec?.callCount ?? 0,
         source: localRec ? "local" : "default",
+        smsOptInAskable: false,
       };
     }
   }
@@ -159,6 +165,7 @@ function fromProfile(phone: string, p: CallerProfile, source: CallerInfo["source
     name: p.name ?? null,
     callCount: p.callCount ?? 0,
     source,
+    smsOptInAskable: p.smsConsent?.canAsk === true,
   };
 }
 

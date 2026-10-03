@@ -35,6 +35,8 @@ export interface CallRecord {
   toolCalls: ToolCallEntry[];
   usage: { input: number; output: number; cacheRead: number; cacheWrite: number; requests: number };
   callbackPosted?: boolean;
+  /** Answer to the promotional text question, if it was asked on this call. */
+  smsOptIn?: { accepted: boolean; language: string; saved: boolean };
   errors: string[];
 }
 

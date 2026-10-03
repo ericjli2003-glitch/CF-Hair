@@ -13,6 +13,7 @@ import {
   type CreateBookingInput,
   type MessageInput,
   type Slot,
+  type SmsConsentInput,
 } from "./types.js";
 
 export interface StoredMessage extends MessageInput {
@@ -44,6 +45,9 @@ export class InMemoryBookingApi implements BookingApi {
   readonly bookings: Booking[] = [];
   readonly messages: StoredMessage[] = [];
   readonly callers = new Map<string, CallerProfile>();
+  /** Promotional SMS consent by phone, with the append-only event list the website keeps. */
+  readonly consents = new Map<string, { status: "none" | "express"; declinedAt: string | null }>();
+  readonly consentEvents: (SmsConsentInput & { at: string })[] = [];
   /** Set to true to simulate the website being down. */
   offline = false;
   private readonly now: () => DateTime;
@@ -201,9 +205,29 @@ export class InMemoryBookingApi implements BookingApi {
     return { message: m };
   }
 
+  private smsConsentFor(phone: string): NonNullable<CallerProfile["smsConsent"]> {
+    const c = this.consents.get(phone) ?? { status: "none" as const, declinedAt: null };
+    return { status: c.status, canAsk: c.status === "none" && !c.declinedAt, declinedAt: c.declinedAt };
+  }
+
   async getCaller(phone: string): Promise<CallerProfile> {
     this.check();
-    return this.callers.get(phone) ?? { phone, preferredLanguage: "en-US", callCount: 0, lastCallAt: null, name: null };
+    const base = this.callers.get(phone) ?? { phone, preferredLanguage: "en-US", callCount: 0, lastCallAt: null, name: null };
+    return { ...base, smsConsent: this.smsConsentFor(phone) };
+  }
+
+  async recordSmsConsent(input: SmsConsentInput): Promise<unknown> {
+    this.check();
+    if (!/^\+\d{10,15}$/.test(input.phone ?? "")) throw new ApiError(400, "INVALID_PHONE", "phone must be E.164");
+    if (input.status !== "express" && input.status !== "declined") throw new ApiError(400, "INVALID_STATUS", "bad status");
+    if (input.status === "express" && !input.wording?.trim()) throw new ApiError(400, "WORDING_REQUIRED", "wording required");
+    const cur = this.consents.get(input.phone) ?? { status: "none" as const, declinedAt: null };
+    this.consents.set(
+      input.phone,
+      input.status === "express" ? { status: "express", declinedAt: cur.declinedAt } : { status: cur.status, declinedAt: this.now().toISO() },
+    );
+    this.consentEvents.push({ ...input, at: this.now().toISO()! });
+    return { consent: { phone: input.phone, ...this.smsConsentFor(input.phone) } };
   }
 
   async putCaller(phone: string, update: CallerUpdate): Promise<CallerProfile> {

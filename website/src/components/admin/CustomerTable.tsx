@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { CustomerSummary } from "@/lib/customers";
 import { dayLabel, phonePretty } from "@/lib/admin-format";
 import { LANGUAGE_CODES, LANGUAGE_LABELS, type LanguageCode } from "@/lib/languages";
+import { ConsentChip } from "./promo/ui";
 
 const LANG_STYLE: Record<LanguageCode, string> = {
   "en-US": "bg-stone-100 text-stone-700 ring-stone-200",
@@ -19,7 +21,9 @@ export function CustomerTable({
   tags,
   q,
   tag,
+  consent,
 }: {
+  consent: Record<string, { status: string; expiresAt: string | null; txnOptedOut: boolean }>;
   rows: CustomerSummary[];
   staff: { id: string; name: string }[];
   tags: string[];
@@ -81,11 +85,12 @@ export function CustomerTable({
       </div>
 
       <div className="mt-5 overflow-x-auto rounded-2xl bg-paper ring-1 ring-line">
-        <table className="w-full min-w-[980px] text-left text-sm">
+        <table className="w-full min-w-[1100px] text-left text-sm">
           <thead className="border-b border-line bg-[#f3eee7] text-[0.7rem] uppercase tracking-[0.12em] text-ink-soft">
             <tr>
               <th className="px-5 py-3 font-medium">Client</th>
               <th className="px-3 py-3 font-medium">Language</th>
+              <th className="px-3 py-3 font-medium">Promo texts</th>
               <th className="px-3 py-3 text-right font-medium">Visits</th>
               <th className="px-3 py-3 font-medium">Last visit</th>
               <th className="px-3 py-3 font-medium">Last service / next</th>
@@ -100,7 +105,9 @@ export function CustomerTable({
               return (
                 <tr key={c.id} className="border-b border-line/70 last:border-0 hover:bg-[#fbf8f3]">
                   <td className="px-5 py-3.5">
-                    <p className="font-medium">{c.name}</p>
+                    <Link href={`/admin/customers/${c.id}`} className="block font-medium hover:text-clay">
+                      {c.name}
+                    </Link>
                     <a href={`tel:${c.phone}`} className="text-ink-soft hover:underline">{phonePretty(c.phone)}</a>
                     {c.email && <p className="text-xs text-mute">{c.email}</p>}
                     {c.mailingAddress && (
@@ -126,6 +133,12 @@ export function CustomerTable({
                       </select>
                       <span className="pointer-events-none absolute right-2.5 text-[0.6rem]">▾</span>
                     </label>
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <Link href={`/admin/customers/${c.id}`} title="Consent details">
+                      <ConsentChip status={consent[c.id]?.status ?? "none"} expires={consent[c.id]?.expiresAt} />
+                    </Link>
+                    {consent[c.id]?.txnOptedOut && <p className="mt-1 text-[0.68rem] text-rose-600">Appt texts off</p>}
                   </td>
                   <td className="px-3 py-3.5 text-right tabular-nums">
                     <span className="display text-[1.4rem]">{c.visitCount}</span>

@@ -70,6 +70,7 @@ export function createMockApiApp(api: InMemoryBookingApi, apiKey = "") {
     agentOnly,
     wrap(async (req, res) => res.json(await api.putCaller(String(req.params.phone), req.body ?? {}))),
   );
+  app.post("/api/customers/consent", agentOnly, wrap(async (req, res) => res.status(201).json(await api.recordSmsConsent(req.body ?? {}))));
   return app;
 }
 

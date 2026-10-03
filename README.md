@@ -4,7 +4,7 @@ A proposal and working demos for CF Hair Salon (Henderson Place Mall, Coquitlam 
 
 | Folder | What it is | Try it |
 |---|---|---|
-| `website/` | Bilingual (English / 简体中文 / 한국어) salon site with live online booking, owner admin and the booking API | `cd website && cp .env.example .env && npm install && npm run db:reset && npm run dev`, then open http://localhost:3000 and http://localhost:3000/admin |
+| `website/` | Bilingual (English / 简体中文 / 한국어) salon site with live online booking, owner admin, CASL-compliant promotional texts and the booking API | `cd website && cp .env.example .env && npm install && npm run db:reset && npm run dev`, then open http://localhost:3000 and http://localhost:3000/admin |
 | `voice-agent/` | 24/7 phone receptionist (Twilio ConversationRelay + Claude) in English, Mandarin, Cantonese and Korean that remembers each caller's language | `cd voice-agent && cp .env.example .env` (add `ANTHROPIC_API_KEY`), `npm install && npm run demo`, or `npm run simulate -- --mock` |
 | `notes/` | Personalised handwritten cards: audience rules, Claude-written notes, approval proof sheet, Handwrytten and AxiDraw senders | `cd notes && npm install && npm run demo`, then open the `out/*/proof.html` files |
 | `proposal/` | Client proposal, meeting plan with demo script and discovery questions, cost model | Read `proposal/PROPOSAL.md` first |

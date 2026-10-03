@@ -5,6 +5,7 @@ import { ApiError, ApiUnavailableError, type BookingApi, type Booking, type Slot
 import { hoursOn, openStatus, type SalonData } from "../salon.js";
 import { LANGUAGE_CODES, type LanguageCode } from "../languages.js";
 import { isAnonymousCaller, phoneForSpeech, toE164 } from "../phone.js";
+import { SMS_OPTIN_QUESTION } from "./sms-optin.js";
 
 export type Outcome = "booked" | "rescheduled" | "cancelled" | "message" | "transferred" | "info-only" | "abandoned";
 
@@ -20,6 +21,17 @@ export interface ToolHooks {
   rememberName(name: string): void;
   sendMessage(input: { callerName: string; phone: string; message: string; urgency: "low" | "normal" | "high" }): Promise<"sent" | "queued">;
   now(): DateTime;
+  /** Promotional SMS opt-in (optional: absent means never ask). */
+  smsOptIn?: SmsOptInHooks;
+}
+
+export interface SmsOptInHooks {
+  /** Caller ID present, the website has no answer on file, and it has not been offered on this call. */
+  eligible(): boolean;
+  offered(): boolean;
+  markOffered(): void;
+  /** Posts to /api/customers/consent with source "phone" and the exact wording spoken. */
+  record(accepted: boolean, language: LanguageCode): Promise<"saved" | "failed">;
 }
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "use YYYY-MM-DD");
@@ -76,6 +88,7 @@ export const ToolInputSchemas = {
   transfer_to_human: z.object({ reason: z.string().min(1), summary: z.string().min(1).max(500) }).strict(),
   end_call: z.object({ reason: z.enum(["completed", "spam", "caller_request", "no_response"]) }).strict(),
   set_language: z.object({ language: z.enum(LANGUAGE_CODES) }).strict(),
+  record_sms_consent: z.object({ accepted: z.boolean() }).strict(),
 } as const;
 
 export type ToolName = keyof typeof ToolInputSchemas;
@@ -217,6 +230,17 @@ export const TOOL_DEFINITIONS: ToolDef[] = [
       additionalProperties: false,
     },
   },
+  {
+    name: "record_sms_consent",
+    description:
+      "Save the caller's answer to the promotional text question. Only usable after a book_appointment result included smsOptIn and you asked that exact question. accepted is true only for a clear yes; anything else is false.",
+    input_schema: {
+      type: "object",
+      properties: { accepted: { type: "boolean", description: "true for a clear yes, false for no or unsure." } },
+      required: ["accepted"],
+      additionalProperties: false,
+    },
+  },
 ].map((t) => ({ ...t, eager_input_streaming: true }) as ToolDef);
 
 export interface ToolResult {
@@ -315,6 +339,8 @@ export class ToolExecutor {
       case "end_call":
         this.hooks.requestEnd(d.reason);
         return json({ ok: true, instruction: "The call will end after your goodbye is spoken. Do not say anything else." });
+      case "record_sms_consent":
+        return this.recordSmsConsent(d.accepted);
       case "set_language": {
         const before = this.hooks.currentLanguage();
         const { saved } = await this.hooks.switchLanguage(d.language);
@@ -448,13 +474,40 @@ export class ToolExecutor {
       });
       this.hooks.recordOutcome("booked", { bookingId: booking.id, service: booking.serviceName, start: booking.start });
       this.hooks.rememberName(d.customer_name);
-      return json({ ok: true, booking: this.bookingView(booking), phoneOnFile: phoneForSpeech(phone) });
+      const out: Record<string, unknown> = { ok: true, booking: this.bookingView(booking), phoneOnFile: phoneForSpeech(phone) };
+      // One polite promotional-text question, only for the caller's own number and only if never answered.
+      const optIn = this.hooks.smsOptIn;
+      if (optIn && phone === this.hooks.callerPhone && optIn.eligible()) {
+        optIn.markOffered();
+        const lang = this.hooks.currentLanguage();
+        out.smsOptIn = {
+          question: SMS_OPTIN_QUESTION[lang],
+          instruction:
+            "After confirming the booking, ask this question once, word for word, in the current language. Then call record_sms_consent with accepted true for a clear yes, false otherwise. Do not explain or persuade, and never ask again.",
+        };
+      }
+      return json(out);
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
         return fail("SLOT_TAKEN", { instruction: "Someone just took that time. Apologize and check availability again." });
       }
       throw err;
     }
+  }
+
+  private async recordSmsConsent(accepted: boolean): Promise<ToolResult> {
+    const optIn = this.hooks.smsOptIn;
+    if (!optIn || !optIn.offered()) {
+      return fail("NOT_OFFERED", { instruction: "Only use this after a booking result included smsOptIn and you asked that question. Do not ask about texts otherwise." });
+    }
+    const saved = await optIn.record(accepted, this.hooks.currentLanguage());
+    return json({
+      ok: saved === "saved",
+      accepted,
+      instruction: accepted
+        ? "Thank them in a few words. Do not mention texts again."
+        : "Say no problem in a few words and move on. Never ask again.",
+    });
   }
 
   private async lookup(given?: string): Promise<ToolResult> {

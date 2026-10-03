@@ -4,6 +4,7 @@ import { PrismaClient } from "@prisma/client";
 import { blocksFor, computeSlots, type BusyBlock, type StaffLite } from "../src/lib/availability";
 import { salon, SALON_TZ } from "../src/lib/salon";
 import { addDays, dateKeyOf, zonedTime } from "../src/lib/time";
+import { seedSms } from "./seed-sms";
 
 const prisma = new PrismaClient();
 
@@ -89,6 +90,10 @@ async function main() {
     throw new Error("Refusing to wipe and seed a non-SQLite database. Set SEED_ALLOW_REMOTE=1 to seed a fresh Postgres demo database.");
   }
   console.log("Seeding from salon.json:", salon.name);
+  await prisma.campaignMessage.deleteMany();
+  await prisma.campaign.deleteMany();
+  await prisma.smsConsent.deleteMany();
+  await prisma.notification.deleteMany();
   await prisma.slotLock.deleteMany();
   await prisma.booking.deleteMany();
   await prisma.callerProfile.deleteMany();
@@ -222,6 +227,9 @@ async function main() {
       { callerName: "Unknown caller", phone: "+16045550177", message: "Asked if you sell the keratin shampoo used in treatments. No callback needed unless in stock.", urgency: "low", source: "phone", status: "done", createdAt: hoursAgo(50) },
     ],
   });
+
+  const sms = await seedSms(prisma, customers, now);
+  console.log(`SMS consent: ${JSON.stringify(sms.counts)}; past campaign bookings attributed: ${sms.attributed}`);
 
   console.log(`Seeded ${salon.services.length} services, ${salon.staff.length} staff, ${customers.length} customers, ${created} bookings, 4 messages.`);
 }

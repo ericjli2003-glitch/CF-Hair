@@ -63,6 +63,18 @@ export interface CallerProfile {
   preferredLanguage: LanguageCode | string;
   lastCallAt?: string | null;
   callCount: number;
+  /** Promotional SMS consent. canAsk: no answer recorded yet, so the assistant may ask once. */
+  smsConsent?: { status: string; canAsk: boolean; declinedAt?: string | null };
+}
+
+/** POST /api/customers/consent. "declined" records a no so the caller is never asked again. */
+export interface SmsConsentInput {
+  phone: string;
+  status: "express" | "declined";
+  source: "phone";
+  wording: string;
+  language: LanguageCode;
+  detail?: Record<string, unknown>;
 }
 
 export interface CallerUpdate {
@@ -82,6 +94,7 @@ export interface BookingApi {
   postMessage(input: MessageInput): Promise<unknown>;
   getCaller(phone: string): Promise<CallerProfile>;
   putCaller(phone: string, update: CallerUpdate): Promise<CallerProfile>;
+  recordSmsConsent(input: SmsConsentInput): Promise<unknown>;
 }
 
 /** The API answered with an error status (4xx or 5xx other than "unreachable"). */

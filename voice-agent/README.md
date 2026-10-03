@@ -14,6 +14,7 @@ the admin screen and the phone all see the same calendar.
 - [Try it without a phone](#try-it-without-a-phone)
 - [Architecture](#architecture)
 - [Languages and caller memory](#languages-and-caller-memory)
+- [Promotional text opt-in](#promotional-text-opt-in)
 - [Twilio setup, step by step](#twilio-setup-step-by-step)
 - [Running locally with ngrok](#running-locally-with-ngrok)
 - [Deploying](#deploying)
@@ -132,6 +133,7 @@ Main files:
 | `transfer_to_human` | Only while open and if `SALON_FORWARD_NUMBER` is set; `end` with handoff data, then `<Dial>` |
 | `end_call` | Hangs up after the goodbye has played |
 | `set_language` | Switches voice and transcription and saves the caller's language (see below) |
+| `record_sms_consent` | Saves the answer to the one promotional text question (see [Promotional text opt-in](#promotional-text-opt-in)) |
 
 If the booking API is unreachable, the agent still answers questions from `shared/salon.json`, does
 not promise times, and takes a message so the team can call back to book.
@@ -182,6 +184,35 @@ the most reliable path for a first-time caller. Returning callers are not affect
 offers automatic language detection (`transcriptionLanguage="multi"` with Deepgram, which requires
 ElevenLabs voices); it would remove this gap and is worth testing once the basic setup works, but it
 is not enabled here because it changes the voice provider and the "always greet in English" flow.
+
+## Promotional text opt-in
+
+The salon texts occasional specials only to clients who agreed (Canada's anti-spam law, CASL; see
+`docs/sms-compliance.md`). The phone assistant can collect that agreement politely, at most once:
+
+- Only right after a successful `book_appointment`, only for the caller's own number (caller ID
+  present, not withheld, and the booking is under that number), and only when the website says the
+  number has no answer on file (`GET /api/callers/{phone}` returns `smsConsent.canAsk: true`: never
+  opted in, never opted out, never declined).
+- The booking result then carries `smsOptIn.question`, the exact sentence for the current language,
+  and Claude asks it once, word for word:
+  - English: "Would you like the occasional text about specials? You can reply STOP any time."
+  - Mandarin: "您愿意偶尔收到我们优惠活动的短信吗？您随时可以回复STOP退订。"
+  - Cantonese: "你想唔想間中收到我哋優惠嘅短訊？你隨時可以回覆STOP取消。"
+  - Korean: "가끔 특별 할인 소식을 문자로 받아보시겠어요? 언제든지 STOP으로 회신하시면 수신이 중단됩니다."
+- The answer goes to `record_sms_consent`, which posts to `POST /api/customers/consent` with
+  `source: "phone"`, the language, the call SID, and the wording as proof, for example
+  `[Phone assistant, CF Hair Salon, zh-HK] "你想唔想..." Caller said yes.` A yes is `status:
+  "express"`; anything else is `status: "declined"`, which the website stores so the caller is never
+  asked again on future calls.
+- It is offered once per call even if the caller books twice, never for anonymous callers, and the
+  tool refuses to run if the question was not offered. If the API is down, the caller is not asked
+  (the lookup could not confirm there is no answer on file).
+- The call log records the answer under `smsOptIn`. The text sentences live in
+  `src/agent/sms-optin.ts`; changing them changes what is stored as proof, so keep them in step with
+  the website's consent wording.
+
+The mock API (`npm run mock-api`, `--mock`) implements the same endpoint and the `smsConsent` field.
 
 ## Twilio setup, step by step
 
@@ -334,6 +365,10 @@ Vitest suites, all offline (Claude is replaced by a scripted fake that streams w
 - `test/languages.test.ts`: returning Cantonese caller hears English then Cantonese, a switch is
   persisted and used next call, switching back saves English, anonymous callers are never saved, and
   the API being down falls back to the local store and syncs later.
+- `test/sms-consent.test.ts`: the promotional text question is offered once after a booking only
+  when the caller has no answer on file, a yes is posted with the exact wording and source `phone`, a
+  decline is stored so later calls never ask, no offer without caller ID or for another number,
+  localised questions for all four languages, and the consent endpoint over HTTP with the agent key.
 - `test/chunker.test.ts`: sentence splitting (English, Chinese, Korean), interrupt matching, phone
   number and language code helpers.
 

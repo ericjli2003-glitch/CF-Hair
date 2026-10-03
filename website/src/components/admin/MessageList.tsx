@@ -60,7 +60,7 @@ export function MessageList({ items }: { items: Item[] }) {
                   {m.isClient && <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800 ring-1 ring-emerald-200">Client · {m.bookings} booking{m.bookings === 1 ? "" : "s"}</span>}
                 </div>
                 <p className="mt-1 text-sm text-mute">
-                  {m.source === "web" ? "Website form" : "Phone assistant"} · {relTime(m.createdAt)}
+                  {m.source === "web" ? "Website form" : m.source === "sms" ? "Text message reply" : "Phone assistant"} · {relTime(m.createdAt)}
                 </p>
               </div>
               <div className="flex gap-2">

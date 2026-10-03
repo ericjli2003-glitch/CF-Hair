@@ -4,6 +4,7 @@ import { DEFAULT_LANGUAGE, isLanguageCode, LANGUAGE_CODES, type LanguageCode } f
 import { toE164 } from "./phone";
 import { SALON_TZ } from "./salon";
 import { toZonedISO } from "./time";
+import { getConsent } from "./sms/consent";
 
 export interface CallerView {
   phone: string;
@@ -12,6 +13,13 @@ export interface CallerView {
   lastCallAt?: string;
   callCount: number;
   customerId?: string;
+  /** Promotional SMS consent, so the phone assistant knows whether it may ask once. */
+  smsConsent: { status: string; canAsk: boolean; declinedAt: string | null };
+}
+
+async function smsConsentFor(phone: string): Promise<CallerView["smsConsent"]> {
+  const c = await getConsent(phone);
+  return { status: c.status, canAsk: c.canAskOnPhone, declinedAt: c.phoneAskDeclinedAt };
 }
 
 export function normalisePhoneParam(raw: string): string {
@@ -39,6 +47,7 @@ export async function getCaller(phone: string): Promise<CallerView> {
       lastCallAt: profile.lastCallAt ? toZonedISO(profile.lastCallAt, SALON_TZ) : undefined,
       callCount: profile.callCount,
       customerId: profile.customerId ?? undefined,
+      smsConsent: await smsConsentFor(phone),
     };
   }
   const customer = await prisma.customer.findUnique({ where: { phone } });
@@ -49,9 +58,10 @@ export async function getCaller(phone: string): Promise<CallerView> {
       preferredLanguage: isLanguageCode(customer.preferredLanguage) ? customer.preferredLanguage : DEFAULT_LANGUAGE,
       callCount: 0,
       customerId: customer.id,
+      smsConsent: await smsConsentFor(phone),
     };
   }
-  return { phone, preferredLanguage: DEFAULT_LANGUAGE, callCount: 0 };
+  return { phone, preferredLanguage: DEFAULT_LANGUAGE, callCount: 0, smsConsent: await smsConsentFor(phone) };
 }
 
 export async function putCaller(phone: string, body: Record<string, unknown>): Promise<CallerView> {

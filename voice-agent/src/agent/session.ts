@@ -22,6 +22,7 @@ import {
 } from "./llm.js";
 import { callContext, staticSystemPrompt } from "./prompt.js";
 import { TOOL_DEFINITIONS, ToolExecutor, type Outcome, type ToolHooks } from "./tools.js";
+import { smsOptInWording } from "./sms-optin.js";
 
 /** Where the agent's words go: Twilio ConversationRelay in production, the terminal in simulate/demo. */
 export interface CallChannel {
@@ -124,6 +125,7 @@ export class CallSession {
   private callerUtterances = 0;
   private consecutiveErrors = 0;
   private spokenAfterGreeting: string | null = null;
+  private smsOptInOffered = false;
   private closed = false;
 
   constructor(
@@ -318,7 +320,37 @@ export class CallSession {
       },
       sendMessage: (m) => this.postMessage(m),
       now: () => this.now(),
+      smsOptIn: {
+        eligible: () => !this.smsOptInOffered && !!this.caller?.phone && !this.caller.anonymous && this.caller.smsOptInAskable,
+        offered: () => this.smsOptInOffered,
+        markOffered: () => {
+          this.smsOptInOffered = true;
+        },
+        record: (accepted, language) => this.recordSmsConsent(accepted, language),
+      },
     };
+  }
+
+  /** Saves the caller's answer to the promotional text question, with the exact wording spoken. */
+  private async recordSmsConsent(accepted: boolean, language: LanguageCode): Promise<"saved" | "failed"> {
+    const phone = this.caller?.phone;
+    if (!phone) return "failed";
+    try {
+      await this.deps.api.recordSmsConsent({
+        phone,
+        status: accepted ? "express" : "declined",
+        source: "phone",
+        wording: smsOptInWording(this.deps.salon.name, language, accepted),
+        language,
+        detail: { callSid: this.init.callSid },
+      });
+      this.log.record.smsOptIn = { accepted, language, saved: true };
+      return "saved";
+    } catch (err) {
+      this.log.record.smsOptIn = { accepted, language, saved: false };
+      this.log.record.errors.push(`recordSmsConsent failed: ${(err as Error).message}`);
+      return "failed";
+    }
   }
 
   private async switchLanguage(code: LanguageCode, reason: string): Promise<{ saved: "api" | "local" | "skipped" }> {

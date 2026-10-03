@@ -15,8 +15,9 @@ import {
 } from "./availability";
 import { upsertCustomer } from "./customers";
 import { toE164 } from "./phone";
-import { salon, SALON_TZ, formatPhoneDisplay } from "./salon";
-import { sendSms } from "./sms";
+import { salon, SALON_TZ } from "./salon";
+import { confirmationText, sendNotice } from "./notify";
+import { recordWebOptIn } from "./sms/web-consent";
 import { addDays, dateKeyOf, isDateKey, parseStart, toZonedISO, zonedTime } from "./time";
 
 export const BOOKING_SOURCES = ["web", "phone", "walk-in", "admin"] as const;
@@ -252,23 +253,21 @@ export async function createBooking(
     }
     const row = await prisma.booking.findUniqueOrThrow({ where: { id }, include: bookingInclude });
     const view = serializeBooking(row);
-    if (opts.notify !== false) void sendSms(phone, confirmationText(view));
+    // Optional promotional opt-in from the booking form checkbox. Separate from the
+    // booking itself: the confirmation below is sent either way.
+    if (body.smsOptIn === true) {
+      await recordWebOptIn(phone, body.smsOptInLang, { bookingId: id }).catch((e) => console.warn("[consent] web opt-in failed", e));
+    }
+    if (opts.notify !== false) {
+      const text = confirmationText(view);
+      void sendNotice("confirmation", { bookingId: id, phone, email, name }, text, {
+        subject: `Booking confirmed: ${view.serviceName} at ${salon.name}`,
+        text: `Hi ${name},\n\n${text}\n\n${salon.name}`,
+      }).catch((e) => console.warn("[notify] confirmation failed", e));
+    }
     return view;
   }
   throw new HttpError(409, "SLOT_TAKEN", "That time is no longer available");
-}
-
-function confirmationText(b: BookingView): string {
-  const d = new Date(b.start);
-  const when = d.toLocaleString("en-CA", {
-    timeZone: SALON_TZ,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return `${salon.name}: you're booked for ${b.serviceName} with ${b.staffName} on ${when}. Questions or changes: ${formatPhoneDisplay(salon.phone)}.`;
 }
 
 export async function getBooking(id: string): Promise<BookingView | null> {

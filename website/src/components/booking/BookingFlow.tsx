@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CatalogService, CatalogStaff } from "@/lib/catalog";
 import { fill } from "@/lib/i18n/dictionary";
 import { categoryName, formatTime, LOCALE, roleName, serviceDesc, serviceName } from "@/lib/i18n/localize";
-import type { Hours } from "@/lib/salon";
+import { formatPhoneDisplay, fullAddress, salon, type Hours } from "@/lib/salon";
 import { addDays, weekdayOf } from "@/lib/time";
 import { Arrow, Sparkle } from "../art/Monogram";
 import { useI18n } from "../LangProvider";
@@ -45,6 +45,8 @@ export function BookingFlow(props: {
   const [slot, setSlot] = useState<Slot | undefined>();
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", notes: "" });
+  // Promotional SMS opt-in: unchecked by default, never required (CASL express consent).
+  const [smsOptIn, setSmsOptIn] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [banner, setBanner] = useState("");
@@ -168,6 +170,8 @@ export function BookingFlow(props: {
           customer: { name: form.name.trim(), phone: form.phone, email: form.email.trim() || undefined },
           notes: form.notes.trim() || undefined,
           source: "web",
+          smsOptIn,
+          smsOptInLang: lang,
         }),
       });
       const body = await res.json().catch(() => ({}));
@@ -458,6 +462,30 @@ export function BookingFlow(props: {
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   />
+                </div>
+                <div className="sm:col-span-2">
+                  <label
+                    htmlFor="b-sms"
+                    className={`flex cursor-pointer gap-3.5 rounded-xl border px-4 py-3.5 transition ${
+                      smsOptIn ? "border-clay/60 bg-paper" : "border-line bg-paper/60 hover:border-ink/30"
+                    }`}
+                  >
+                    <input
+                      id="b-sms"
+                      type="checkbox"
+                      checked={smsOptIn}
+                      onChange={(e) => setSmsOptIn(e.target.checked)}
+                      className="mt-0.5 h-[1.1rem] w-[1.1rem] shrink-0 cursor-pointer accent-clay"
+                    />
+                    <span>
+                      <span className="block text-[0.92rem] leading-snug text-ink">
+                        {fill(t.book.smsOptIn, { salon: salon.name })}
+                      </span>
+                      <span className="mt-1 block text-xs leading-relaxed text-mute">
+                        {fill(t.book.smsOptInFine, { salon: salon.name, address: fullAddress(), phone: formatPhoneDisplay(salon.phone) })}
+                      </span>
+                    </span>
+                  </label>
                 </div>
                 <div className="flex items-center justify-between gap-4 sm:col-span-2">
                   <button type="button" onClick={() => go(2)} className="link-u text-sm text-ink-soft">

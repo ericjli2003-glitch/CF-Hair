@@ -9,6 +9,7 @@ import {
   type CallerUpdate,
   type CreateBookingInput,
   type MessageInput,
+  type SmsConsentInput,
 } from "./types.js";
 
 /** Client for the website's booking API (docs/ARCHITECTURE.md). */
@@ -105,5 +106,9 @@ export class HttpBookingApi implements BookingApi {
 
   putCaller(phone: string, update: CallerUpdate): Promise<CallerProfile> {
     return this.request("PUT", `/api/callers/${encodeURIComponent(phone)}`, update);
+  }
+
+  recordSmsConsent(input: SmsConsentInput): Promise<unknown> {
+    return this.request("POST", "/api/customers/consent", input);
   }
 }
