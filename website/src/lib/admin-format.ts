@@ -1,6 +1,8 @@
 import { SALON_TZ } from "./salon";
 
-export const STAFF_COLORS = ["#a2532f", "#5f6a52", "#7c4a6b", "#6f5a43", "#3f5e73"];
+// Stylist markers: dark inks that keep 3:1 or more against white and the tile
+// background, distinct from the light rod colours that mean a service category.
+export const STAFF_COLORS = ["#1f4e79", "#2e6b4f", "#6a3d7a", "#8a4b12", "#3d4a45"];
 
 export function staffColor(index: number): string {
   return STAFF_COLORS[index % STAFF_COLORS.length];
@@ -39,9 +41,16 @@ export function phonePretty(e164: string): string {
 
 export const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  completed: "bg-stone-100 text-stone-700 ring-stone-200",
-  "no-show": "bg-rose-50 text-rose-700 ring-rose-200",
-  cancelled: "bg-stone-50 text-stone-400 ring-stone-200 line-through",
+  completed: "bg-tile text-slate ring-rule",
+  "no-show": "bg-rose-50 text-rose-800 ring-rose-200",
+  cancelled: "bg-white text-slate ring-rule line-through",
+};
+
+export const STATUS_LABEL: Record<string, string> = {
+  confirmed: "Confirmed",
+  completed: "Completed",
+  "no-show": "No-show",
+  cancelled: "Cancelled",
 };
 
 export const SOURCE_LABEL: Record<string, string> = {

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useModal } from "@/lib/use-modal";
 import { Logo } from "../art/Monogram";
 import { useI18n } from "../LangProvider";
 import { LangToggle } from "./LangToggle";
@@ -11,13 +12,18 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
   const { t } = useI18n();
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const wasOpen = useRef(false);
 
+  // The menu covers the page as a modal: the page behind is inert, focus moves to
+  // Close, Tab wraps inside, Escape closes, and focus returns to Menu.
+  useModal(menu, open, () => setOpen(false));
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Some browsers do not focus a tapped button, so return to Menu explicitly.
+    if (!open && wasOpen.current) menuButton.current?.focus();
+    wasOpen.current = open;
   }, [open]);
 
   const links = [
@@ -57,6 +63,7 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
             </Link>
           )}
           <button
+            ref={menuButton}
             type="button"
             className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-black bg-white px-3.5 text-[0.95rem] font-medium md:hidden"
             onClick={() => setOpen((o) => !o)}
@@ -72,14 +79,17 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
       </div>
 
       {open && (
-        <div id="site-menu" className="fixed inset-x-0 bottom-0 top-0 z-50 overflow-y-auto bg-tile md:hidden">
+        <div ref={menu} id="site-menu" role="dialog" aria-modal="true" aria-label={t.nav.menu} className="fixed inset-x-0 bottom-0 top-0 z-50 overflow-y-auto bg-tile md:hidden">
           <div className="frame flex min-h-16 items-center justify-between">
             <Link href="/" onClick={() => setOpen(false)} className="py-2">
               <Logo />
             </Link>
             <button
+              data-autofocus
               type="button"
               onClick={() => setOpen(false)}
+              aria-expanded="true"
+              aria-controls="site-menu"
               className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-black bg-white px-3.5 text-[0.95rem] font-medium"
             >
               {t.nav.close}

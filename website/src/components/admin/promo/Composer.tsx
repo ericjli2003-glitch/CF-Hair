@@ -220,7 +220,7 @@ export function Composer(props: ComposerProps) {
 
   const sectionHead = (n: string, title: string, sub?: string) => (
     <div className="mb-5">
-      <p className="text-[0.7rem] font-medium uppercase tracking-[0.2em] text-clay">{n}</p>
+      <p className="text-sm font-medium text-ink-soft">{n}</p>
       <h2 className="display mt-1 text-[1.9rem] leading-none">{title}</h2>
       {sub && <p className="mt-1.5 text-sm text-ink-soft">{sub}</p>}
     </div>
@@ -232,13 +232,13 @@ export function Composer(props: ComposerProps) {
     <div className="mt-8 grid gap-6 lg:grid-cols-12">
       <div className="space-y-6 lg:col-span-7">
         {/* 01 Message */}
-        <section className="rounded-3xl bg-paper p-6 ring-1 ring-line sm:p-7">
+        <section className="rounded-xl bg-paper p-6 ring-1 ring-line sm:p-7">
           {sectionHead("01", "Message", "Short and specific works best. The salon name and \"Reply STOP to opt out\" are added for you.")}
           <label className="label" htmlFor="c-name">Campaign name (only you see this)</label>
           <input id="c-name" className="field !py-3" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Autumn colour week" />
 
           {props.drafting && (
-            <div className="mt-5 rounded-2xl bg-[#f3eee7] p-4">
+            <div className="mt-5 rounded-xl bg-tile p-4">
               <label className="label !mb-2" htmlFor="c-brief">Draft with Claude</label>
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
@@ -249,7 +249,7 @@ export function Composer(props: ComposerProps) {
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onDraft())}
                   placeholder="One line, e.g. 15% off perms Mon to Thu until Oct 31"
                 />
-                <button type="button" onClick={onDraft} disabled={drafting || !brief.trim()} className="shrink-0 rounded-xl bg-ink px-4 py-2.5 text-sm text-paper hover:bg-clay disabled:opacity-50">
+                <button type="button" onClick={onDraft} disabled={drafting || !brief.trim()} className="shrink-0 rounded-xl bg-ink px-4 py-2.5 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
                   {drafting ? "Writing..." : "Draft 4 languages"}
                 </button>
               </div>
@@ -258,7 +258,7 @@ export function Composer(props: ComposerProps) {
           )}
 
           <div className="mt-5 flex items-end justify-between gap-3">
-            <div className="flex rounded-full bg-[#f3eee7] p-1" role="tablist" aria-label="Message language">
+            <div className="flex rounded-full bg-tile p-1" role="tablist" aria-label="Message language">
               {PROMO_LANGS.map((l) => (
                 <button
                   key={l.code}
@@ -269,10 +269,10 @@ export function Composer(props: ComposerProps) {
                     setEditLang(l.code);
                     setViewLang(l.code);
                   }}
-                  className={`relative rounded-full px-3.5 py-2 text-sm transition ${editLang === l.code ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}
+                  className={`relative inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm transition ${editLang === l.code ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}
                 >
                   {l.code === "en-US" ? "English" : l.script}
-                  {l.code !== "en-US" && bodies[l.code].trim() && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-clay" />}
+                  {l.code !== "en-US" && bodies[l.code].trim() && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-ink" />}
                 </button>
               ))}
             </div>
@@ -299,7 +299,7 @@ export function Composer(props: ComposerProps) {
                 : "Chinese and Korean use 70 characters per segment."}
             </span>
             {view && editLang === viewLang && (
-              <span className={view.info.segments > 1 ? "text-clay-deep" : ""}>
+              <span className={view.info.segments > 1 ? "text-ink" : ""}>
                 {view.info.units} / {view.info.perSegment * Math.max(1, view.info.segments)} with footer · {view.info.segments} segment{view.info.segments === 1 ? "" : "s"}
               </span>
             )}
@@ -307,7 +307,7 @@ export function Composer(props: ComposerProps) {
         </section>
 
         {/* 02 Audience */}
-        <section className="rounded-3xl bg-paper p-6 ring-1 ring-line sm:p-7">
+        <section className="rounded-xl bg-paper p-6 ring-1 ring-line sm:p-7">
           {sectionHead("02", "Audience", "Only clients who agreed to promotional texts are included. Opted-out clients are never sent anything.")}
           <div className="grid gap-2.5 sm:grid-cols-2">
             {AUDIENCES.map((a) => {
@@ -329,7 +329,7 @@ export function Composer(props: ComposerProps) {
                               : { type: a.type },
                     )
                   }
-                  className={`rounded-2xl px-4 py-3.5 text-left ring-1 transition ${on ? "bg-ink text-paper ring-ink" : "bg-white/60 ring-line hover:ring-ink/40"}`}
+                  className={`rounded-xl px-4 py-3.5 text-left ring-1 transition ${on ? "bg-ink text-paper ring-ink" : "bg-white/60 ring-line hover:ring-ink/40"}`}
                 >
                   <span className="block text-[0.95rem] font-medium">{a.title}</span>
                   <span className={`mt-0.5 block text-xs ${on ? "text-paper/70" : "text-mute"}`}>{a.sub}</span>
@@ -360,7 +360,7 @@ export function Composer(props: ComposerProps) {
                   key={s.id}
                   type="button"
                   onClick={() => setAudience({ ...audience, staffId: s.id })}
-                  className={`rounded-full px-4 py-2 text-sm ring-1 ${audience.staffId === s.id ? "bg-clay text-paper ring-clay" : "ring-line"}`}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ${audience.staffId === s.id ? "bg-ink text-paper ring-ink" : "ring-line"}`}
                 >
                   {s.name}
                 </button>
@@ -374,7 +374,7 @@ export function Composer(props: ComposerProps) {
                   key={c}
                   type="button"
                   onClick={() => setAudience({ ...audience, category: c })}
-                  className={`rounded-full px-4 py-2 text-sm ring-1 ${audience.category === c ? "bg-clay text-paper ring-clay" : "ring-line"}`}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ${audience.category === c ? "bg-ink text-paper ring-ink" : "ring-line"}`}
                 >
                   {c}
                 </button>
@@ -382,11 +382,11 @@ export function Composer(props: ComposerProps) {
             </div>
           )}
 
-          <div className={`mt-5 rounded-2xl p-4 ring-1 transition ${includeImplied ? "bg-amber-50/70 ring-amber-200" : "bg-[#f3eee7] ring-transparent"}`}>
+          <div className={`mt-5 rounded-xl p-4 ring-1 transition ${includeImplied ? "bg-amber-50/70 ring-amber-200" : "bg-tile ring-transparent"}`}>
             <label className="flex cursor-pointer items-start gap-3">
               <span className="relative mt-0.5 inline-flex shrink-0">
                 <input type="checkbox" className="peer sr-only" checked={includeImplied} onChange={(e) => setIncludeImplied(e.target.checked)} />
-                <span className="h-6 w-11 rounded-full bg-stone-300 transition peer-checked:bg-clay" />
+                <span className="h-6 w-11 rounded-full bg-edge transition peer-checked:bg-ink" />
                 <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
               </span>
               <span>
@@ -402,15 +402,15 @@ export function Composer(props: ComposerProps) {
         </section>
 
         {/* 03 Send */}
-        <section className="rounded-3xl bg-paper p-6 ring-1 ring-line sm:p-7">
+        <section className="rounded-xl bg-paper p-6 ring-1 ring-line sm:p-7">
           {sectionHead("03", "Send", `No promotional texts before 9:00 am or after 8:00 pm. Each client gets at most ${props.cap.max} promotions per ${props.cap.days} days.`)}
-          <div className="flex rounded-full bg-[#f3eee7] p-1 sm:w-80">
+          <div className="flex rounded-full bg-tile p-1 sm:w-80">
             {(["now", "later"] as const).map((w) => (
               <button
                 key={w}
                 type="button"
                 onClick={() => setWhen(w)}
-                className={`flex-1 rounded-full px-4 py-2.5 text-sm transition ${when === w ? "bg-ink text-paper" : "text-ink-soft"}`}
+                className={`flex-1 inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm transition ${when === w ? "bg-ink text-paper" : "text-ink-soft"}`}
               >
                 {w === "now" ? "Send now" : "Schedule"}
               </button>
@@ -424,7 +424,7 @@ export function Composer(props: ComposerProps) {
           )}
           {quietWarning && <p className="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-sm text-sky-900 ring-1 ring-sky-200">{quietWarning}</p>}
           {props.mode === "outbox" && (
-            <p className="mt-3 rounded-xl bg-[#f3eee7] px-3 py-2 text-sm text-ink-soft">
+            <p className="mt-3 rounded-xl bg-tile px-3 py-2 text-sm text-ink-soft">
               Outbox mode: Twilio is not connected, so texts are recorded exactly as they would be sent, and nothing leaves the salon.
             </p>
           )}
@@ -441,7 +441,7 @@ export function Composer(props: ComposerProps) {
               type="button"
               onClick={onSend}
               disabled={!!busy || !bodies["en-US"].trim() || eligible === 0 || props.mode === "blocked" || (when === "later" && !at)}
-              className={`btn-clay !px-6 !py-3.5 !normal-case !tracking-normal !text-[0.95rem] disabled:opacity-50 ${confirming ? "!bg-ink" : ""}`}
+              className={`btn-primary !px-6 !py-3.5 !text-[0.95rem] disabled:opacity-50 ${confirming ? "!bg-ink" : ""}`}
             >
               {busy === "send"
                 ? "Working..."
@@ -475,70 +475,70 @@ export function Composer(props: ComposerProps) {
       {/* Preview */}
       <aside className="lg:col-span-5">
         <div className="space-y-4 lg:sticky lg:top-24">
-          <div className="rounded-3xl bg-espresso p-6 text-paper">
+          <div className="rounded-xl bg-ink p-6 text-paper">
             <div className="flex items-center justify-between">
-              <p className="text-[0.7rem] uppercase tracking-[0.22em] text-champagne">Live preview</p>
-              <div className="flex rounded-full bg-white/10 p-0.5">
+              <p className="text-sm text-white">Live preview</p>
+              <div className="flex rounded-lg bg-white/10 p-0.5">
                 {PROMO_LANGS.map((l) => (
                   <button
                     key={l.code}
                     type="button"
                     onClick={() => setViewLang(l.code)}
                     aria-label={`Preview ${l.label}`}
-                    className={`grid h-8 min-w-8 place-items-center rounded-full px-2 text-xs transition ${viewLang === l.code ? "bg-paper text-ink" : "text-paper/70 hover:text-paper"}`}
+                    className={`grid h-11 min-w-11 place-items-center rounded-md px-2 text-sm transition-colors ${viewLang === l.code ? "bg-paper text-ink" : "text-paper/70 hover:text-paper"}`}
                   >
                     {l.tab}
                   </button>
                 ))}
               </div>
             </div>
-            <div className="mt-5 rounded-[1.6rem] bg-[#f8f4ee] p-4 pb-5">
-              <p className="text-center text-[0.68rem] text-mute">Text message · {PROMO_LANGS.find((l) => l.code === viewLang)?.label}</p>
+            <div className="mt-5 rounded-[1.6rem] bg-tile p-4 pb-5">
+              <p className="text-center text-xs text-mute">Text message · {PROMO_LANGS.find((l) => l.code === viewLang)?.label}</p>
               <div className="mt-3 min-h-[5.5rem]">
                 {view ? <Bubble text={view.text} lang={viewLang} /> : <p className="pt-6 text-center text-sm text-mute">Start typing the English message.</p>}
               </div>
               {view && !view.custom && viewLang !== "en-US" && (
-                <p className="mt-3 text-center text-[0.7rem] text-mute">No {PROMO_LANGS.find((l) => l.code === viewLang)?.script} version: these clients get English.</p>
+                <p className="mt-3 text-center text-xs text-mute">No {PROMO_LANGS.find((l) => l.code === viewLang)?.script} version: these clients get English.</p>
               )}
             </div>
             {view && (
               <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-white/5 px-2 py-2.5">
                   <p className="display text-[1.6rem] leading-none">{view.info.segments}</p>
-                  <p className="mt-1 text-[0.65rem] uppercase tracking-[0.14em] text-paper/60">segment{view.info.segments === 1 ? "" : "s"}</p>
+                  <p className="mt-1 text-sm text-paper/60">segment{view.info.segments === 1 ? "" : "s"}</p>
                 </div>
                 <div className="rounded-xl bg-white/5 px-2 py-2.5">
                   <p className="display text-[1.6rem] leading-none tabular-nums">{view.info.units}</p>
-                  <p className="mt-1 text-[0.65rem] uppercase tracking-[0.14em] text-paper/60">of {view.info.segments > 1 ? `${view.info.perSegment} x ${view.info.segments}` : view.info.perSegment}</p>
+                  <p className="mt-1 text-sm text-paper/60">of {view.info.segments > 1 ? `${view.info.perSegment} x ${view.info.segments}` : view.info.perSegment}</p>
                 </div>
                 <div className="rounded-xl bg-white/5 px-2 py-2.5">
                   <p className="pt-1 text-sm font-medium">{view.info.encoding}</p>
-                  <p className="mt-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-paper/60">encoding</p>
+                  <p className="mt-1.5 text-sm text-paper/60">encoding</p>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="rounded-3xl bg-paper p-6 ring-1 ring-line">
+          <div className="rounded-xl bg-paper p-6 ring-1 ring-line">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-[0.7rem] uppercase tracking-[0.16em] text-mute">Will receive it</p>
+                <p className="text-sm text-mute">Will receive it</p>
                 <p className={`display mt-1 text-[3rem] leading-none tabular-nums transition ${loading ? "opacity-40" : ""}`}>{preview ? eligible : "0"}</p>
               </div>
               <div className="text-right">
-                <p className="text-[0.7rem] uppercase tracking-[0.16em] text-mute">Estimated cost</p>
+                <p className="text-sm text-mute">Estimated cost</p>
                 <p className="display mt-1 text-[1.9rem] leading-none tabular-nums">{money(preview?.estimatedCostUSD ?? 0)}</p>
-                <p className="mt-1 text-[0.7rem] text-mute">USD · {preview?.segmentsTotal ?? 0} segments x {money(preview?.costPerSegmentUSD ?? 0.0163, 4)}</p>
+                <p className="mt-1 text-xs text-mute">USD · {preview?.segmentsTotal ?? 0} segments x {money(preview?.costPerSegmentUSD ?? 0.0163, 4)}</p>
               </div>
             </div>
             {preview && (
               <>
                 <div className="mt-5 flex gap-2 text-xs">
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-800 ring-1 ring-emerald-200">{preview.audience.byConsent.express} opted in</span>
+                  <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-emerald-800 ring-1 ring-emerald-200">{preview.audience.byConsent.express} opted in</span>
                   {includeImplied && (
-                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-900 ring-1 ring-amber-200">{preview.audience.byConsent.implied} implied</span>
+                    <span className="rounded-md bg-amber-50 px-2.5 py-1 text-amber-900 ring-1 ring-amber-200">{preview.audience.byConsent.implied} implied</span>
                   )}
-                  <span className="rounded-full bg-stone-100 px-2.5 py-1 text-stone-600 ring-1 ring-stone-200">{preview.audience.matched} match the audience</span>
+                  <span className="rounded-md bg-tile px-2.5 py-1 text-slate ring-1 ring-rule">{preview.audience.matched} match the audience</span>
                 </div>
                 <table className="mt-4 w-full text-sm">
                   <tbody>
@@ -558,7 +558,7 @@ export function Composer(props: ComposerProps) {
                   </tbody>
                 </table>
                 {Object.keys(preview.audience.skipped).length > 0 && (
-                  <div className="mt-4 rounded-2xl bg-[#f3eee7] p-3.5 text-[0.8rem] text-ink-soft">
+                  <div className="mt-4 rounded-xl bg-tile p-3.5 text-[0.8rem] text-ink-soft">
                     <p className="font-medium text-ink">Not included</p>
                     <ul className="mt-1.5 space-y-0.5">
                       {Object.entries(preview.audience.skipped)
@@ -574,7 +574,7 @@ export function Composer(props: ComposerProps) {
                 )}
               </>
             )}
-            <Link href="/admin/customers" className="mt-4 inline-block text-xs text-mute hover:text-ink">
+            <Link href="/admin/customers" className="mt-2 inline-flex min-h-11 items-center text-sm text-ink-soft underline underline-offset-4 hover:text-ink">
               Record a client&apos;s consent on their client page
             </Link>
           </div>

@@ -51,12 +51,12 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
     return (
       <div className="flex flex-wrap gap-2">
         {status !== "express" && (
-          <button onClick={() => setMode("yes")} className="rounded-full bg-ink px-4 py-2.5 text-sm text-paper hover:bg-clay">
+          <button onClick={() => setMode("yes")} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover">
             Record a yes
           </button>
         )}
         {status !== "withdrawn" && (
-          <button onClick={() => setMode("no")} className="rounded-full px-4 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50">
+          <button onClick={() => setMode("no")} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50">
             Record an opt-out
           </button>
         )}
@@ -65,7 +65,7 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
   }
 
   return (
-    <div className="rounded-2xl bg-[#f3eee7] p-4">
+    <div className="rounded-xl bg-tile p-4">
       <p className="font-medium">{mode === "yes" ? "They said yes to promotional texts" : "They asked to stop promotional texts"}</p>
       <label className="label mt-3" htmlFor="cf-how">How</label>
       <select id="cf-how" value={how} onChange={(e) => setHow(e.target.value)} className="field !bg-white !py-2.5">
@@ -103,11 +103,11 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
         <button
           disabled={busy || (mode === "yes" && !wording.trim())}
           onClick={() => submit(mode === "yes" ? "express" : "withdrawn")}
-          className={`rounded-full px-4 py-2.5 text-sm text-paper disabled:opacity-50 ${mode === "yes" ? "bg-moss hover:bg-ink" : "bg-rose-700 hover:bg-rose-800"}`}
+          className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-paper disabled:opacity-50 ${mode === "yes" ? "bg-ink hover:bg-ink" : "bg-rose-700 hover:bg-rose-800"}`}
         >
           {busy ? "Saving..." : mode === "yes" ? "Save consent" : "Save opt-out"}
         </button>
-        <button onClick={() => setMode(null)} className="rounded-full px-4 py-2.5 text-sm text-ink-soft">
+        <button onClick={() => setMode(null)} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-ink-soft">
           Cancel
         </button>
       </div>

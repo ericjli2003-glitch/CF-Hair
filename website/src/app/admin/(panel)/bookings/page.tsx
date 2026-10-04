@@ -32,21 +32,27 @@ export default async function BookingsPage(props: PageProps<"/admin/bookings">) 
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="display text-[2.8rem] leading-none">Bookings</h1>
-        <Link href="/admin/new" className="btn-clay !px-5 !py-2.5 !normal-case !tracking-normal !text-sm">
-          + New booking
+        <Link href="/admin/new" className="btn-primary">
+          New booking
         </Link>
       </div>
-      <div className="no-scrollbar mt-6 flex gap-2 overflow-x-auto">
-        {FILTERS.map((f) => (
-          <Link
-            key={f.key}
-            href={`/admin/bookings?filter=${f.key}`}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm ring-1 ${filter === f.key ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
-          >
-            {f.label}
-          </Link>
-        ))}
-      </div>
+      <nav aria-label="Filter bookings" className="mt-6">
+        <ul className="flex flex-wrap gap-2">
+          {FILTERS.map((f) => (
+            <li key={f.key}>
+              <Link
+                href={`/admin/bookings?filter=${f.key}`}
+                aria-current={filter === f.key ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center rounded-md px-4 text-[0.95rem] ring-1 ${
+                  filter === f.key ? "bg-ink font-medium text-paper ring-ink" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink"
+                }`}
+              >
+                {f.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
       <BookingsTable rows={rows} today={today} />
     </div>
   );

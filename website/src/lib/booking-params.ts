@@ -1,6 +1,7 @@
-// Reads /book?service=<id>&staff=<id> into a validated starting point for the
-// booking flow. Unknown or malformed ids are ignored, so a stale or edited link
-// simply starts at step 1.
+// Reads /book?service=<id>&staff=<id|any> into a validated starting point for
+// the booking flow. Unknown or malformed ids are ignored, so a stale or edited
+// link simply starts at step 1. Each step of the flow has its own address, so the
+// browser's Back button walks back through the steps.
 
 export type BookingStep = 0 | 1 | 2 | 3;
 
@@ -34,6 +35,8 @@ export function parseBookingParams(
   const stylist = tid ? staff.find((s) => s.id === tid) : undefined;
 
   if (!service) return { step: 0, pendingStaffId: stylist?.id };
+  // "Any stylist" was chosen on step 2.
+  if (tid === "any") return { serviceId: service.id, staffId: "any", step: 2 };
   // A stylist who does not offer this service is dropped: the visitor picks one.
   if (stylist && stylist.serviceIds.includes(service.id)) {
     return { serviceId: service.id, staffId: stylist.id, pendingStaffId: stylist.id, step: 2 };
@@ -42,10 +45,21 @@ export function parseBookingParams(
 }
 
 /** The /book URL that reproduces a choice, used to keep the address bar in step. */
-export function bookingHref(serviceId?: string, staffId?: string): string {
+export function bookingHref(serviceId?: string, staffId?: string, details = false): string {
   const qs = new URLSearchParams();
   if (serviceId) qs.set("service", serviceId);
-  if (staffId && staffId !== "any") qs.set("staff", staffId);
+  // "any" only means something once a service is chosen.
+  if (staffId && (staffId !== "any" || serviceId)) qs.set("staff", staffId);
+  if (details && serviceId && staffId) qs.set("step", "details");
   const s = qs.toString();
   return s ? `/book?${s}` : "/book";
+}
+
+/**
+ * The step an address asks for. The details step needs a time, which is not in
+ * the address, so it is only honoured while a time is chosen; otherwise the
+ * visitor lands on the time step.
+ */
+export function stepForUrl(start: BookingStart, params: URLSearchParams, hasTime: boolean): BookingStep {
+  return start.step === 2 && hasTime && params.get("step") === "details" ? 3 : start.step;
 }

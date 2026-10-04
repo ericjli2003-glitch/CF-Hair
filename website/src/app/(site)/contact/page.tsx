@@ -36,7 +36,7 @@ export default async function ContactPage() {
                 {t.common.openMaps}
               </a>
               <h2 className="mt-6 font-medium">{t.contact.phone}</h2>
-              <a href={`tel:${salon.phone}`} className="s-link nums mt-1 inline-block font-cond text-[1.6rem] font-semibold">
+              <a href={`tel:${salon.phone}`} className="s-link nums mt-1 inline-flex min-h-11 items-center font-cond text-[1.6rem] font-semibold">
                 {formatPhoneDisplay(salon.phone)}
               </a>
               {showEmail && (

@@ -64,22 +64,22 @@ export function CampaignActions({ id, status, canEdit }: { id: string; status: s
   return (
     <div className="flex flex-wrap items-center gap-2">
       {canEdit && (
-        <Link href={`/admin/promotions/${id}/edit`} className="rounded-full px-4 py-2.5 text-sm ring-1 ring-line hover:ring-ink">
+        <Link href={`/admin/promotions/${id}/edit`} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ring-line hover:ring-ink">
           Edit
         </Link>
       )}
       {status === "scheduled" && (
-        <button onClick={() => post(`/api/campaigns/${id}/send`, "send")} disabled={!!busy} className="btn-clay !px-5 !py-2.5 !normal-case !tracking-normal !text-sm disabled:opacity-50">
+        <button onClick={() => post(`/api/campaigns/${id}/send`, "send")} disabled={!!busy} className="btn-primary disabled:opacity-50">
           {busy === "send" ? "Sending..." : "Send now"}
         </button>
       )}
       {status === "sending" && (
-        <button onClick={() => post(`/api/sms/queue`, "queue")} disabled={!!busy} className="btn-clay !px-5 !py-2.5 !normal-case !tracking-normal !text-sm disabled:opacity-50">
+        <button onClick={() => post(`/api/sms/queue`, "queue")} disabled={!!busy} className="btn-primary disabled:opacity-50">
           {busy === "queue" ? "Working..." : "Send next batch"}
         </button>
       )}
       {(status === "scheduled" || status === "sending") && (
-        <button onClick={() => post(`/api/campaigns/${id}/cancel`, "cancel")} disabled={!!busy} className="rounded-full px-4 py-2.5 text-sm text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50 disabled:opacity-50">
+        <button onClick={() => post(`/api/campaigns/${id}/cancel`, "cancel")} disabled={!!busy} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50 disabled:opacity-50">
           {busy === "cancel" ? "Cancelling..." : status === "sending" ? "Stop sending" : "Cancel"}
         </button>
       )}
@@ -145,15 +145,15 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`shrink-0 rounded-full px-3.5 py-2 text-sm ring-1 ${filter === f.key ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
+            className={`shrink-0 inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm ring-1 ${filter === f.key ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
           >
             {f.label}
           </button>
         ))}
       </div>
-      <div className="mt-4 overflow-x-auto rounded-2xl bg-paper ring-1 ring-line">
+      <div className="mt-4 overflow-x-auto rounded-xl bg-paper ring-1 ring-line">
         <table className="w-full min-w-[880px] text-left text-sm">
-          <thead className="border-b border-line bg-[#f3eee7] text-[0.7rem] uppercase tracking-[0.12em] text-ink-soft">
+          <thead className="border-b border-line bg-tile text-sm text-ink-soft">
             <tr>
               <th className="px-5 py-3 font-medium">Client</th>
               <th className="px-3 py-3 font-medium">Version</th>
@@ -170,7 +170,7 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
                 <tr key={r.id} className="border-b border-line/70 align-top last:border-0">
                   <td className="px-5 py-3.5">
                     {r.customerId ? (
-                      <Link href={`/admin/customers/${r.customerId}`} className="font-medium hover:text-clay">
+                      <Link href={`/admin/customers/${r.customerId}`} className="font-medium hover:underline">
                         {r.name}
                       </Link>
                     ) : (
@@ -179,25 +179,25 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
                     <p className="whitespace-nowrap text-ink-soft">{phonePretty(r.phone)}</p>
                   </td>
                   <td className="px-3 py-3.5">
-                    <span className="whitespace-nowrap rounded-full bg-[#efe6da] px-2 py-0.5 text-[0.72rem] text-ink-soft">{lang?.code === "en-US" ? "English" : lang?.script}</span>
-                    <p className="mt-1 text-[0.7rem] text-mute">{r.segments} seg</p>
+                    <span className="whitespace-nowrap rounded-md bg-tile px-2 py-0.5 text-xs text-ink-soft">{lang?.code === "en-US" ? "English" : lang?.script}</span>
+                    <p className="mt-1 text-xs text-mute">{r.segments} seg</p>
                   </td>
                   <td className="px-3 py-3.5">{r.consentType && <ConsentChip status={r.consentType} />}</td>
                   <td className="px-3 py-3.5">
-                    <span className={`whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs ring-1 ${r.status === "skipped" ? "" : "capitalize"} ${MSG_STATUS_STYLE[r.status] ?? MSG_STATUS_STYLE.sent}`}>
+                    <span className={`whitespace-nowrap rounded-md px-2.5 py-0.5 text-xs ring-1 ${r.status === "skipped" ? "" : "capitalize"} ${MSG_STATUS_STYLE[r.status] ?? MSG_STATUS_STYLE.sent}`}>
                       {r.status === "skipped" ? SKIP[r.skipReason ?? ""] ?? "Skipped" : r.status === "sent" && r.dryRun ? "In outbox" : r.status}
                     </span>
-                    {r.sentAt && <p className="mt-1 whitespace-nowrap text-[0.7rem] text-mute">{dateTime(r.deliveredAt ?? r.sentAt)}</p>}
-                    {r.error && <p className="mt-1 max-w-[14rem] text-[0.7rem] text-rose-700">{r.error}</p>}
+                    {r.sentAt && <p className="mt-1 whitespace-nowrap text-xs text-mute">{dateTime(r.deliveredAt ?? r.sentAt)}</p>}
+                    {r.error && <p className="mt-1 max-w-[14rem] text-xs text-rose-700">{r.error}</p>}
                   </td>
                   <td className="px-5 py-3.5">
                     {r.booked.map((b) => (
-                      <p key={b.id} className="mb-1 inline-block rounded-full bg-emerald-50 px-2.5 py-0.5 text-[0.72rem] text-emerald-800 ring-1 ring-emerald-200">
+                      <p key={b.id} className="mb-1 inline-block rounded-md bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800 ring-1 ring-emerald-200">
                         Booked {b.service} · {shortDate(b.start)} · ${b.priceCAD}
                       </p>
                     ))}
                     {r.optedOutAt && (
-                      <p className="inline-block rounded-full bg-rose-50 px-2.5 py-0.5 text-[0.72rem] text-rose-700 ring-1 ring-rose-200">
+                      <p className="inline-block rounded-md bg-rose-50 px-2.5 py-0.5 text-xs text-rose-700 ring-1 ring-rose-200">
                         Replied {r.optOutText ? `"${r.optOutText}"` : "STOP"} · {shortDate(r.optedOutAt)}
                       </p>
                     )}
@@ -222,7 +222,7 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
                             Simulate a reply
                           </button>
                         )}
-                        {result?.id === r.id && <p className="mt-1 max-w-xs text-[0.72rem] text-ink-soft">{result.text}</p>}
+                        {result?.id === r.id && <p className="mt-1 max-w-xs text-xs text-ink-soft">{result.text}</p>}
                       </div>
                     )}
                   </td>

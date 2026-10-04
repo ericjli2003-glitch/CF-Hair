@@ -23,7 +23,7 @@ export default async function Home() {
           <h1 className="font-cond text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[0.92] tracking-[-0.01em]">{salon.name}</h1>
           <p className="mt-4 max-w-[30ch] text-balance text-[1.25rem] leading-snug">{fill(t.home.lead, { unit: unitNumber() })}</p>
           <OpenNow t={t} lang={lang} className="mt-6 text-[1.05rem] font-medium" />
-          <a href={`tel:${salon.phone}`} className="nums mt-2 inline-block text-[1.05rem] underline decoration-1 underline-offset-[3px] hover:decoration-2">
+          <a href={`tel:${salon.phone}`} className="nums mt-1 inline-flex min-h-11 items-center text-[1.05rem] underline decoration-1 underline-offset-[3px] hover:decoration-2">
             {formatPhoneDisplay(salon.phone)}
           </a>
           <div className="mt-6 hidden md:block">
@@ -62,7 +62,7 @@ export default async function Home() {
           <div className="mt-6">
             <TeamRows staff={staff} services={services} categories={categories} t={t} lang={lang} />
           </div>
-          <Link href="/team" className="s-link mt-6 inline-block font-medium">
+          <Link href="/team" className="s-link mt-4 inline-flex min-h-11 items-center font-medium">
             {t.home.teamMore}
           </Link>
         </div>

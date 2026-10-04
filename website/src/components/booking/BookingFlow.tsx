@@ -3,7 +3,7 @@
 import { AsYouType, parsePhoneNumberFromString } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { bookingHref, type BookingStart } from "@/lib/booking-params";
+import { bookingHref, parseBookingParams, stepForUrl, type BookingStart } from "@/lib/booking-params";
 import type { CatalogService, CatalogStaff } from "@/lib/catalog";
 import { fill } from "@/lib/i18n/dictionary";
 import {
@@ -69,20 +69,37 @@ export function BookingFlow(props: {
   const days = useMemo(() => Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i)), [today]);
   const isOpen = useCallback((d: string) => !!hours[weekdayOf(d)], [hours]);
 
-  // Keep the address bar in step with the choice, so a reload or a shared link
-  // lands in the same place.
-  const syncUrl = (sid?: string, tid?: string) => {
+  // Every step gets its own address (pushed, not replaced), so the browser's Back
+  // button steps back through the flow and a reload or shared link lands in the
+  // same place. Next.js keeps its router in sync with native pushState.
+  const go = (n: number, sid = serviceId, tid = staffId) => {
+    moved.current = true;
+    setStep(n);
+    const href = bookingHref(n >= 1 ? sid : undefined, n === 1 ? undefined : tid, n === 3);
     try {
-      window.history.replaceState(window.history.state, "", bookingHref(sid, tid));
+      if (window.location.pathname + window.location.search !== href) window.history.pushState(null, "", href);
     } catch {
       /* not essential */
     }
   };
 
-  const go = (n: number) => {
-    moved.current = true;
-    setStep(n);
-  };
+  // Back and Forward: restore the step and choices from the address.
+  const slotRef = useRef(slot);
+  useEffect(() => {
+    slotRef.current = slot;
+  }, [slot]);
+  useEffect(() => {
+    const onPop = () => {
+      const qs = new URLSearchParams(window.location.search);
+      const at = parseBookingParams(Object.fromEntries(qs), services, staff);
+      moved.current = true;
+      setServiceId(at.serviceId);
+      setStaffId(at.serviceId ? at.staffId : undefined);
+      setStep(stepForUrl(at, qs, !!slotRef.current));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [services, staff]);
 
   // After a step change, bring the new step into view and move focus to its heading.
   useEffect(() => {
@@ -117,10 +134,31 @@ export function BookingFlow(props: {
     [fetchSlots, isOpen],
   );
 
-  // Entering the time step: jump to the first day with openings.
+  // Entering the time step: jump to the first day with openings. Coming back to it
+  // (from the details step, or with Back) keeps the chosen day, and the chosen
+  // time if it is still open.
+  const loadedFor = useRef<string | null>(null);
+  const dateRef = useRef(date);
+  useEffect(() => {
+    dateRef.current = date;
+  }, [date]);
   useEffect(() => {
     if (step !== 2 || !serviceId || !staffId) return;
     let cancelled = false;
+    const key = `${serviceId}|${staffId}`;
+    const day = dateRef.current;
+    if (loadedFor.current === key && day) {
+      (async () => {
+        const s = isOpen(day) ? await fetchSlots(day) : [];
+        if (cancelled) return;
+        setSlots(s);
+        setSlot((cur) => (cur && s.some((x) => x.start === cur.start) ? cur : undefined));
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+    loadedFor.current = key;
     (async () => {
       setLoadingSlots(true);
       setSlots(null);
@@ -153,18 +191,13 @@ export function BookingFlow(props: {
     // Keep a stylist chosen from the team page if they offer this service.
     const keep = pendingStaff && staff.find((x) => x.id === pendingStaff)?.serviceIds.includes(s.id);
     setStaffId(keep ? pendingStaff : undefined);
-    syncUrl(id, keep ? pendingStaff : undefined);
-    go(keep ? 2 : 1);
+    go(keep ? 2 : 1, id, keep ? pendingStaff : undefined);
   };
   const pickStaff = (id: string) => {
     setStaffId(id);
-    syncUrl(serviceId, id);
-    go(2);
+    go(2, serviceId, id);
   };
-  const backTo = (n: number) => {
-    if (n === 0) syncUrl(undefined, pendingStaff);
-    go(n);
-  };
+  const backTo = (n: number) => (n === 0 ? go(0, undefined, pendingStaff) : go(n));
 
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(LOCALE[lang], { month: "short", timeZone: "UTC" }), [lang]);
   const longDate = useCallback(
@@ -183,12 +216,31 @@ export function BookingFlow(props: {
     return !!n && n.isValid();
   };
 
+  const fieldError = (k: "name" | "phone" | "email", f = form): string | undefined => {
+    if (k === "name") return f.name.trim() ? undefined : t.book.errName;
+    if (k === "phone") return phoneValid(f.phone) ? undefined : t.book.errPhone;
+    return f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email) ? t.book.errEmail : undefined;
+  };
+  // Check a field when the visitor leaves it, once there is something to check
+  // (or it already showed an error), so a fix clears the message straight away.
+  const onBlurField = (k: "name" | "phone" | "email") => {
+    if (!errors[k] && !form[k].trim()) return;
+    const msg = fieldError(k);
+    setErrors((e) => {
+      const next = { ...e };
+      if (msg) next[k] = msg;
+      else delete next[k];
+      return next;
+    });
+  };
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const errs: Record<string, string> = {};
-    if (!form.name.trim()) errs.name = t.book.errName;
-    if (!phoneValid(form.phone)) errs.phone = t.book.errPhone;
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t.book.errEmail;
+    for (const k of ["name", "phone", "email"] as const) {
+      const msg = fieldError(k);
+      if (msg) errs[k] = msg;
+    }
     setErrors(errs);
     const first = ["name", "phone", "email"].find((k) => errs[k]);
     if (first) document.getElementById(`b-${first}`)?.focus();
@@ -250,18 +302,19 @@ export function BookingFlow(props: {
   return (
     <div ref={topRef} className="scroll-mt-4">
       {/* Steps: a real sequence, so they are numbered. */}
-      <ol className="mt-6 grid grid-cols-4 gap-1.5 sm:gap-3">
+      <ol className="mt-6 flex gap-1.5 sm:grid sm:grid-cols-4 sm:gap-3">
         {t.book.steps.map((label, i) => {
           const done = i < step;
           const active = i === step;
           return (
-            <li key={label} className="min-w-0">
+            <li key={label} className={`min-w-0 ${active ? "flex-1" : "w-12 shrink-0 sm:w-auto"}`}>
               <button
                 type="button"
                 disabled={!done}
                 onClick={() => backTo(i)}
                 aria-current={active ? "step" : undefined}
-                className={`flex w-full min-w-0 items-center gap-2 rounded-md border-b-[3px] py-2 text-left text-[0.95rem] ${
+                aria-label={`${fill(t.book.stepOf, { n: i + 1, total })}: ${label}`}
+                className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-t-md border-b-[3px] py-2 text-left text-[0.95rem] ${
                   active ? "border-black font-semibold" : done ? "border-black/40 hover:border-black" : "border-rule text-slate"
                 } disabled:cursor-default`}
               >
@@ -272,7 +325,9 @@ export function BookingFlow(props: {
                 >
                   {i + 1}
                 </span>
-                <span className={`truncate ${active ? "" : "hidden sm:inline"}`}>{label}</span>
+                <span aria-hidden="true" className={`truncate ${active ? "" : "hidden sm:inline"}`}>
+                  {label}
+                </span>
               </button>
             </li>
           );
@@ -356,7 +411,7 @@ export function BookingFlow(props: {
           {step === 2 && service && (
             <section>
               {stepHeading(t.book.timeTitle)}
-              <div className="no-scrollbar -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+              <div className="no-scrollbar scroll-hint -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
                 {days.map((d) => {
                   const open = isOpen(d);
                   const sel = d === date;
@@ -385,10 +440,19 @@ export function BookingFlow(props: {
                 })}
               </div>
 
-              <div className="mt-6 min-h-[220px]" aria-live="polite" aria-busy={loadingSlots}>
+              <p role="status" className="sr-only">
+                {loadingSlots
+                  ? t.book.loadingSlots
+                  : slots && date
+                    ? slots.length
+                      ? fill(t.book.slotsFound, { n: slots.length, date: longDate(date) })
+                      : `${longDate(date)}. ${isOpen(date) ? t.book.noSlots : t.book.closedDay}`
+                    : ""}
+              </p>
+              <div className="mt-6 min-h-[220px]" aria-busy={loadingSlots}>
                 {date && <p className="font-medium">{longDate(date)}</p>}
                 {loadingSlots && (
-                  <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  <div aria-hidden="true" className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
                     {Array.from({ length: 10 }).map((_, i) => (
                       <span key={i} className="h-12 animate-pulse rounded-md bg-white/70" />
                     ))}
@@ -416,7 +480,10 @@ export function BookingFlow(props: {
                               <button
                                 key={s.start}
                                 type="button"
-                                onClick={() => setSlot(s)}
+                                onClick={() => {
+                                  setSlot(s);
+                                  setBanner("");
+                                }}
                                 aria-pressed={sel}
                                 className={`nums min-h-12 rounded-md border-[1.5px] px-2 text-[1rem] font-medium ${
                                   sel ? "border-black bg-black text-white" : "border-transparent bg-white hover:border-black"
@@ -451,6 +518,8 @@ export function BookingFlow(props: {
                     className="s-field"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    onBlur={() => onBlurField("name")}
+                    required
                     aria-invalid={!!errors.name}
                     aria-describedby={errors.name ? "b-name-err" : undefined}
                   />
@@ -459,7 +528,9 @@ export function BookingFlow(props: {
                 <div>
                   <label className="s-label" htmlFor="b-phone">{t.book.phone}</label>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate">+1</span>
+                    <span aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate">
+                      +1
+                    </span>
                     <input
                       id="b-phone"
                       type="tel"
@@ -473,6 +544,8 @@ export function BookingFlow(props: {
                         const formatted = v.startsWith("+") ? v : new AsYouType("CA").input(v);
                         setForm({ ...form, phone: v.length < form.phone.length ? v : formatted });
                       }}
+                      onBlur={() => onBlurField("phone")}
+                      required
                       aria-invalid={!!errors.phone}
                       aria-describedby="b-phone-hint"
                     />
@@ -492,6 +565,7 @@ export function BookingFlow(props: {
                     className="s-field"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onBlur={() => onBlurField("email")}
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? "b-email-err" : undefined}
                   />
@@ -532,7 +606,7 @@ export function BookingFlow(props: {
                 </div>
                 <div className="flex items-center justify-between gap-3 sm:col-span-2">
                   {backButton(2)}
-                  <button type="submit" disabled={submitting} className="s-btn min-h-12 px-6">
+                  <button type="submit" disabled={submitting} aria-busy={submitting || undefined} className="s-btn min-h-12 px-6">
                     {submitting ? t.book.confirming : t.book.confirm}
                   </button>
                 </div>
@@ -602,21 +676,23 @@ function SummaryRow({
   changeLabel: string;
   empty: string;
 }) {
+  // dt and dd sit directly in the row (valid dl structure); the grid puts the
+  // Change button to the right.
   return (
-    <div className="flex items-start justify-between gap-4 py-3">
-      <div className="min-w-0">
-        <dt className="text-[0.88rem] text-slate">{label}</dt>
-        <dd className={`mt-0.5 flex items-center gap-2 ${value ? "font-medium" : "text-slate"}`}>
-          {marker}
-          {value ?? empty}
-        </dd>
-        {sub && <dd className="nums text-[0.92rem] text-slate">{sub}</dd>}
-      </div>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 py-3">
+      <dt className="col-start-1 text-[0.88rem] text-slate">{label}</dt>
+      <dd className={`col-start-1 mt-0.5 flex min-w-0 items-center gap-2 ${value ? "font-medium" : "text-slate"}`}>
+        {marker}
+        {value ?? empty}
+      </dd>
+      {sub && <dd className="nums col-start-1 text-[0.92rem] text-slate">{sub}</dd>}
       {onChange && (
-        <button type="button" onClick={onChange} className="s-link shrink-0 text-[0.92rem]">
-          {changeLabel}
-          <span className="sr-only"> {label}</span>
-        </button>
+        <dd className="col-start-2 row-span-3 row-start-1 -my-1 self-center">
+          <button type="button" onClick={onChange} className="s-link inline-flex min-h-11 min-w-11 items-center justify-end text-[0.92rem]">
+            {changeLabel}
+            <span className="sr-only"> {label}</span>
+          </button>
+        </dd>
       )}
     </div>
   );

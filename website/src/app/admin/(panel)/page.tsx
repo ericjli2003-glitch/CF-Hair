@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CalendarView } from "@/components/admin/CalendarView";
+import { ChevronIcon } from "@/components/admin/icons";
 import { listBookings } from "@/lib/bookings";
 import { prisma } from "@/lib/db";
 import { dayLabel, staffColor } from "@/lib/admin-format";
@@ -18,11 +19,13 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
   const from = view === "week" ? weekStart : date;
   const to = addDays(from, view === "week" ? 7 : 1);
 
-  const [bookings, staffRows, newMessages] = await Promise.all([
+  const [bookings, staffRows, newMessages, serviceRows] = await Promise.all([
     listBookings(zonedTime(from, 0, SALON_TZ), zonedTime(to, 0, SALON_TZ)),
     prisma.staff.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
     prisma.message.count({ where: { status: "new" } }),
+    prisma.service.findMany({ select: { id: true, category: true } }),
   ]);
+  const categoryOf = Object.fromEntries(serviceRows.map((s) => [s.id, s.category]));
   const staff = staffRows.map((s, i) => ({ id: s.id, name: s.name, role: s.role, color: staffColor(i) }));
 
   const opens = DAY_KEYS.map((d) => salon.hours[d]).filter(Boolean).map((h) => hhmmToMin(h!.open));
@@ -41,7 +44,7 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-mute">{view === "week" ? "Week" : date === today ? "Today" : "Schedule"}</p>
+          <p className="text-[0.95rem] text-ink-soft">{view === "week" ? "Week" : date === today ? "Today" : "Schedule"}</p>
           <h1 className="display mt-1 text-[2.4rem] leading-none sm:text-[2.8rem]">
             {view === "week"
               ? `${dayLabel(from, { month: "short", day: "numeric" })} to ${dayLabel(addDays(to, -1), { month: "short", day: "numeric" })}`
@@ -49,30 +52,31 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-full bg-paper p-1 ring-1 ring-line">
+          <div className="flex gap-1 rounded-lg bg-paper p-1 ring-1 ring-line">
             {(["day", "week"] as const).map((v) => (
               <Link
                 key={v}
                 href={q(date, v)}
-                className={`rounded-full px-4 py-2 text-sm capitalize ${view === v ? "bg-ink text-paper" : "text-ink-soft"}`}
+                aria-current={view === v ? "page" : undefined}
+                className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-[0.95rem] capitalize ${view === v ? "bg-ink font-medium text-paper" : "text-ink-soft hover:bg-tile hover:text-ink"}`}
               >
                 {v}
               </Link>
             ))}
           </div>
-          <div className="flex items-center rounded-full bg-paper p-1 ring-1 ring-line">
-            <Link href={q(prev)} className="grid h-9 w-9 place-items-center rounded-full hover:bg-sand" aria-label="Previous">
-              ‹
+          <div className="flex items-center gap-1 rounded-lg bg-paper p-1 ring-1 ring-line">
+            <Link href={q(prev)} className="grid h-11 w-11 place-items-center rounded-md hover:bg-tile" aria-label={view === "week" ? "Previous week" : "Previous day"}>
+              <ChevronIcon dir="left" />
             </Link>
-            <Link href={q(today)} className="rounded-full px-3 py-2 text-sm hover:bg-sand">
+            <Link href={q(today)} className="inline-flex min-h-11 items-center justify-center rounded-md px-3 text-[0.95rem] hover:bg-tile">
               Today
             </Link>
-            <Link href={q(next)} className="grid h-9 w-9 place-items-center rounded-full hover:bg-sand" aria-label="Next">
-              ›
+            <Link href={q(next)} className="grid h-11 w-11 place-items-center rounded-md hover:bg-tile" aria-label={view === "week" ? "Next week" : "Next day"}>
+              <ChevronIcon dir="right" />
             </Link>
           </div>
-          <Link href={`/admin/new?date=${date}`} className="btn-clay !px-5 !py-2.5 !normal-case !tracking-normal !text-sm">
-            + New booking
+          <Link href={`/admin/new?date=${date}`} className="btn-primary">
+            New booking
           </Link>
         </div>
       </div>
@@ -84,7 +88,7 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
           label="Booked online or by phone agent"
           value={String((view === "week" ? active : dayBookings).filter((b) => b.source === "web" || b.source === "phone").length)}
         />
-        <Link href="/admin/messages" className="block">
+        <Link href="/admin/messages" className="block rounded-xl">
           <Stat label="New callback messages" value={String(newMessages)} accent={newMessages > 0} />
         </Link>
       </div>
@@ -100,6 +104,7 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
         })()}
         staff={staff}
         bookings={bookings}
+        categoryOf={categoryOf}
         dayStartMin={dayStartMin}
         dayEndMin={dayEndMin}
         closedDays={DAY_KEYS.filter((d) => !salon.hours[d])}
@@ -111,8 +116,8 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-2xl p-4 ring-1 ${accent ? "bg-clay text-paper ring-clay" : "bg-paper ring-line"}`}>
-      <p className={`text-[0.7rem] uppercase tracking-[0.14em] ${accent ? "text-paper/75" : "text-mute"}`}>{label}</p>
+    <div className={`rounded-xl p-4 ring-1 ${accent ? "bg-ink text-paper ring-ink" : "bg-paper ring-line"}`}>
+      <p className={`text-sm ${accent ? "text-paper/80" : "text-ink-soft"}`}>{label}</p>
       <p className="display mt-1 text-[2rem] leading-none">{value}</p>
     </div>
   );

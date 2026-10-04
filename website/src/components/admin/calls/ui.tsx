@@ -19,15 +19,15 @@ const OUTCOME_STYLE: Record<string, string> = {
   cancelled: "bg-rose-50 text-rose-700 ring-rose-200",
   message: "bg-amber-50 text-amber-900 ring-amber-200",
   transferred: "bg-violet-50 text-violet-800 ring-violet-200",
-  info: "bg-stone-100 text-stone-700 ring-stone-200",
-  abandoned: "bg-stone-50 text-stone-500 ring-stone-200",
-  spam: "bg-stone-50 text-stone-400 ring-stone-200",
+  info: "bg-tile text-slate ring-rule",
+  abandoned: "bg-white text-slate ring-rule",
+  spam: "bg-white text-slate ring-rule",
 };
 
 export function OutcomeChip({ outcome, size = "sm" }: { outcome: string; size?: "sm" | "md" }) {
   return (
     <span
-      className={`inline-flex whitespace-nowrap rounded-full ring-1 ${OUTCOME_STYLE[outcome] ?? OUTCOME_STYLE.info} ${
+      className={`inline-flex whitespace-nowrap rounded-md ring-1 ${OUTCOME_STYLE[outcome] ?? OUTCOME_STYLE.info} ${
         size === "md" ? "px-3 py-1 text-sm" : "px-2.5 py-0.5 text-xs"
       }`}
     >
@@ -41,8 +41,8 @@ export function LangChip({ lang, compact = false }: { lang: string; compact?: bo
   const l = isLanguageCode(lang) ? LANGUAGE_LABELS[lang] : null;
   if (!l) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#efe6da] py-0.5 pl-1 pr-2.5 text-xs text-ink-soft" title={`${l.label} (${l.native})`}>
-      <span lang={lang} className="grid h-[1.15rem] min-w-[1.15rem] place-items-center rounded-full bg-paper px-1 text-[0.66rem] font-medium leading-none text-ink">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-tile py-0.5 pl-1 pr-2.5 text-xs text-ink-soft" title={`${l.label} (${l.native})`}>
+      <span lang={lang} className="grid h-[1.15rem] min-w-[1.15rem] place-items-center rounded-full bg-paper px-1 text-xs font-medium leading-none text-ink">
         {l.short}
       </span>
       {compact ? null : l.label}

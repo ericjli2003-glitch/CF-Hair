@@ -25,10 +25,10 @@ export function Footer({ t, lang }: { t: Dict; lang: Lang }) {
         </div>
         <div>
           <h2 className="font-medium">{t.contact.address}</h2>
-          <a href={mapsUrl()} target="_blank" rel="noreferrer" className="s-link mt-1.5 block max-w-[34ch] leading-snug">
+          <a href={mapsUrl()} target="_blank" rel="noreferrer" className="s-link mt-1.5 block max-w-[34ch] py-1 leading-snug">
             {fullAddress()}
           </a>
-          <a href={`tel:${salon.phone}`} className="s-link nums mt-2 inline-block">
+          <a href={`tel:${salon.phone}`} className="s-link nums inline-flex min-h-11 items-center">
             {formatPhoneDisplay(salon.phone)}
           </a>
         </div>
@@ -43,19 +43,19 @@ export function Footer({ t, lang }: { t: Dict; lang: Lang }) {
             ))}
           </dl>
         </div>
-        <nav aria-label="Footer" className="flex flex-col gap-1.5">
-          <Link href="/services" className="s-link">{t.nav.services}</Link>
-          <Link href="/team" className="s-link">{t.nav.team}</Link>
-          <Link href="/contact" className="s-link">{t.nav.visit}</Link>
-          <Link href="/book" className="s-link font-medium">{t.nav.book}</Link>
+        <nav aria-label="Footer" className="-my-2 flex flex-col">
+          <Link href="/services" className="s-link inline-flex min-h-11 items-center">{t.nav.services}</Link>
+          <Link href="/team" className="s-link inline-flex min-h-11 items-center">{t.nav.team}</Link>
+          <Link href="/contact" className="s-link inline-flex min-h-11 items-center">{t.nav.visit}</Link>
+          <Link href="/book" className="s-link inline-flex min-h-11 items-center font-medium">{t.nav.book}</Link>
         </nav>
       </div>
       <div className="frame">
-        <div className="flex flex-col justify-between gap-2 border-t border-rule py-5 text-[0.85rem] text-slate sm:flex-row">
+        <div className="flex flex-col justify-between gap-2 border-t border-rule py-4 text-[0.85rem] text-slate sm:flex-row sm:items-center">
           <span>
             © {year} {salon.name}. {t.footer.rights}
           </span>
-          <Link href="/admin" className="s-link">
+          <Link href="/admin" className="s-link inline-flex min-h-11 items-center self-start">
             {t.footer.owner}
           </Link>
         </div>

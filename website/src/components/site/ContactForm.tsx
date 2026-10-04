@@ -7,12 +7,14 @@ export function ContactForm() {
   const { t } = useI18n();
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [err, setErr] = useState("");
+  const [phoneErr, setPhoneErr] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     setState("sending");
     setErr("");
+    setPhoneErr(false);
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -20,7 +22,11 @@ export function ContactForm() {
     }).catch(() => null);
     if (res?.ok) return setState("sent");
     const body = await res?.json().catch(() => null);
-    setErr(body?.error === "INVALID_PHONE" ? t.book.errPhone : t.contact.error);
+    if (body?.error === "INVALID_PHONE") {
+      // Next to the field it is about, and focus goes there.
+      setPhoneErr(true);
+      document.getElementById("c-phone")?.focus();
+    } else setErr(t.contact.error);
     setState("error");
   }
 
@@ -43,7 +49,23 @@ export function ContactForm() {
             </div>
             <div>
               <label className="s-label" htmlFor="c-phone">{t.contact.phoneField}</label>
-              <input id="c-phone" name="phone" required type="tel" autoComplete="tel" placeholder="(604) 555-0123" className="s-field" />
+              <input
+                id="c-phone"
+                name="phone"
+                required
+                type="tel"
+                autoComplete="tel"
+                placeholder="(604) 555-0123"
+                className="s-field"
+                aria-invalid={phoneErr || undefined}
+                aria-describedby={phoneErr ? "c-phone-err" : undefined}
+                onChange={() => phoneErr && setPhoneErr(false)}
+              />
+              {phoneErr && (
+                <p id="c-phone-err" className="mt-1.5 text-[0.92rem] font-medium text-alert">
+                  {t.book.errPhone}
+                </p>
+              )}
             </div>
             <div>
               <label className="s-label" htmlFor="c-msg">{t.contact.message}</label>
@@ -55,7 +77,7 @@ export function ContactForm() {
                 {err}
               </p>
             )}
-            <button type="submit" disabled={state === "sending"} className="s-btn w-full">
+            <button type="submit" disabled={state === "sending"} aria-busy={state === "sending" || undefined} className="s-btn w-full">
               {state === "sending" ? t.contact.sending : t.contact.send}
             </button>
           </div>

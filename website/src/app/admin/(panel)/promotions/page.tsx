@@ -37,19 +37,19 @@ export default async function PromotionsPage() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-mute">Text marketing</p>
+          <p className="text-sm text-mute">Text marketing</p>
           <h1 className="display mt-1 text-[2.8rem] leading-none">Promotions</h1>
           <p className="mt-2 max-w-2xl text-ink-soft">
             Specials by text, only to clients who agreed. Every message names the salon and says how to opt out, and replies of STOP take effect at once.
           </p>
         </div>
-        <Link href="/admin/promotions/new" className="btn-clay !px-5 !py-2.5 !normal-case !tracking-normal !text-sm">
+        <Link href="/admin/promotions/new" className="btn-primary">
           + New campaign
         </Link>
       </div>
 
       {mode !== "live" && (
-        <div className={`mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl px-5 py-3.5 text-sm ring-1 ${mode === "outbox" ? "bg-[#efe6da] text-ink-soft ring-line" : "bg-rose-50 text-rose-800 ring-rose-200"}`}>
+        <div className={`mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl px-5 py-3.5 text-sm ring-1 ${mode === "outbox" ? "bg-tile text-ink-soft ring-line" : "bg-rose-50 text-rose-800 ring-rose-200"}`}>
           <span className="font-medium text-ink">{mode === "outbox" ? "Outbox mode" : "Promotions number missing"}</span>
           <span>
             {mode === "outbox"
@@ -60,7 +60,7 @@ export default async function PromotionsPage() {
       )}
 
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Tile label="Opted in" value={String(summary.express)} sub="Express consent, no expiry" accent="moss" />
+        <Tile label="Opted in" value={String(summary.express)} sub="Express consent, no expiry" />
         <Tile label="Implied consent" value={String(summary.implied)} sub={`Paid visit in 2 years · ${summary.impliedExpiringSoon} expire within 60 days`} />
         <Tile label="Opted out" value={String(summary.withdrawn)} sub="Replied STOP or asked to stop" />
         <Tile
@@ -72,10 +72,10 @@ export default async function PromotionsPage() {
 
       <div className="mt-8 grid gap-6 lg:grid-cols-12">
         <section className="lg:col-span-8">
-          <h2 className="text-xs font-medium uppercase tracking-[0.16em] text-ink-soft">Campaigns</h2>
+          <h2 className="text-sm font-medium text-ink-soft">Campaigns</h2>
           {sorted.length === 0 ? (
-            <div className="mt-3 rounded-2xl bg-paper p-10 text-center text-ink-soft ring-1 ring-line">
-              No campaigns yet. <Link href="/admin/promotions/new" className="text-clay underline">Write the first one</Link>.
+            <div className="mt-3 rounded-xl bg-paper p-10 text-center text-ink-soft ring-1 ring-line">
+              No campaigns yet. <Link href="/admin/promotions/new" className="underline underline-offset-4">Write the first one</Link>.
             </div>
           ) : (
             <ul className="mt-3 space-y-3">
@@ -86,13 +86,13 @@ export default async function PromotionsPage() {
                 const href = c.status === "draft" ? `/admin/promotions/${c.id}/edit` : `/admin/promotions/${c.id}`;
                 return (
                   <li key={c.id}>
-                    <Link href={href} className="group block rounded-2xl bg-paper p-5 ring-1 ring-line transition hover:ring-ink/40 sm:p-6">
+                    <Link href={href} className="group block rounded-xl bg-paper p-5 ring-1 ring-line transition hover:ring-ink/40 sm:p-6">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-lg font-medium group-hover:text-clay">{c.name}</p>
+                            <p className="text-lg font-medium group-hover:underline">{c.name}</p>
                             <CampaignStatus status={c.status} />
-                            {c.dryRun && <span className="rounded-full bg-[#efe6da] px-2 py-0.5 text-[0.7rem] text-ink-soft">Outbox</span>}
+                            {c.dryRun && <span className="rounded-md bg-tile px-2 py-0.5 text-xs text-ink-soft">Outbox</span>}
                           </div>
                           <p className="mt-1 text-sm text-mute">
                             {describeAudience(audience, staffNames)}
@@ -109,7 +109,7 @@ export default async function PromotionsPage() {
                             {Object.keys(bodies)
                               .filter((l) => l !== "en-US")
                               .map((l) => (
-                                <span key={l} className="grid h-6 min-w-6 place-items-center rounded-full bg-[#efe6da] px-1.5 text-[0.7rem] text-ink-soft">
+                                <span key={l} className="grid h-6 min-w-6 place-items-center rounded-full bg-tile px-1.5 text-xs text-ink-soft">
                                   {LANG_TAB[l]}
                                 </span>
                               ))}
@@ -124,15 +124,15 @@ export default async function PromotionsPage() {
                               ["Bookings", s.bookings],
                             ].map(([k, v]) => (
                               <div key={k as string}>
-                                <dt className="text-[0.65rem] uppercase tracking-[0.12em] text-mute">{k}</dt>
-                                <dd className={`display mt-0.5 text-[1.7rem] leading-none tabular-nums ${k === "Bookings" && Number(v) > 0 ? "text-clay" : ""}`}>{v}</dd>
+                                <dt className="text-sm text-mute">{k}</dt>
+                                <dd className={`display mt-0.5 text-[1.7rem] leading-none tabular-nums ${k === "Bookings" && Number(v) > 0 ? "text-ink" : ""}`}>{v}</dd>
                               </div>
                             ))}
                           </dl>
                         )}
                       </div>
                       {(c.status === "sent" || c.status === "sending") && s.bookings > 0 && (
-                        <p className="mt-3 text-xs text-moss">
+                        <p className="mt-3 text-xs text-emerald-800">
                           {money(s.bookedValueCAD, 0)} CAD booked within 14 days for {money(s.costUSD)} USD of texts
                         </p>
                       )}
@@ -154,7 +154,7 @@ export default async function PromotionsPage() {
             promoMode={mode}
             txnMode={txnMode()}
           />
-          <div className="rounded-2xl bg-paper p-5 text-sm leading-relaxed text-ink-soft ring-1 ring-line">
+          <div className="rounded-xl bg-paper p-5 text-sm leading-relaxed text-ink-soft ring-1 ring-line">
             <p className="font-medium text-ink">The rules, built in</p>
             <ul className="mt-2 list-disc space-y-1.5 pl-4">
               <li>Express consent by default. Implied consent (paid visit in the last 2 years) only when you tick it, with expiry worked out per client.</li>

@@ -7,6 +7,7 @@ import { ATTRIBUTION_DAYS, campaignStats, describeAudience, recipientOutcomes, s
 import { composePromo } from "@/lib/sms/compose";
 import { countSegments } from "@/lib/sms/segments";
 import { smsMode } from "@/lib/sms/twilio";
+import { ChevronIcon } from "@/components/admin/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -36,15 +37,16 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
 
   return (
     <div>
-      <Link href="/admin/promotions" className="text-sm text-ink-soft hover:text-ink">
-        ‹ Promotions
+      <Link href="/admin/promotions" className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-[0.95rem] text-ink-soft hover:text-ink">
+        <ChevronIcon dir="left" className="h-4 w-4" />
+        Promotions
       </Link>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="display text-[2.6rem] leading-none sm:text-[2.8rem]">{c.name}</h1>
             <CampaignStatus status={c.status} />
-            {c.dryRun && <span className="rounded-full bg-[#efe6da] px-2.5 py-0.5 text-xs text-ink-soft">Outbox (dry run)</span>}
+            {c.dryRun && <span className="rounded-md bg-tile px-2.5 py-0.5 text-xs text-ink-soft">Outbox (dry run)</span>}
           </div>
           <p className="mt-2 text-ink-soft">
             {describeAudience(c.audience, staffNames)} · {c.includeImplied ? "express and implied consent" : "opted-in clients only"}
@@ -68,20 +70,20 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
           <Tile label="Delivered" value={String(stats.delivered)} sub={c.dryRun ? "Outbox: no carrier receipts" : pct(stats.delivered, stats.sent + stats.failed) + " of sent"} />
           <Tile label="Failed" value={String(stats.failed)} sub={stats.failed ? "See the error per client" : "None"} />
           <Tile label="Opt-outs" value={String(stats.optOuts)} sub={pct(stats.optOuts, stats.sent) ? `${pct(stats.optOuts, stats.sent)} of recipients` : "None so far"} />
-          <Tile label={`Bookings in ${ATTRIBUTION_DAYS} days`} value={String(stats.bookings)} sub={`${money(stats.bookedValueCAD, 0)} CAD booked`} accent={stats.bookings ? "clay" : undefined} />
+          <Tile label={`Bookings in ${ATTRIBUTION_DAYS} days`} value={String(stats.bookings)} sub={`${money(stats.bookedValueCAD, 0)} CAD booked`} />
           <Tile label="Text cost" value={money(stats.costUSD)} sub={`${stats.segments} segments, USD`} />
         </div>
       ) : (
-        <div className="mt-6 rounded-2xl bg-sky-50 px-5 py-4 text-sm text-sky-900 ring-1 ring-sky-200">
+        <div className="mt-6 rounded-xl bg-sky-50 px-5 py-4 text-sm text-sky-900 ring-1 ring-sky-200">
           {c.status === "scheduled"
             ? "The audience is checked again when it goes out: anyone who opts out before then is left out, and consent and the frequency cap are re-checked for every text."
             : "This campaign was not sent."}
         </div>
       )}
 
-      <section className="mt-6 rounded-3xl bg-espresso p-6 text-paper">
+      <section className="mt-6 rounded-xl bg-ink p-6 text-paper">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-[0.7rem] uppercase tracking-[0.22em] text-champagne">What clients received</p>
+          <p className="text-sm text-white">What clients received</p>
           <p className="text-xs text-paper/60">Each client gets the version for their preferred language, or English.</p>
         </div>
         <div className={`mt-4 grid gap-4 sm:grid-cols-2 ${langs.length > 2 ? "xl:grid-cols-4" : ""}`}>
@@ -98,7 +100,7 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
                     {started ? ` · ${n} sent` : ""}
                   </span>
                 </p>
-                <div className="flex-1 rounded-[1.3rem] bg-[#f8f4ee] p-3">
+                <div className="flex-1 rounded-[1.3rem] bg-tile p-3">
                   <Bubble text={text} lang={l.code} />
                 </div>
               </div>
@@ -109,7 +111,7 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
 
       <section className="mt-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-xs font-medium uppercase tracking-[0.16em] text-ink-soft">Recipients</h2>
+          <h2 className="text-sm font-medium text-ink-soft">Recipients</h2>
           <p className="text-xs text-mute">A booking counts when the client books within {ATTRIBUTION_DAYS} days of the text (simple attribution).</p>
         </div>
         {Object.keys(stats.skippedByReason).length > 0 && (
@@ -126,7 +128,7 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
           {started ? (
             <RecipientsTable rows={recipients} outbox={smsMode() === "outbox" && c.dryRun} />
           ) : (
-            <p className="rounded-2xl bg-paper p-8 text-center text-ink-soft ring-1 ring-line">The recipient list is built when the campaign goes out.</p>
+            <p className="rounded-xl bg-paper p-8 text-center text-ink-soft ring-1 ring-line">The recipient list is built when the campaign goes out.</p>
           )}
         </div>
       </section>

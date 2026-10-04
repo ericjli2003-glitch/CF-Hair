@@ -19,7 +19,11 @@ export function useStatusChange() {
     setBusy(null);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error === "SLOT_TAKEN" ? "That time has been booked by someone else." : "Could not update the booking.");
+      setError(
+        body.error === "SLOT_TAKEN"
+          ? "That time has been booked by someone else. Pick another time with a new booking."
+          : "Could not update the booking. Check the connection and try again.",
+      );
       return false;
     }
     router.refresh();
@@ -34,40 +38,45 @@ export function StatusButtons({
   isPast,
   onDone,
   size = "md",
+  who,
 }: {
   id: string;
   status: string;
   isPast: boolean;
   onDone?: () => void;
   size?: "sm" | "md";
+  /** The client's name, so each row's buttons have a distinct accessible name. */
+  who?: string;
 }) {
   const { change, busy, error } = useStatusChange();
   const cls =
     size === "sm"
-      ? "rounded-full px-3 py-1.5 text-xs ring-1 transition disabled:opacity-50"
-      : "rounded-full px-4 py-2.5 text-sm ring-1 transition disabled:opacity-50";
+      ? "inline-flex min-h-11 items-center justify-center rounded-md px-3 text-sm ring-1 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+      : "inline-flex min-h-11 items-center justify-center rounded-md px-4 text-[0.95rem] ring-1 transition-colors disabled:cursor-not-allowed disabled:opacity-50";
   const run = async (s: string) => {
     if (await change(id, s)) onDone?.();
   };
   const actions: { s: string; label: string; style: string }[] = [];
   if (status === "confirmed") {
-    actions.push({ s: "completed", label: "Completed", style: "bg-ink text-paper ring-ink hover:bg-clay hover:ring-clay" });
-    actions.push({ s: "no-show", label: "No-show", style: "bg-paper text-rose-700 ring-rose-200 hover:bg-rose-50" });
-    actions.push({ s: "cancelled", label: "Cancel", style: "bg-paper text-ink-soft ring-line hover:ring-ink" });
+    actions.push({ s: "completed", label: "Mark completed", style: "bg-ink font-medium text-paper ring-ink hover:bg-ink-hover" });
+    actions.push({ s: "no-show", label: "No-show", style: "bg-paper text-rose-800 ring-rose-300 hover:bg-rose-50" });
+    // Destructive, so it sits apart from the others.
+    actions.push({ s: "cancelled", label: "Cancel booking", style: "ml-auto bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink" });
   } else {
     actions.push({ s: "confirmed", label: status === "cancelled" ? "Reinstate" : "Undo", style: "bg-paper text-ink ring-line hover:ring-ink" });
-    if (status !== "completed" && isPast) actions.push({ s: "completed", label: "Completed", style: "bg-ink text-paper ring-ink" });
+    if (status !== "completed" && isPast) actions.push({ s: "completed", label: "Mark completed", style: "bg-ink font-medium text-paper ring-ink hover:bg-ink-hover" });
   }
   return (
     <div>
       <div className="flex flex-wrap gap-2">
         {actions.map((a) => (
-          <button key={a.s} type="button" disabled={!!busy} onClick={() => run(a.s)} className={`${cls} ${a.style}`}>
-            {busy === id + a.s ? "..." : a.label}
+          <button key={a.s} type="button" disabled={!!busy} aria-busy={busy === id + a.s || undefined} onClick={() => run(a.s)} className={`${cls} ${a.style}`}>
+            {busy === id + a.s ? "Saving..." : a.label}
+            {who && <span className="sr-only">, {who}</span>}
           </button>
         ))}
       </div>
-      {error && <p className="mt-2 text-xs text-clay">{error}</p>}
+      {error && <p role="alert" className="mt-2 text-sm font-medium text-alert">{error}</p>}
     </div>
   );
 }

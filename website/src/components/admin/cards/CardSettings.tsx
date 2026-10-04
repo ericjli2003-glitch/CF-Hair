@@ -26,7 +26,7 @@ export function CardSettings(props: { monthlyCap: number; pricePerCardCAD: numbe
   }
 
   return (
-    <form id="card-settings" onSubmit={save} className="scroll-mt-24 rounded-2xl bg-paper p-5 ring-1 ring-line">
+    <form id="card-settings" onSubmit={save} className="scroll-mt-24 rounded-xl bg-paper p-5 ring-1 ring-line">
       <p className="font-medium">Card settings</p>
       <label className="label mt-4" htmlFor="card-cap">
         Monthly limit
@@ -68,7 +68,7 @@ export function CardSettings(props: { monthlyCap: number; pricePerCardCAD: numbe
         <span>CAD, card, writing and stamp</span>
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <button disabled={state === "saving"} className="rounded-full bg-ink px-4 py-2 text-sm text-paper hover:bg-clay disabled:opacity-50">
+        <button disabled={state === "saving"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
           {state === "saving" ? "Saving..." : "Save"}
         </button>
         {state === "saved" && <span className="text-sm text-emerald-700">Saved</span>}

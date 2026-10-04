@@ -32,7 +32,7 @@ export default async function CustomersPage(props: PageProps<"/admin/customers">
             {all.length} clients · {totalVisits} completed visits · {optedIn} opted in to promotional texts
           </p>
         </div>
-        <a href="/api/customers/export" className="btn-primary !px-5 !py-2.5 !normal-case !tracking-normal !text-sm" download>
+        <a href="/api/customers/export" className="btn-primary" download>
           Export CSV
         </a>
       </div>

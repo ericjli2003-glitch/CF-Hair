@@ -47,7 +47,8 @@ export function NewBookingForm({
   const [date, setDate] = useState(initialDate);
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [start, setStart] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  // Errors sit next to their field; "form" is for a failure that is not one field's.
+  const [errors, setErrors] = useState<{ phone?: string; name?: string; time?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ id: string; when: string; staff: string; name: string } | null>(null);
 
@@ -108,10 +109,16 @@ export function NewBookingForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    if (!name.trim()) return setError("Add the client's name.");
-    if (!e164) return setError("Enter a valid phone number.");
-    if (!start) return setError("Pick a time.");
+    const errs: typeof errors = {};
+    if (!e164) errs.phone = "Enter a 10-digit phone number, like 604 555 0123.";
+    if (!name.trim()) errs.name = "Add the client's name.";
+    if (!start) errs.time = "Pick a time below, or use Start now for a walk-in.";
+    setErrors(errs);
+    const first = (["phone", "name", "time"] as const).find((k) => errs[k]);
+    if (first) {
+      document.getElementById(first === "time" ? "n-time-label" : `n-${first}`)?.focus();
+      return;
+    }
     setBusy(true);
     const res = await fetch("/api/bookings", {
       method: "POST",
@@ -131,25 +138,27 @@ export function NewBookingForm({
       setDone({ id: body.booking.id, when: `${dayLabel(body.booking.start.slice(0, 10))}, ${time12(body.booking.start)}`, staff: body.booking.staffName, name: body.booking.customer.name });
       return;
     }
-    if (res.status === 409) setError("That time was just taken. Pick another.");
-    else setError(body.message ?? body.error ?? "Could not create the booking.");
+    if (res.status === 409) {
+      setErrors({ time: "That time was just taken. Pick another time." });
+      document.getElementById("n-time-label")?.focus();
+    } else setErrors({ form: `Could not create the booking. ${body.message ?? "Check the details and try again."}` });
   }
 
   if (done) {
     return (
-      <div className="mt-8 rounded-3xl bg-paper p-10 text-center ring-1 ring-line">
-        <p className="text-xs uppercase tracking-[0.2em] text-clay">Booked</p>
+      <div className="mt-8 rounded-xl bg-paper p-10 text-center ring-1 ring-line">
+        <p className="text-sm text-ink-soft">Booked</p>
         <p className="display mt-3 text-[2.4rem]">{done.name}</p>
         <p className="mt-2 text-ink-soft">
           {done.when} with {done.staff}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href={`/admin?date=${start?.slice(0, 10) ?? today}`} className="btn-primary !normal-case !tracking-normal">
+          <Link href={`/admin?date=${start?.slice(0, 10) ?? today}`} className="btn-primary">
             Open schedule
           </Link>
           <button
             type="button"
-            className="btn-ghost !normal-case !tracking-normal"
+            className="btn-ghost"
             onClick={() => {
               setDone(null);
               setPhone("");
@@ -159,6 +168,7 @@ export function NewBookingForm({
               setStart(null);
               setLookup(null);
               setDate(today);
+              setErrors({});
             }}
           >
             Another booking
@@ -172,36 +182,71 @@ export function NewBookingForm({
     <button
       type="button"
       onClick={() => setSource(v)}
-      className={`flex-1 rounded-full px-4 py-2.5 text-sm transition ${source === v ? "bg-ink text-paper" : "text-ink-soft"}`}
+      aria-pressed={source === v}
+      className={`inline-flex min-h-11 flex-1 items-center justify-center rounded-md px-4 text-[0.95rem] transition-colors ${
+        source === v ? "bg-ink font-medium text-paper" : "text-ink-soft hover:bg-paper hover:text-ink"
+      }`}
     >
       {label}
     </button>
   );
 
+  const errText = (id: string, msg?: string) =>
+    msg ? (
+      <p id={id} className="mt-1.5 text-sm font-medium text-alert">
+        {msg}
+      </p>
+    ) : null;
+
   return (
-    <form onSubmit={submit} className="mt-8 grid gap-6 lg:grid-cols-2">
-      <section className="space-y-5 rounded-3xl bg-paper p-6 ring-1 ring-line">
-        <div className="flex rounded-full bg-[#f3eee7] p-1">
+    <form onSubmit={submit} noValidate className="mt-8 grid gap-6 lg:grid-cols-2">
+      <section className="space-y-5 rounded-xl bg-paper p-6 ring-1 ring-line">
+        <div role="group" aria-label="How the booking came in" className="flex gap-1 rounded-lg bg-tile p-1">
           {seg("phone", "Phone call")}
           {seg("walk-in", "Walk-in")}
           {seg("admin", "Other")}
         </div>
         <div>
           <label className="label" htmlFor="n-phone">Phone</label>
-          <input id="n-phone" type="tel" className="field !py-3.5 text-lg" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="604 555 0123" />
+          <input
+            id="n-phone"
+            type="tel"
+            autoComplete="off"
+            className="field !py-3.5 text-lg"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              if (errors.phone) setErrors((x) => ({ ...x, phone: undefined }));
+            }}
+            placeholder="604 555 0123"
+            aria-invalid={!!errors.phone}
+            aria-describedby={errors.phone ? "n-phone-err" : undefined}
+          />
+          {errText("n-phone-err", errors.phone)}
           {found && (
             <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
               Returning client: <strong>{found.name}</strong> · {found.visitCount} visit{found.visitCount === 1 ? "" : "s"}
-              <span className="rounded-full bg-white px-2 py-0.5 text-xs ring-1 ring-emerald-200">
+              <span className="rounded-md bg-white px-2 py-0.5 text-xs ring-1 ring-emerald-200">
                 {LANGUAGE_LABELS[found.preferredLanguage]?.native}
               </span>
             </div>
           )}
-          {e164 && lookup?.phone === e164 && !found && <p className="mt-2 text-sm text-mute">New client</p>}
+          {e164 && lookup?.phone === e164 && !found && <p className="mt-2 text-sm text-ink-soft">New client</p>}
         </div>
         <div>
           <label className="label" htmlFor="n-name">Name</label>
-          <input id="n-name" className="field !py-3.5" value={name} onChange={(e) => setName(e.target.value)} />
+          <input
+            id="n-name"
+            className="field !py-3.5"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (errors.name) setErrors((x) => ({ ...x, name: undefined }));
+            }}
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "n-name-err" : undefined}
+          />
+          {errText("n-name-err", errors.name)}
         </div>
         <div>
           <label className="label" htmlFor="n-email">Email (optional)</label>
@@ -213,7 +258,7 @@ export function NewBookingForm({
         </div>
       </section>
 
-      <section className="space-y-5 rounded-3xl bg-paper p-6 ring-1 ring-line">
+      <section className="space-y-5 rounded-xl bg-paper p-6 ring-1 ring-line">
         <div>
           <label className="label" htmlFor="n-service">Service</label>
           <select
@@ -238,15 +283,20 @@ export function NewBookingForm({
             ))}
           </select>
         </div>
-        <div>
-          <span className="label">Stylist</span>
+        <div role="group" aria-labelledby="n-staff-label">
+          <span id="n-staff-label" className="label">
+            Stylist
+          </span>
           <div className="flex flex-wrap gap-2">
             {[{ id: "any", name: "Anyone" }, ...eligible].map((s) => (
               <button
                 key={s.id}
                 type="button"
                 onClick={() => setStaffId(s.id)}
-                className={`rounded-full px-4 py-2.5 text-sm ring-1 ${staffId === s.id ? "bg-ink text-paper ring-ink" : "ring-line"}`}
+                aria-pressed={staffId === s.id}
+                className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-[0.95rem] ring-1 ${
+                  staffId === s.id ? "bg-ink font-medium text-paper ring-ink" : "ring-line hover:ring-ink"
+                }`}
               >
                 {s.name}
               </button>
@@ -258,27 +308,41 @@ export function NewBookingForm({
             <label className="label" htmlFor="n-date">Date</label>
             <input id="n-date" type="date" min={today} className="field !py-3" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
-          <button type="button" onClick={walkInNow} className="rounded-xl bg-clay px-4 py-3.5 text-sm text-paper hover:bg-clay-deep">
+          <button type="button" onClick={walkInNow} className="btn-ghost">
             Start now
           </button>
         </div>
-        <div>
-          <span className="label">Time {service ? `(${service.durationMin} min)` : ""}</span>
+        <div role="group" aria-labelledby="n-time-label" aria-describedby={errors.time ? "n-time-err" : undefined}>
+          <span id="n-time-label" tabIndex={-1} className="label outline-none">
+            Time {service ? `(${service.durationMin} min)` : ""}
+          </span>
+          {errText("n-time-err", errors.time)}
           {start && !slots?.some((s) => s.start === start) && (
-            <p className="mb-2 rounded-xl bg-clay/10 px-3 py-2 text-sm text-clay-deep">Walk-in starting {time12(start)}</p>
+            <p className="mb-2 rounded-xl bg-tile px-3 py-2 text-sm text-ink">Walk-in starting {time12(start)}</p>
           )}
+          <p role="status" className="sr-only">
+            {slots === null ? "Loading open times" : `${slots.length} open time${slots.length === 1 ? "" : "s"}`}
+          </p>
           {slots === null ? (
-            <p className="text-sm text-mute">Loading...</p>
+            <div className="grid grid-cols-4 gap-2 p-1 sm:grid-cols-5" aria-hidden="true">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <span key={i} className="h-11 animate-pulse rounded-md bg-tile" />
+              ))}
+            </div>
           ) : slots.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-mute">No open times for this day.</p>
+            <p className="rounded-xl border border-dashed border-edge p-4 text-sm text-ink-soft">No open times on this day. Try another date, or use Start now for a walk-in.</p>
           ) : (
             <div className="grid max-h-64 grid-cols-4 gap-2 overflow-y-auto p-1 sm:grid-cols-5">
               {slots.map((s) => (
                 <button
                   key={s.start}
                   type="button"
-                  onClick={() => setStart(s.start)}
-                  className={`rounded-lg px-1 py-2.5 text-sm tabular-nums ring-1 ${start === s.start ? "bg-clay text-paper ring-clay" : "ring-line hover:ring-clay"}`}
+                  onClick={() => {
+                    setStart(s.start);
+                    if (errors.time) setErrors((x) => ({ ...x, time: undefined }));
+                  }}
+                  aria-pressed={start === s.start}
+                  className={`min-h-11 rounded-md px-1 text-sm tabular-nums ring-1 ${start === s.start ? "bg-ink font-medium text-paper ring-ink" : "ring-line hover:ring-ink"}`}
                 >
                   {time12(s.start).replace(" ", "")}
                 </button>
@@ -286,8 +350,12 @@ export function NewBookingForm({
             </div>
           )}
         </div>
-        {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</p>}
-        <button type="submit" disabled={busy} className="btn-primary w-full !py-4 !normal-case !tracking-normal !text-base disabled:opacity-60">
+        {errors.form && (
+          <p role="alert" className="rounded-md border-2 border-alert bg-white px-3 py-2 text-sm font-medium text-alert">
+            {errors.form}
+          </p>
+        )}
+        <button type="submit" disabled={busy} aria-busy={busy || undefined} className="btn-primary w-full !py-4 !text-base">
           {busy ? "Booking..." : "Create booking"}
         </button>
       </section>

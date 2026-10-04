@@ -19,6 +19,7 @@ export const HTML_LANG: Record<Lang, string> = { en: "en-CA", zh: "zh-Hans", hk:
 const en = {
   nav: { services: "Services", team: "Team", visit: "Visit", book: "Book a time", menu: "Menu", close: "Close", home: "Home", skip: "Skip to content" },
   common: {
+    loading: "Loading",
     durM: "{m} min",
     durH: "{h} hr",
     durHM: "{h} hr {m} min",
@@ -131,6 +132,8 @@ const en = {
     total: "Price",
     selectTime: "Choose a time to continue",
     notChosen: "Not chosen yet",
+    loadingSlots: "Finding open times",
+    slotsFound: "{n} open times on {date}",
   },
   confirmed: {
     title: "You're booked",
@@ -188,6 +191,7 @@ export type Dict = typeof en;
 const zh: Dict = {
   nav: { services: "服务与价格", team: "发型师", visit: "到店", book: "预约时间", menu: "菜单", close: "关闭", home: "首页", skip: "跳到主要内容" },
   common: {
+    loading: "加载中",
     durM: "{m} 分钟",
     durH: "{h} 小时",
     durHM: "{h} 小时 {m} 分钟",
@@ -300,6 +304,8 @@ const zh: Dict = {
     total: "价格",
     selectTime: "请先选择时间",
     notChosen: "未选择",
+    loadingSlots: "正在查找可预约时间",
+    slotsFound: "{date}有 {n} 个可预约时间",
   },
   confirmed: {
     title: "预约成功",
@@ -374,6 +380,7 @@ const zh: Dict = {
 const hk: Dict = {
   nav: { services: "服務及價錢", team: "髮型師", visit: "到訪", book: "預約時間", menu: "選單", close: "關閉", home: "主頁", skip: "跳到主要內容" },
   common: {
+    loading: "載入中",
     durM: "{m} 分鐘",
     durH: "{h} 小時",
     durHM: "{h} 小時 {m} 分鐘",
@@ -486,6 +493,8 @@ const hk: Dict = {
     total: "價錢",
     selectTime: "請先選擇時間",
     notChosen: "未選擇",
+    loadingSlots: "正在查找可預約時間",
+    slotsFound: "{date}有 {n} 個可預約時間",
   },
   confirmed: {
     title: "預約成功",
@@ -557,6 +566,7 @@ const hk: Dict = {
 const ko: Dict = {
   nav: { services: "서비스 및 가격", team: "디자이너", visit: "오시는 길", book: "예약하기", menu: "메뉴", close: "닫기", home: "홈", skip: "본문으로 건너뛰기" },
   common: {
+    loading: "불러오는 중",
     durM: "{m}분",
     durH: "{h}시간",
     durHM: "{h}시간 {m}분",
@@ -669,6 +679,8 @@ const ko: Dict = {
     total: "가격",
     selectTime: "시간을 먼저 선택해 주세요",
     notChosen: "선택 전",
+    loadingSlots: "예약 가능한 시간을 찾는 중",
+    slotsFound: "{date}에 예약 가능한 시간 {n}개",
   },
   confirmed: {
     title: "예약되었습니다",

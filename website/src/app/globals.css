@@ -15,21 +15,16 @@
   --color-rod-peach: #f4b98a;
   --color-alert: #a3122a; /* error text: 7.4:1 on white */
 
-  /* Owner admin (unchanged colours; it only picks up the new type). */
-  --color-bone: #f4eee6;
-  --color-paper: #fbf8f3;
-  --color-sand: #e9ddcd;
-  --color-line: #dacdbb;
-  --color-ink: #1d1915;
-  --color-ink-soft: #574d45;
-  --color-mute: #8a7f75;
-  --color-clay: #a2532f;
-  --color-clay-deep: #7a3b1f;
-  --color-blush: #ecd0bd;
-  --color-champagne: #c6a477;
-  --color-espresso: #251c16;
-  --color-espresso-2: #33271f;
-  --color-moss: #5f6a52;
+  /* Owner admin: the same tokens as the public site under the names the admin
+     already uses. Rod colours stay for category meaning; status tints are paired
+     with text everywhere. */
+  --color-paper: #ffffff; /* surfaces */
+  --color-sand: #dde4e0; /* pressed and hover fills on tile */
+  --color-line: #c3ccc7; /* hairlines */
+  --color-ink: #000000; /* text and primary buttons */
+  --color-ink-hover: #2b302e;
+  --color-ink-soft: #4a5450; /* secondary text: 6.6:1 on tile, 7.9:1 on white */
+  --color-mute: #5d6662; /* tertiary text: 4.9:1 on tile, 5.9:1 on white */
 
   /* Barlow for Latin text; Chinese and Korean use system fonts first. */
   --font-sans: var(--font-barlow), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple SD Gothic Neo", "Malgun Gothic",
@@ -38,15 +33,9 @@
   --font-cond: var(--font-barlow-cond), var(--font-sans);
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --animate-draw: draw 3.2s var(--ease-soft) both;
   --animate-fade: fade 0.22s ease-out both;
   --animate-step: step 0.24s ease-out both;
 
-  @keyframes draw {
-    from { stroke-dashoffset: 1; opacity: 0; }
-    20% { opacity: 1; }
-    to { stroke-dashoffset: 0; opacity: 1; }
-  }
   @keyframes fade {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -88,13 +77,33 @@ body {
   color: #fff;
 }
 
-/* Visible keyboard focus on the public site. */
-.site :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+/* Visible keyboard focus everywhere: public site and owner admin. */
+:where(.site, .admin) :where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
   outline: 2px solid #000;
   outline-offset: 2px;
 }
-.site :where(input[type="checkbox"]):focus-visible {
+:where(.site, .admin) :where(input[type="checkbox"]):focus-visible {
   outline-offset: 3px;
+}
+/* On black fills the ring sits outside in black, with a white gap so it reads. */
+:where(.site, .admin) :where(.bg-ink, .bg-black):focus-visible {
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* Keep the focused control clear of the sticky admin header. */
+html:has(.admin) {
+  scroll-padding-top: calc(var(--admin-nav-h, 4rem) + 0.5rem);
+}
+
+/* An invalid field says so with its border too, not only with the message below. */
+:where(.site, .admin) :where(input, textarea, select)[aria-invalid="true"] {
+  border-color: var(--color-alert);
+  box-shadow: inset 0 0 0 1px var(--color-alert);
+}
+
+/* Tap without the double-tap zoom delay. */
+:where(a, button, label, summary, [role="button"]) {
+  touch-action: manipulation;
 }
 
 @utility display {
@@ -122,35 +131,27 @@ body {
   @apply underline decoration-1 underline-offset-[3px] hover:decoration-2;
 }
 @utility s-field {
-  @apply min-h-11 w-full rounded-md border border-edge bg-white px-3.5 py-2.5 text-base text-black placeholder:text-slate/70;
+  @apply min-h-11 w-full rounded-md border border-edge bg-white px-3.5 py-2.5 text-base text-black placeholder:text-slate;
 }
 @utility s-label {
   @apply mb-1.5 block text-[0.95rem] font-medium text-black;
 }
 
-/* Owner admin utilities (kept as they were). */
+/* Owner admin utilities: the public button and field look, sentence case. */
 @utility btn {
-  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.82rem] font-medium uppercase tracking-[0.14em] transition-all duration-300;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 text-[0.98rem] font-medium transition-colors disabled:cursor-not-allowed;
 }
 @utility btn-primary {
-  @apply btn bg-ink text-paper hover:bg-clay;
-}
-@utility btn-clay {
-  @apply btn bg-clay text-paper hover:bg-clay-deep;
+  @apply btn bg-ink text-white hover:bg-ink-hover disabled:bg-[#5d6662];
 }
 @utility btn-ghost {
-  @apply btn border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-paper;
+  @apply btn border-[1.5px] border-ink bg-white text-ink hover:bg-tile;
 }
 @utility field {
-  @apply w-full rounded-xl border border-line bg-paper px-4 py-3 text-[0.95rem] text-ink outline-none transition placeholder:text-mute/70 focus:border-clay focus:ring-4 focus:ring-clay/10;
+  @apply min-h-11 w-full rounded-md border border-edge bg-white px-3.5 py-2.5 text-base text-ink transition-colors placeholder:text-slate;
 }
 @utility label {
-  @apply mb-1.5 block text-[0.72rem] font-medium uppercase tracking-[0.16em] text-ink-soft;
-}
-
-.strand {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  @apply mb-1.5 block text-[0.95rem] font-medium text-ink;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -158,6 +159,21 @@ body {
 }
 .no-scrollbar {
   scrollbar-width: none;
+}
+/* With a mouse, a sideways strip shows its scrollbar so it is clear it scrolls. */
+@media (pointer: fine) {
+  .no-scrollbar.scroll-hint {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-edge) transparent;
+  }
+  .no-scrollbar.scroll-hint::-webkit-scrollbar {
+    display: block;
+    height: 8px;
+  }
+  .no-scrollbar.scroll-hint::-webkit-scrollbar-thumb {
+    background: var(--color-edge);
+    border-radius: 4px;
+  }
 }
 
 /* The price board scrolls inside itself on wide screens: a soft edge at the
@@ -174,7 +190,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .strand { stroke-dashoffset: 0; animation: none !important; }
   [class*="animate-"] { animation: none !important; }
   * { transition-duration: 0s !important; }
 }

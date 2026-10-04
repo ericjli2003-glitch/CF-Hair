@@ -40,9 +40,9 @@ export function LangToggle({ wide = false }: { wide?: boolean }) {
             aria-label={name}
             title={name}
             lang={HTML_LANG[l]}
-            className={`whitespace-nowrap rounded-[4px] px-2.5 text-[0.92rem] font-medium leading-none transition-colors ${
-              wide ? "min-h-10" : "min-h-9"
-            } ${on ? "bg-black text-white" : "text-black hover:bg-tile"}`}
+            className={`min-h-11 min-w-11 whitespace-nowrap rounded-[4px] px-2.5 text-[0.92rem] font-medium leading-none transition-colors ${
+              on ? "bg-black text-white" : "text-black hover:bg-tile"
+            }`}
           >
             {LANG_LABELS[l]}
           </button>

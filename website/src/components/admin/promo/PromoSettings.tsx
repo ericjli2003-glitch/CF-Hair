@@ -42,8 +42,8 @@ export function PromoSettings(props: {
     <div className="flex items-center justify-between gap-3 py-2">
       <span>{label}</span>
       <span
-        className={`rounded-full px-2.5 py-0.5 text-xs ring-1 ${
-          mode === "live" ? "bg-emerald-50 text-emerald-800 ring-emerald-200" : mode === "blocked" ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-stone-100 text-stone-600 ring-stone-200"
+        className={`rounded-md px-2.5 py-0.5 text-xs ring-1 ${
+          mode === "live" ? "bg-emerald-50 text-emerald-800 ring-emerald-200" : mode === "blocked" ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-tile text-slate ring-rule"
         }`}
       >
         {mode === "live" ? "Twilio, live" : mode === "blocked" ? "Not set up" : on ? "Dry run" : "Outbox"}
@@ -52,7 +52,7 @@ export function PromoSettings(props: {
   );
 
   return (
-    <form onSubmit={save} className="rounded-2xl bg-paper p-5 ring-1 ring-line">
+    <form onSubmit={save} className="rounded-xl bg-paper p-5 ring-1 ring-line">
       <p className="font-medium">Sending settings</p>
       <div className="mt-2 divide-y divide-line/70 text-sm text-ink-soft">
         {sender("Promotions number", props.promoSender, props.promoMode)}
@@ -75,7 +75,7 @@ export function PromoSettings(props: {
       <input id="owner-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="604 555 0123" className="field !py-2.5" />
 
       <div className="mt-4 flex items-center gap-3">
-        <button disabled={state === "saving"} className="rounded-full bg-ink px-4 py-2 text-sm text-paper hover:bg-clay disabled:opacity-50">
+        <button disabled={state === "saving"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
           {state === "saving" ? "Saving..." : "Save"}
         </button>
         {state === "saved" && <span className="text-sm text-emerald-700">Saved</span>}

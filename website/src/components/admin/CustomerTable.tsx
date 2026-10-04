@@ -9,7 +9,7 @@ import { LANGUAGE_CODES, LANGUAGE_LABELS, type LanguageCode } from "@/lib/langua
 import { ConsentChip } from "./promo/ui";
 
 const LANG_STYLE: Record<LanguageCode, string> = {
-  "en-US": "bg-stone-100 text-stone-700 ring-stone-200",
+  "en-US": "bg-tile text-slate ring-rule",
   "zh-CN": "bg-red-50 text-red-800 ring-red-200",
   "zh-HK": "bg-amber-50 text-amber-900 ring-amber-200",
   "ko-KR": "bg-sky-50 text-sky-900 ring-sky-200",
@@ -65,18 +65,23 @@ export function CustomerTable({
             e.preventDefault();
             nav({ q: search });
           }}
+          role="search"
           className="flex min-w-[240px] flex-1 gap-2"
         >
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or phone" className="field !py-3" />
-          <button className="rounded-xl bg-ink px-5 text-sm text-paper">Search</button>
+          <label htmlFor="client-search" className="sr-only">
+            Search clients by name or phone
+          </label>
+          <input id="client-search" type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name or phone" className="field" />
+          <button className="btn-primary">Search</button>
         </form>
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
+        <div role="group" aria-label="Filter by tag" className="flex flex-wrap gap-2">
           {["", ...tags].map((t) => (
             <button
               key={t || "all"}
               type="button"
               onClick={() => nav({ tag: t })}
-              className={`shrink-0 rounded-full px-3.5 py-2 text-sm ring-1 ${tag === t ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
+              aria-pressed={tag === t}
+              className={`shrink-0 inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm ring-1 ${tag === t ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
             >
               {t || "All"}
             </button>
@@ -84,9 +89,9 @@ export function CustomerTable({
         </div>
       </div>
 
-      <div className="mt-5 overflow-x-auto rounded-2xl bg-paper ring-1 ring-line">
+      <div className="mt-5 overflow-x-auto rounded-xl bg-paper ring-1 ring-line">
         <table className="w-full min-w-[1100px] text-left text-sm">
-          <thead className="border-b border-line bg-[#f3eee7] text-[0.7rem] uppercase tracking-[0.12em] text-ink-soft">
+          <thead className="border-b border-line bg-tile text-sm text-ink-soft">
             <tr>
               <th className="px-5 py-3 font-medium">Client</th>
               <th className="px-3 py-3 font-medium">Language</th>
@@ -103,12 +108,12 @@ export function CustomerTable({
             {rows.map((c) => {
               const lang = langs[c.id] ?? c.preferredLanguage;
               return (
-                <tr key={c.id} className="border-b border-line/70 last:border-0 hover:bg-[#fbf8f3]">
+                <tr key={c.id} className="border-b border-line/70 last:border-0 hover:bg-tile/50">
                   <td className="px-5 py-3.5">
-                    <Link href={`/admin/customers/${c.id}`} className="block font-medium hover:text-clay">
+                    <Link href={`/admin/customers/${c.id}`} className="flex min-h-8 items-center font-medium underline-offset-4 hover:underline">
                       {c.name}
                     </Link>
-                    <a href={`tel:${c.phone}`} className="text-ink-soft hover:underline">{phonePretty(c.phone)}</a>
+                    <a href={`tel:${c.phone}`} className="nums inline-flex min-h-8 items-center text-ink-soft underline-offset-4 hover:underline">{phonePretty(c.phone)}</a>
                     {c.email && <p className="text-xs text-mute">{c.email}</p>}
                     {c.mailingAddress && (
                       <p className="text-xs text-mute">
@@ -123,7 +128,7 @@ export function CustomerTable({
                       <select
                         value={lang}
                         onChange={(e) => setLang(c.id, e.target.value as LanguageCode)}
-                        className="cursor-pointer appearance-none bg-transparent py-1.5 pl-3 pr-7 text-xs font-medium outline-none"
+                        className="min-h-8 cursor-pointer appearance-none bg-transparent pl-3 pr-7 text-xs font-medium"
                       >
                         {LANGUAGE_CODES.map((code) => (
                           <option key={code} value={code}>
@@ -131,24 +136,24 @@ export function CustomerTable({
                           </option>
                         ))}
                       </select>
-                      <span className="pointer-events-none absolute right-2.5 text-[0.6rem]">▾</span>
+                      <span className="pointer-events-none absolute right-2.5 text-xs">▾</span>
                     </label>
                   </td>
                   <td className="px-3 py-3.5">
-                    <Link href={`/admin/customers/${c.id}`} title="Consent details">
+                    <Link href={`/admin/customers/${c.id}`} title="Consent details" className="inline-flex min-h-8 items-center">
                       <ConsentChip status={consent[c.id]?.status ?? "none"} expires={consent[c.id]?.expiresAt} />
                     </Link>
-                    {consent[c.id]?.txnOptedOut && <p className="mt-1 text-[0.68rem] text-rose-600">Appt texts off</p>}
+                    {consent[c.id]?.txnOptedOut && <p className="mt-1 text-xs text-rose-600">Appt texts off</p>}
                   </td>
                   <td className="px-3 py-3.5 text-right tabular-nums">
                     <span className="display text-[1.4rem]">{c.visitCount}</span>
-                    {c.noShowCount > 0 && <p className="text-[0.68rem] text-rose-600">{c.noShowCount} no-show</p>}
+                    {c.noShowCount > 0 && <p className="text-xs text-rose-600">{c.noShowCount} no-show</p>}
                   </td>
                   <td className="px-3 py-3.5 text-ink-soft">{c.lastVisit ? dayLabel(c.lastVisit.slice(0, 10), { month: "short", day: "numeric", year: "numeric" }) : "No visits yet"}</td>
                   <td className="px-3 py-3.5">
                     <p className="text-ink-soft">{c.lastServiceName ?? ""}</p>
                     {c.nextBookingAt && (
-                      <p className="mt-0.5 inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-[0.7rem] text-emerald-800 ring-1 ring-emerald-200">
+                      <p className="mt-0.5 inline-block rounded-md bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 ring-1 ring-emerald-200">
                         Next {dayLabel(c.nextBookingAt.slice(0, 10), { month: "short", day: "numeric" })}
                       </p>
                     )}
@@ -158,7 +163,7 @@ export function CustomerTable({
                   <td className="px-5 py-3.5">
                     <div className="flex flex-wrap gap-1">
                       {c.tags.map((t) => (
-                        <span key={t} className="rounded-full bg-[#efe6da] px-2 py-0.5 text-[0.7rem] text-ink-soft">{t}</span>
+                        <span key={t} className="rounded-md bg-tile px-2 py-0.5 text-xs text-ink-soft">{t}</span>
                       ))}
                     </div>
                     <ReferredBy id={c.id} value={c.referredBy} />
@@ -190,7 +195,7 @@ function ReferredBy({ id, value }: { id: string; value: string | null }) {
     router.refresh();
   }
   return (
-    <label className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-mute">
+    <label className="mt-1.5 flex items-center gap-1.5 text-xs text-mute">
       <span className="shrink-0">Referred by</span>
       <input
         value={v}
@@ -201,7 +206,7 @@ function ReferredBy({ id, value }: { id: string; value: string | null }) {
         onBlur={save}
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
         placeholder="add"
-        className="w-28 rounded-md border border-transparent bg-transparent px-1.5 py-0.5 text-ink-soft outline-none hover:border-line focus:border-clay focus:bg-white"
+        className="min-h-8 w-28 rounded-md border border-transparent bg-transparent px-1.5 text-ink-soft hover:border-line focus:border-ink focus:bg-white"
       />
       {state === "saving" && <span>...</span>}
       {state === "saved" && <span className="text-emerald-700">saved</span>}

@@ -1,7 +1,7 @@
 // /book?service=<id>&staff=<id>: the price board's Book links and the team page's
 // "Book with" links. Only real ids are accepted; anything else starts at step 1.
 import { describe, expect, it } from "vitest";
-import { bookingHref, parseBookingParams } from "@/lib/booking-params";
+import { bookingHref, parseBookingParams, stepForUrl } from "@/lib/booking-params";
 import { openStatus } from "@/lib/hours";
 import type { Hours } from "@/lib/salon";
 
@@ -50,11 +50,39 @@ describe("service preselect", () => {
   it("builds the matching link", () => {
     expect(bookingHref("mens-cut")).toBe("/book?service=mens-cut");
     expect(bookingHref("mens-cut", "stylist-a")).toBe("/book?service=mens-cut&staff=stylist-a");
-    expect(bookingHref("mens-cut", "any")).toBe("/book?service=mens-cut");
+    expect(bookingHref("mens-cut", "any")).toBe("/book?service=mens-cut&staff=any");
+    expect(bookingHref(undefined, "any")).toBe("/book");
+    expect(bookingHref("mens-cut", "stylist-a", true)).toBe("/book?service=mens-cut&staff=stylist-a&step=details");
+    expect(bookingHref("mens-cut", undefined, true)).toBe("/book?service=mens-cut");
     expect(bookingHref(undefined, "stylist-a")).toBe("/book?staff=stylist-a");
     expect(bookingHref()).toBe("/book");
     const back = new URL(bookingHref("mens-cut", "stylist-b"), "http://x");
     expect(parse(Object.fromEntries(back.searchParams))).toMatchObject({ serviceId: "mens-cut", staffId: "stylist-b", step: 2 });
+  });
+});
+
+describe("back and forward through the steps", () => {
+  const at = (href: string, hasTime = false) => {
+    const qs = new URL(href, "http://x").searchParams;
+    const start = parse(Object.fromEntries(qs));
+    return { ...start, step: stepForUrl(start, qs, hasTime) };
+  };
+
+  it("gives every step its own address", () => {
+    expect(at(bookingHref()).step).toBe(0);
+    expect(at(bookingHref("mens-cut")).step).toBe(1);
+    expect(at(bookingHref("mens-cut", "stylist-a")).step).toBe(2);
+    expect(at(bookingHref("mens-cut", "stylist-a", true), true).step).toBe(3);
+  });
+
+  it("keeps Any stylist in the address", () => {
+    expect(at(bookingHref("mens-cut", "any"))).toEqual({ serviceId: "mens-cut", staffId: "any", step: 2 });
+    expect(parse({ staff: "any" })).toEqual({ step: 0, pendingStaffId: undefined });
+  });
+
+  it("lands on the time step when the details address has no time chosen", () => {
+    expect(at(bookingHref("mens-cut", "stylist-a", true), false).step).toBe(2);
+    expect(at("/book?service=mens-cut&step=details", true).step).toBe(1);
   });
 });
 

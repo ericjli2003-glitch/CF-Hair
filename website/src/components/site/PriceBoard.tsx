@@ -39,7 +39,9 @@ export function PriceBoard({
       <div
         key={lang}
         className={`animate-fade ${hero ? "board-scroll lg:max-h-[calc(100svh-15rem)] lg:min-h-[26rem] lg:overflow-y-auto lg:overscroll-contain" : ""}`}
-        {...(hero ? { tabIndex: 0, role: "region", "aria-label": t.board.title } : {})}
+        // Scrolls inside itself on wide screens, so it takes keyboard focus; a group
+        // (not a second region landmark with the same name as the section).
+        {...(hero ? { tabIndex: 0, role: "group", "aria-labelledby": "board-title" } : {})}
       >
         {categories.map((c) => {
           const items = services.filter((s) => s.category === c);
@@ -77,7 +79,7 @@ export function PriceBoard({
                         <p className="nums text-right font-cond text-[1.4rem] font-semibold leading-none">{formatPrice(t, s.priceCAD)}</p>
                         <Link
                           href={bookingHref(s.id)}
-                          className="inline-flex min-h-10 items-center rounded-md border-[1.5px] border-black bg-white px-4 text-[0.95rem] font-medium after:absolute after:inset-0 hover:bg-black hover:text-white"
+                          className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-black bg-white px-4 text-[0.95rem] font-medium after:absolute after:inset-0 hover:bg-black hover:text-white"
                         >
                           {t.board.book}
                           <span className="sr-only"> {name}</span>

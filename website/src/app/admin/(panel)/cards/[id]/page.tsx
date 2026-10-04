@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CardGrid } from "@/components/admin/cards/CardGrid";
+import { ChevronIcon } from "@/components/admin/icons";
 import { money, shortDate } from "@/components/admin/promo/ui";
 import { listCards, monthSummary } from "@/lib/cards";
 import { prisma } from "@/lib/db";
@@ -10,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function CardBatchPage(props: PageProps<"/admin/cards/[id]">) {
   const { id } = await props.params;
+  const sp = await props.searchParams;
   const batch = await prisma.cardBatch.findUnique({ where: { id } });
   if (!batch) notFound();
   const [cards, month] = await Promise.all([listCards({ batchId: id }), monthSummary()]);
@@ -25,8 +27,9 @@ export default async function CardBatchPage(props: PageProps<"/admin/cards/[id]"
 
   return (
     <div>
-      <Link href="/admin/cards" className="text-sm text-ink-soft hover:text-ink">
-        ‹ Cards
+      <Link href="/admin/cards" className="-ml-2 inline-flex min-h-11 items-center gap-1 rounded-md px-2 text-[0.95rem] text-ink-soft hover:text-ink">
+        <ChevronIcon dir="left" className="h-4 w-4" />
+        All batches
       </Link>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -40,6 +43,7 @@ export default async function CardBatchPage(props: PageProps<"/admin/cards/[id]"
         batchId={batch.id}
         initialCards={items}
         month={{ label: month.label, used: month.used, cap: month.cap, price: month.pricePerCardCAD }}
+        initialFilter={typeof sp.status === "string" ? sp.status : undefined}
       />
     </div>
   );

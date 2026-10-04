@@ -19,7 +19,9 @@
     "screenshots": "node scripts/screenshots.mjs",
     "screenshots:sms": "node scripts/screenshots-sms.mjs",
     "screenshots:redesign": "node scripts/screenshots-redesign.mjs",
-    "screenshots:calls-cards": "node scripts/screenshots-calls-cards.mjs"
+    "screenshots:calls-cards": "node scripts/screenshots-calls-cards.mjs",
+    "screenshots:ux": "node scripts/screenshots-ux.mjs",
+    "audit:ux": "node scripts/audit-ux.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -36,6 +38,7 @@
     "@types/node": "^22.20.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "axe-core": "^4.13.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "playwright": "^1.56.1",

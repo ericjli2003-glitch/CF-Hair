@@ -36,11 +36,32 @@ function issuesFor(c: { message: string; messageAlt: string | null; maxChars: nu
   return checkCardText({ message: normalizeCardText(c.message), messageAlt: c.messageAlt ? normalizeCardText(c.messageAlt) : null }, c.maxChars);
 }
 
-export function CardGrid({ batchId, initialCards, month: initialMonth }: { batchId: string; initialCards: Item[]; month: Month }) {
+type Filter = (typeof FILTERS)[number];
+const isFilter = (v: unknown): v is Filter => typeof v === "string" && (FILTERS as readonly string[]).includes(v);
+
+export function CardGrid({
+  batchId,
+  initialCards,
+  month: initialMonth,
+  initialFilter,
+}: {
+  batchId: string;
+  initialCards: Item[];
+  month: Month;
+  /** From ?status= in the address, so a reload or a shared link keeps the filter. */
+  initialFilter?: string;
+}) {
   const router = useRouter();
   const [cards, setCards] = useState(initialCards);
   const [used, setUsed] = useState(initialMonth.used);
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
+  const [filter, setFilterState] = useState<Filter>(isFilter(initialFilter) ? initialFilter : "all");
+  const setFilter = (f: Filter) => {
+    setFilterState(f);
+    const url = new URL(window.location.href);
+    if (f === "all") url.searchParams.delete("status");
+    else url.searchParams.set("status", f);
+    window.history.replaceState(window.history.state, "", url);
+  };
   const [busy, setBusy] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<string | null>(null);
@@ -108,18 +129,21 @@ export function CardGrid({ batchId, initialCards, month: initialMonth }: { batch
 
   return (
     <>
-      <div className="sticky top-[65px] z-30 -mx-4 mt-6 border-y border-line bg-[#f7f3ee]/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      <div className="sticky top-[var(--admin-nav-h,4rem)] z-30 -mx-4 mt-6 border-y border-line bg-tile/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-          <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
+          <div role="group" aria-label="Show cards" className="flex flex-wrap gap-1.5">
             {FILTERS.filter((f) => f === "all" || f === "pending" || counts[f] > 0).map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setFilter(f)}
                 aria-pressed={filter === f}
-                className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm ring-1 ${filter === f ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line hover:text-ink"}`}
+                className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-md px-3.5 text-[0.95rem] ring-1 ${
+                  filter === f ? "bg-ink font-medium text-paper ring-ink" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink"
+                }`}
               >
-                {f === "all" ? "All" : CARD_STATUS_LABEL[f]} <span className="tabular-nums opacity-70">{counts[f]}</span>
+                {f === "all" ? "All" : CARD_STATUS_LABEL[f]}
+                <span className={`nums ${filter === f ? "text-paper/80" : "text-ink-soft"}`}>{counts[f]}</span>
               </button>
             ))}
           </div>
@@ -131,7 +155,7 @@ export function CardGrid({ batchId, initialCards, month: initialMonth }: { batch
               type="button"
               disabled={!ready.length || busy === "all"}
               onClick={() => approveAll()}
-              className="btn-clay !px-5 !py-2.5 !text-sm !normal-case !tracking-normal disabled:opacity-40"
+              className="btn-primary disabled:opacity-40"
             >
               {busy === "all" ? "Approving..." : `Approve all remaining${ready.length ? ` (${ready.length})` : ""}`}
             </button>
@@ -140,9 +164,9 @@ export function CardGrid({ batchId, initialCards, month: initialMonth }: { batch
       </div>
 
       {(capHit || (overCap && ready.length > 0)) && (
-        <div role="status" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-2xl bg-[#f6e2d2] px-5 py-4 text-[#6b3214] ring-1 ring-[#e8c2a6]">
+        <div role="status" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-xl bg-amber-50 px-5 py-4 text-amber-950 ring-1 ring-amber-300">
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-[#4f240d]">
+            <p className="font-medium text-amber-950">
               {left === 0 ? `This month's limit of ${month.cap} cards is reached.` : `Only ${left} more card${left === 1 ? "" : "s"} fit this month's limit of ${month.cap}.`}
             </p>
             <p className="mt-0.5 text-sm">
@@ -152,11 +176,11 @@ export function CardGrid({ batchId, initialCards, month: initialMonth }: { batch
           </div>
           <div className="flex flex-wrap gap-2">
             {left > 0 && (
-              <button type="button" onClick={() => approveAll(left)} disabled={busy === "all"} className="rounded-full bg-ink px-4 py-2 text-sm text-paper hover:bg-clay disabled:opacity-50">
+              <button type="button" onClick={() => approveAll(left)} disabled={busy === "all"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
                 Approve the first {left}
               </button>
             )}
-            <Link href="/admin/cards#card-settings" className="rounded-full bg-paper/70 px-4 py-2 text-sm text-ink ring-1 ring-[#e0b494] hover:bg-paper">
+            <Link href="/admin/cards#card-settings" className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm text-ink ring-1 ring-ink hover:bg-tile">
               Change the limit
             </Link>
           </div>
@@ -170,7 +194,7 @@ export function CardGrid({ batchId, initialCards, month: initialMonth }: { batch
       )}
 
       {shown.length === 0 ? (
-        <p className="mt-8 rounded-2xl bg-paper p-10 text-center text-ink-soft ring-1 ring-line">
+        <p className="mt-8 rounded-xl bg-paper p-10 text-center text-ink-soft ring-1 ring-line">
           {filter === "pending" ? "Nothing waiting in this batch. Every card has been approved or skipped." : "No cards here."}
         </p>
       ) : (
@@ -216,8 +240,8 @@ function Meter({ n, max, label }: { n: number; max: number; label?: string }) {
   const over = n > max;
   return (
     <span className={`flex items-center gap-2 text-xs tabular-nums ${over ? "text-rose-700" : "text-ink-soft"}`}>
-      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-[#ebe3d7]">
-        <span className={`block h-full rounded-full ${over ? "bg-rose-600" : "bg-moss"}`} style={{ width: `${Math.min(100, (n / max) * 100)}%` }} />
+      <span className="h-1.5 w-16 overflow-hidden rounded-full bg-sand">
+        <span className={`block h-full rounded-full ${over ? "bg-rose-600" : "bg-ink"}`} style={{ width: `${Math.min(100, (n / max) * 100)}%` }} />
       </span>
       {label ? `${label} ` : ""}
       {n} / {max}
@@ -239,6 +263,12 @@ function CardItem(props: {
   const { card: c, editing } = props;
   const [draft, setDraft] = useState(c.message);
   const [draftAlt, setDraftAlt] = useState(c.messageAlt ?? "");
+  // Which action is in flight, so only that button says so.
+  const [acting, setActing] = useState<"pending" | "approved" | "skipped" | null>(null);
+  const act = (status: "pending" | "approved" | "skipped") => {
+    setActing(status);
+    props.onStatus(status);
+  };
   const boxRef = useRef<HTMLTextAreaElement>(null);
   // The editor grows with the text, so the whole card stays readable while typing.
   useLayoutEffect(() => {
@@ -258,12 +288,12 @@ function CardItem(props: {
   const a = c.mailingAddress;
 
   return (
-    <li className={`flex flex-col rounded-2xl bg-paper p-4 ring-1 transition sm:p-5 ${editing ? "ring-2 ring-clay" : "ring-line"}`}>
+    <li className={`flex flex-col rounded-xl bg-paper p-4 ring-1 transition sm:p-5 ${editing ? "ring-2 ring-ink" : "ring-line"}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-lg font-medium leading-tight">
             {c.customerId ? (
-              <Link href={`/admin/customers/${c.customerId}`} className="hover:text-clay">
+              <Link href={`/admin/customers/${c.customerId}`} className="hover:underline">
                 {c.name}
               </Link>
             ) : (
@@ -281,7 +311,7 @@ function CardItem(props: {
       </div>
 
       {/* The desk: the inside of the card and its envelope, as on the proof sheet. */}
-      <div className={`relative mt-4 rounded-xl bg-[#e9e2d7] px-4 pb-5 pt-4 ${dim ? "opacity-55 grayscale-[.4]" : ""}`}>
+      <div className={`relative mt-4 rounded-xl bg-tile px-4 pb-5 pt-4 ${dim ? "opacity-55 grayscale-[.4]" : ""}`}>
         <div
           className="relative rounded-[2px] bg-[#fbf8f1] px-5 pb-8 pt-5"
           style={{ boxShadow: PAPER_SHADOW, backgroundImage: PAPER_NOISE, transform: editing ? "none" : `rotate(${props.tilt}deg)` }}
@@ -298,12 +328,12 @@ function CardItem(props: {
                 onChange={(e) => setDraft(e.target.value)}
                 rows={6}
                 autoFocus
-                className="w-full resize-none overflow-hidden rounded-md border border-dashed border-[#b9c0d8] bg-white/60 px-2 py-1.5 text-[1.3rem] leading-[1.32] outline-none focus:border-[#1d2a5c]"
+                className="w-full resize-none overflow-hidden rounded-md border border-dashed border-[#b9c0d8] bg-white/60 px-2 py-1.5 text-[1.3rem] leading-[1.32] focus:border-[#1d2a5c]"
                 style={{ fontFamily: HAND, color: INK }}
               />
               {c.altLanguage && (
                 <>
-                  <label className="text-[0.7rem] text-mute" htmlFor={`alt-${c.id}`}>
+                  <label className="text-xs text-mute" htmlFor={`alt-${c.id}`}>
                     {altLang?.native} line, written by hand at the salon
                   </label>
                   <textarea
@@ -312,7 +342,7 @@ function CardItem(props: {
                     value={draftAlt}
                     onChange={(e) => setDraftAlt(e.target.value)}
                     rows={3}
-                    className="w-full resize-y rounded-md border border-dashed border-[#b9c0d8] bg-white/60 px-2 py-1.5 text-[1rem] leading-relaxed outline-none focus:border-[#1d2a5c]"
+                    className="w-full resize-y rounded-md border border-dashed border-[#b9c0d8] bg-white/60 px-2 py-1.5 text-[1rem] leading-relaxed focus:border-[#1d2a5c]"
                     style={{ fontFamily: CJK_HAND[c.altLanguage], color: "#24306a" }}
                   />
                 </>
@@ -331,9 +361,9 @@ function CardItem(props: {
             </>
           )}
           {c.mock && !editing && (
-            <span className="absolute bottom-2 left-3 rounded-[3px] bg-[#fbedc9] px-1.5 py-px text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-[#8a5a00]">Sample text</span>
+            <span className="absolute bottom-2 left-3 rounded-[3px] bg-[#fbedc9] px-1.5 py-px text-sm font-semibold text-[#8a5a00]">Sample text</span>
           )}
-          {altLang && !editing && <span className="absolute bottom-2 right-3 text-[0.65rem] text-[#a3352f]/80">{altLang.native}: added by hand</span>}
+          {altLang && !editing && <span className="absolute bottom-2 right-3 text-xs text-[#a3352f]/80">{altLang.native}: added by hand</span>}
         </div>
 
         {a && (
@@ -350,7 +380,7 @@ function CardItem(props: {
                   </span>
                 ))}
               </p>
-              <span className="grid h-9 w-7 rotate-2 place-items-center rounded-[2px] bg-[#3f5843] text-[0.42rem] uppercase tracking-wider text-[#e3eadf] ring-2 ring-[#f3efe6]">Post</span>
+              <span className="grid h-9 w-7 rotate-2 place-items-center rounded-[2px] bg-[#3f5843] text-[0.42rem] text-[#e3eadf] ring-2 ring-[#f3efe6]">Post</span>
             </div>
             <p className="ml-[22%] mt-3 text-[1.18rem] leading-[1.12]" style={{ fontFamily: HAND, color: INK }}>
               <span className="block">{c.name}</span>
@@ -365,20 +395,24 @@ function CardItem(props: {
       </div>
 
       {editing && live.length > 0 && (
-        <ul className="mt-3 space-y-1 text-sm text-rose-700" aria-live="polite">
+        <ul className="mt-3 space-y-1 text-sm font-medium text-alert" aria-live="polite">
           {live.map((i) => (
             <li key={i.field + i.code}>{i.message}</li>
           ))}
         </ul>
       )}
       {!editing && stored.length > 0 && c.status === "pending" && (
-        <ul className="mt-3 space-y-1 text-sm text-rose-700">
+        <ul id={`issues-${c.id}`} className="mt-3 space-y-1 text-sm font-medium text-alert">
           {stored.map((i) => (
             <li key={i.field + i.code}>{i.message}</li>
           ))}
         </ul>
       )}
-      {props.error && <p className="mt-3 text-sm text-rose-700">{props.error}</p>}
+      {props.error && (
+        <p role="alert" className="mt-3 text-sm font-medium text-alert">
+          {props.error}
+        </p>
+      )}
 
       <div className="mt-auto pt-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-dashed border-line pt-3">
@@ -407,16 +441,17 @@ function CardItem(props: {
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
             {editing ? (
               <>
-                <button type="button" onClick={props.onCancel} className="rounded-full px-4 py-2 text-sm ring-1 ring-line hover:ring-ink">
+                <button type="button" onClick={props.onCancel} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ring-line hover:ring-ink">
                   Cancel
                 </button>
                 <button
                   type="button"
                   disabled={props.busy || live.length > 0}
                   onClick={() => props.onSave(draft, draftAlt)}
-                  className="rounded-full bg-ink px-4 py-2 text-sm text-paper hover:bg-clay disabled:opacity-40"
+                  aria-busy={props.busy || undefined}
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm font-medium text-paper hover:bg-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Save text
+                  {props.busy ? "Saving..." : "Save text"}
                 </button>
               </>
             ) : (
@@ -429,29 +464,46 @@ function CardItem(props: {
                       setDraftAlt(c.messageAlt ?? "");
                       props.onEdit();
                     }}
-                    className="mr-auto rounded-full px-4 py-2 text-sm ring-1 ring-line hover:ring-ink"
+                    className="mr-auto inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm ring-1 ring-line hover:ring-ink"
                   >
                     Edit
+                    <span className="sr-only"> card for {c.name}</span>
                   </button>
                 )}
                 {c.status === "pending" || c.status === "failed" ? (
                   <>
-                    <button type="button" disabled={props.busy} onClick={() => props.onStatus("skipped")} className="rounded-full px-4 py-2 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-ink disabled:opacity-50">
-                      Skip
+                    <button
+                      type="button"
+                      disabled={props.busy}
+                      aria-busy={(props.busy && acting === "skipped") || undefined}
+                      onClick={() => act("skipped")}
+                      className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-ink disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {props.busy && acting === "skipped" ? "Skipping..." : "Skip"}
+                      <span className="sr-only">, card for {c.name}</span>
                     </button>
                     <button
                       type="button"
                       disabled={props.busy || stored.length > 0}
-                      title={stored.length ? "Fix the text first" : undefined}
-                      onClick={() => props.onStatus("approved")}
-                      className="rounded-full bg-moss px-5 py-2 text-sm text-paper hover:bg-[#4b5541] disabled:opacity-40"
+                      aria-busy={(props.busy && acting === "approved") || undefined}
+                      aria-describedby={stored.length ? `issues-${c.id}` : undefined}
+                      onClick={() => act("approved")}
+                      className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-5 text-sm font-medium text-paper hover:bg-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      {c.status === "failed" ? "Approve again" : "Approve"}
+                      {props.busy && acting === "approved" ? "Approving..." : c.status === "failed" ? "Approve again" : "Approve"}
+                      <span className="sr-only">, card for {c.name}</span>
                     </button>
                   </>
                 ) : (
-                  <button type="button" disabled={props.busy} onClick={() => props.onStatus("pending")} className="rounded-full px-4 py-2 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-ink disabled:opacity-50">
-                    {c.status === "approved" ? "Undo approval" : "Undo skip"}
+                  <button
+                    type="button"
+                    disabled={props.busy}
+                    aria-busy={(props.busy && acting === "pending") || undefined}
+                    onClick={() => act("pending")}
+                    className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-ink disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {props.busy && acting === "pending" ? "Saving..." : c.status === "approved" ? "Undo approval" : "Undo skip"}
+                    <span className="sr-only">, card for {c.name}</span>
                   </button>
                 )}
               </>
