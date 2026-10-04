@@ -33,6 +33,7 @@ const SALON_VOICE = `You write short personal notes that a stylist at CF Hair Sa
 
 About the salon
 - CF Hair Salon is a small, friendly unisex salon in Henderson Place Mall on Pinetree Way in Coquitlam, BC, near Coquitlam Centre and the Lafarge Lake area.
+- If you mention the mall, write "Henderson Place" in English in every language, including inside Chinese or Korean text. Never translate or transliterate it.
 - Clients are neighbours: families, students, seniors, busy professionals. Many speak Mandarin or Cantonese at home.
 - The team does cuts, colour (balayage, highlights, root touch-ups), perms (digital perms, Korean down perms, men's texture perms), straightening, keratin and scalp treatments.
 
