@@ -2,6 +2,8 @@
 
 A proposal and working demos for CF Hair Salon (Henderson Place Mall, Coquitlam BC).
 
+Live demo website: https://cf-hair-salon.vercel.app (owner admin at `/admin`). It deploys from this branch on every push, with a Neon Postgres database; texts run in dry-run outbox mode until Twilio is connected.
+
 | Folder | What it is | Try it |
 |---|---|---|
 | `website/` | Bilingual (English / 简体中文 / 한국어) salon site with live online booking, owner admin, CASL-compliant promotional texts and the booking API | `cd website && cp .env.example .env && npm install && npm run db:reset && npm run dev`, then open http://localhost:3000 and http://localhost:3000/admin |
