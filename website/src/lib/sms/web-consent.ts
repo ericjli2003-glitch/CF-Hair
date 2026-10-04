@@ -2,6 +2,7 @@
 // rebuilt on the server from the same dictionary the form rendered, so the record
 // always holds exactly what the visitor saw in their language.
 import { dictionaries, fill, isLang, type Lang } from "../i18n/dictionary";
+import { SITE_LANG_TO_LANGUAGE } from "../languages";
 import { formatPhoneDisplay, fullAddress, salon } from "../salon";
 import { recordConsent } from "./consent";
 
@@ -13,8 +14,6 @@ export function webOptInWording(lang: Lang): { label: string; fine: string; full
   return { label, fine, full: `${label} ${fine}` };
 }
 
-const LANG_CODE: Record<Lang, string> = { en: "en-US", zh: "zh-CN", ko: "ko-KR" };
-
 export async function recordWebOptIn(phone: string, langInput: unknown, detail: Record<string, unknown>) {
   const lang: Lang = isLang(langInput) ? langInput : "en";
   return recordConsent({
@@ -22,7 +21,7 @@ export async function recordWebOptIn(phone: string, langInput: unknown, detail: 
     status: "express",
     source: "web",
     wording: webOptInWording(lang).full,
-    language: LANG_CODE[lang],
+    language: SITE_LANG_TO_LANGUAGE[lang],
     actor: "customer",
     detail: { ...detail, form: "online booking", checkbox: "unchecked by default, ticked by the visitor" },
   });

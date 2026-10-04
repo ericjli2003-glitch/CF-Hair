@@ -70,7 +70,7 @@ export default async function ConfirmedPage(props: PageProps<"/book/confirmed/[i
         </dl>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <a href={`/api/bookings/${booking.id}/ics`} className="btn-clay" download>
+          <a href={`/api/bookings/${booking.id}/ics?lang=${lang}`} className="btn-clay" download>
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
               <rect x="3" y="5" width="18" height="16" rx="2" />
               <path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5" />

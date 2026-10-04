@@ -16,8 +16,8 @@
   --color-espresso-2: #33271f;
   --color-moss: #5f6a52;
 
-  --font-display: var(--font-cormorant), var(--font-serif-sc), var(--font-serif-kr), ui-serif, Georgia, serif;
-  --font-sans: var(--font-jost), var(--font-sans-sc), var(--font-sans-kr), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), var(--font-serif-sc), var(--font-serif-hk), var(--font-serif-kr), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jost), var(--font-sans-sc), var(--font-sans-hk), var(--font-sans-kr), ui-sans-serif, system-ui, sans-serif;
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 
@@ -63,6 +63,15 @@ body {
   word-break: keep-all;
 }
 :lang(zh-Hans) .display {
+  letter-spacing: 0.01em;
+  line-height: 1.12;
+}
+/* Traditional Chinese (Hong Kong): Hong Kong glyph forms ahead of the Simplified fonts. */
+:root:lang(zh-Hant) {
+  --font-display: var(--font-cormorant), var(--font-serif-hk), var(--font-serif-sc), var(--font-serif-kr), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jost), var(--font-sans-hk), var(--font-sans-sc), var(--font-sans-kr), ui-sans-serif, system-ui, sans-serif;
+}
+:lang(zh-Hant) .display {
   letter-spacing: 0.01em;
   line-height: 1.12;
 }

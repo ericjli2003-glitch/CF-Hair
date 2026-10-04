@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { LANGS, LANG_LABELS, type Lang } from "@/lib/i18n/dictionary";
+import { HTML_LANG, LANGS, LANG_LABELS, LANG_NAMES, type Lang } from "@/lib/i18n/dictionary";
 import { useI18n } from "../LangProvider";
 
 function writeLangCookie(l: Lang) {
@@ -25,23 +25,30 @@ export function LangToggle({ tone = "dark" }: { tone?: "dark" | "light" }) {
         tone === "light" ? "border-paper/25 text-paper" : "border-ink/15 text-ink"
       } ${pending ? "opacity-60" : ""}`}
     >
-      {LANGS.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => set(l)}
-          aria-pressed={lang === l}
-          className={`rounded-full px-2.5 py-1 font-medium tracking-wide transition ${
-            lang === l
-              ? tone === "light"
-                ? "bg-paper text-espresso"
-                : "bg-ink text-paper"
-              : "opacity-70 hover:opacity-100"
-          }`}
-        >
-          {LANG_LABELS[l]}
-        </button>
-      ))}
+      {LANGS.map((l) => {
+        const { native, english } = LANG_NAMES[l];
+        const name = native === english ? native : `${native}, ${english}`;
+        return (
+          <button
+            key={l}
+            type="button"
+            onClick={() => set(l)}
+            aria-pressed={lang === l}
+            aria-label={name}
+            title={name}
+            lang={HTML_LANG[l]}
+            className={`whitespace-nowrap rounded-full px-2 py-1 font-medium tracking-wide transition sm:px-2.5 ${
+              lang === l
+                ? tone === "light"
+                  ? "bg-paper text-espresso"
+                  : "bg-ink text-paper"
+                : "opacity-70 hover:opacity-100"
+            }`}
+          >
+            {LANG_LABELS[l]}
+          </button>
+        );
+      })}
     </div>
   );
 }

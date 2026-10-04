@@ -14,6 +14,7 @@ import {
   type StaffLite,
 } from "./availability";
 import { upsertCustomer } from "./customers";
+import { languageForSiteLang } from "./languages";
 import { toE164 } from "./phone";
 import { salon, SALON_TZ } from "./salon";
 import { confirmationText, sendNotice } from "./notify";
@@ -223,7 +224,10 @@ export async function createBooking(
     now,
   });
 
-  const customer = await upsertCustomer(prisma, { phone, name, email });
+  // Online bookings carry the website language; it fills in a new or default
+  // preference so confirmations and promotions arrive in that language.
+  const siteLanguage = source === "web" ? languageForSiteLang(body.siteLang ?? body.smsOptInLang) : null;
+  const customer = await upsertCustomer(prisma, { phone, name, email, siteLanguage });
 
   for (const staff of choice.candidates) {
     const id = `bk_${randomUUID().replace(/-/g, "").slice(0, 20)}`;

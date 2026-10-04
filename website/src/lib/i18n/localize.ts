@@ -17,4 +17,4 @@ export function formatTime(hhmm: string, lang: Lang): string {
   return m ? `${h12}:${String(m).padStart(2, "0")} ${suffix}` : `${h12} ${suffix}`;
 }
 
-export const LOCALE: Record<Lang, string> = { en: "en-CA", zh: "zh-CN", ko: "ko-KR" };
+export const LOCALE: Record<Lang, string> = { en: "en-CA", zh: "zh-CN", hk: "zh-HK", ko: "ko-KR" };

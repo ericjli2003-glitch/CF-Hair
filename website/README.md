@@ -3,7 +3,7 @@
 Next.js (App Router, TypeScript, Tailwind v4) with Prisma. SQLite for local development, Postgres in production. This app is the booking backend that the phone agent (`../voice-agent`) and the handwritten notes pipeline (`../notes`) talk to. The API contract lives in `../docs/ARCHITECTURE.md`.
 
 - Public site: home, services and pricing, team, visit and contact, online booking with "Add to calendar" (.ics).
-- Languages: English, 简体中文 and 한국어 (toggle in the header, remembered in a cookie).
+- Languages: English, 简体中文, 繁體中文 for Cantonese-speaking (Hong Kong) clients and 한국어 (toggle `EN | 简体 | 繁體 | 한국어` in the header, remembered in a cookie; site codes `en`, `zh`, `hk`, `ko`).
 - Owner admin at `/admin`: day and week schedule by stylist, bookings list with status changes, walk-in and phone bookings, callback messages, client list with visit counts, language and referral editing, CSV export.
 - Promotional texts (Promotions tab): CASL consent records, campaign composer in four languages with live preview and cost, audience builder, quiet hours, frequency cap, STOP handling, results with booking attribution. Works offline in an outbox mode for demos. See [Promotional texts](#promotional-texts-sms-campaigns).
 - REST API for the phone agent and notes pipeline, with `x-api-key` auth.
@@ -34,7 +34,7 @@ npm run dev                 # http://localhost:3000, owner login at /admin
 
 `../shared/salon.json` is the single source of truth. `scripts/sync-salon.mjs` copies it to `src/data/salon.json` before dev and build so the app also builds on its own (for example on Vercel). Services and stylists are seeded into the database from it; hours, address, phone and policies are read from it directly. Values starting with `PLACEHOLDER: ` are shown without that prefix, and placeholder-only values (like the example email) are hidden. To use the owner's real details, edit `shared/salon.json` and run `npm run db:reset` (local) or `npm run db:seed` (fresh demo database).
 
-Translations live in `src/lib/i18n/dictionary.ts`: one dictionary per language, plus Chinese and Korean names and descriptions for services, categories, roles and bios keyed by id. Anything missing falls back to the English value from `salon.json`.
+Translations live in `src/lib/i18n/dictionary.ts`: one dictionary per language, plus Chinese (Simplified and Traditional) and Korean names and descriptions for services, categories, roles and bios keyed by id. The Traditional Chinese copy (`hk`, HTML `lang="zh-Hant-HK"`) is written for Hong Kong readers with local vocabulary (電髮, 駁髮, 電郵, 短訊, 架空列車), not converted from the Simplified text. Anything missing falls back to the English value from `salon.json`.
 
 ### Photos
 
@@ -56,7 +56,7 @@ The owner can text specials to clients who agreed to receive them. Canada's Anti
 
 **Consent.** Each phone number has a status: `none`, `express`, `implied` or `withdrawn`, with the source (online booking checkbox, owner at the front desk, phone assistant, text keyword, paid visit), the timestamp, the exact wording shown or spoken, and for implied consent the paid visit it is based on and its expiry (visit plus two years). Every change is also written to an append-only `ConsentEvent` log, shown as "Consent history" on each client's page.
 
-- Booking form: an optional checkbox, unchecked by default, in English, Chinese and Korean, naming the salon, what they will get and "Reply STOP any time", with the salon's address and phone under it. Booking confirmations are sent either way.
+- Booking form: an optional checkbox, unchecked by default, in English, Simplified Chinese, Traditional Chinese and Korean, naming the salon, what they will get and "Reply STOP any time", with the salon's address and phone under it. Booking confirmations are sent either way.
 - Admin, Clients: a "Promo texts" column; click a client to see their consent, the wording they agreed to, the history, and to record a yes (front desk, phone call, paper form) or an opt-out.
 - Phone assistant: after a booking, if the caller has caller ID and no answer on file, it asks once and records the answer (`POST /api/customers/consent`, source `phone`). A no is recorded so it never asks again.
 
@@ -132,7 +132,7 @@ Customer fields: `id, name, phone, email, mailingAddress, firstVisit, lastVisit,
 - `tags` are the stored tags plus derived ones: `new` (one visit), `regular` (4 or more), `lapsed` (no visit in 90 days and nothing booked), `upcoming`, `birthday-soon` (within 30 days).
 - `since` filters on last visit (a date or a timestamp); `tag` filters on any tag.
 
-Languages: `en-US`, `zh-CN` (Mandarin), `zh-HK` (Cantonese), `ko-KR` (Korean). The customer's `preferredLanguage` and the caller profile are kept in sync: a PUT to `/api/callers/{phone}` updates the matching customer, the owner's edit in the admin updates the caller profile, and a new customer inherits the language the phone agent already remembered.
+Languages: `en-US`, `zh-CN` (Mandarin), `zh-HK` (Cantonese), `ko-KR` (Korean). An online booking sends the site language (`siteLang`: `en`, `zh`, `hk`, `ko`, mapped to `en-US`, `zh-CN`, `zh-HK`, `ko-KR`); it sets the customer's `preferredLanguage` (and the caller profile's) only when the customer is new or still on the default `en-US`, never replacing a language set by the phone agent or the owner. The "Add to calendar" file is written in the site language too (`/api/bookings/{id}/ics?lang=hk`). The customer's `preferredLanguage` and the caller profile are kept in sync: a PUT to `/api/callers/{phone}` updates the matching customer, the owner's edit in the admin updates the caller profile, and a new customer inherits the language the phone agent already remembered.
 
 ### Quick check with curl
 

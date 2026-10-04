@@ -1,12 +1,20 @@
-// Site copy in English, Simplified Chinese and Korean. Keep keys identical across
-// languages. Salon facts (names, prices, hours) come from salon.json; the
+// Site copy in English, Simplified Chinese, Traditional Chinese for Hong Kong and
+// Cantonese readers ("hk") and Korean. Keep keys identical across languages. Salon facts (names, prices, hours) come from salon.json; the
 // per-service and per-stylist translations below are keyed by id and fall back to
 // the English value from salon.json when missing.
 
-export const LANGS = ["en", "zh", "ko"] as const;
+export const LANGS = ["en", "zh", "hk", "ko"] as const;
 export type Lang = (typeof LANGS)[number];
-export const LANG_LABELS: Record<Lang, string> = { en: "EN", zh: "中文", ko: "한국어" };
-export const HTML_LANG: Record<Lang, string> = { en: "en-CA", zh: "zh-Hans", ko: "ko" };
+/** Short labels for the header toggle. */
+export const LANG_LABELS: Record<Lang, string> = { en: "EN", zh: "简体", hk: "繁體", ko: "한국어" };
+/** Full names for the toggle's accessible label and tooltip. */
+export const LANG_NAMES: Record<Lang, { native: string; english: string }> = {
+  en: { native: "English", english: "English" },
+  zh: { native: "简体中文", english: "Simplified Chinese" },
+  hk: { native: "繁體中文（廣東話客人）", english: "Traditional Chinese (for Cantonese speakers)" },
+  ko: { native: "한국어", english: "Korean" },
+};
+export const HTML_LANG: Record<Lang, string> = { en: "en-CA", zh: "zh-Hans", hk: "zh-Hant-HK", ko: "ko" };
 
 const en = {
   nav: { services: "Services", team: "Team", visit: "Visit", book: "Book now", menu: "Menu", close: "Close" },
@@ -26,6 +34,7 @@ const en = {
     photoSlot: "Photo slot",
     loading: "Loading",
     to: " to ",
+    listSep: ", ",
   },
   days: { mon: "Monday", tue: "Tuesday", wed: "Wednesday", thu: "Thursday", fri: "Friday", sat: "Saturday", sun: "Sunday" },
   daysShort: { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" },
@@ -147,6 +156,10 @@ const en = {
     stylist: "Stylist",
     where: "Where",
   },
+  ics: {
+    summary: "{service} at {salon}",
+    description: "With {stylist}. To change or cancel, call {phone}.",
+  },
   footer: {
     tagline: "A unisex salon in Coquitlam Town Centre.",
     rights: "All rights reserved.",
@@ -180,11 +193,12 @@ const zh: Dict = {
     photoSlot: "照片位置",
     loading: "加载中",
     to: "至",
+    listSep: "、",
   },
   days: { mon: "星期一", tue: "星期二", wed: "星期三", thu: "星期四", fri: "星期五", sat: "星期六", sun: "星期日" },
   daysShort: { mon: "周一", tue: "周二", wed: "周三", thu: "周四", fri: "周五", sat: "周六", sun: "周日" },
   home: {
-    eyebrow: "高贵林 · 恒信广场",
+    eyebrow: "高贵林 · Henderson Place 商场",
     titleA: "用心，",
     titleB: "成就好发型。",
     lead: "随时在线预约，一分钟搞定。",
@@ -206,13 +220,13 @@ const zh: Dict = {
       { t: "擅长烫发与质感", d: "韩式贴发烫、数码烫、离子烫，以及精准的日常剪发。" },
       { t: "母语沟通", d: "可用{langs}沟通，确保你想要的发型被准确理解。" },
       { t: "随时预约", d: "在线或电话预约。我们忙于服务客人时，智能助理会代为接听，所有预约统一管理。" },
-      { t: "交通便利", d: "位于恒信广场内，对面是高贵林中心，紧邻 Lincoln 天车站。" },
+      { t: "交通便利", d: "位于Henderson Place 商场内，对面是高贵林中心，紧邻 Lincoln 天车站。" },
     ],
     teamEyebrow: "我们的团队",
     teamTitle: "为你服务的发型师。",
     teamCta: "认识团队",
     visitEyebrow: "到店",
-    visitTitle: "恒信广场见。",
+    visitTitle: "Henderson Place 商场见。",
     hours: "营业时间",
     address: "地址",
     phone: "电话",
@@ -252,7 +266,7 @@ const zh: Dict = {
     policy: "如需取消或改期，请至少提前 {h} 小时通知。",
     late: "迟到超过 {m} 分钟，服务时间可能需要缩短。",
     gettingHere: "交通",
-    gettingHereText: "恒信广场位于高贵林中心对面，步行即可到达千禧线 Lincoln 天车站。",
+    gettingHereText: "Henderson Place 商场位于高贵林中心对面，步行即可到达千禧线 Lincoln 天车站。",
   },
   book: {
     eyebrow: "在线预约",
@@ -300,6 +314,10 @@ const zh: Dict = {
     service: "服务",
     stylist: "发型师",
     where: "地点",
+  },
+  ics: {
+    summary: "{salon}：{service}",
+    description: "发型师：{stylist}。如需更改或取消，请致电 {phone}。",
   },
   footer: { tagline: "高贵林市中心的男女发廊。", rights: "版权所有。", owner: "店主登录" },
   serviceNames: {
@@ -352,6 +370,204 @@ const zh: Dict = {
   languages: { English: "英语", Mandarin: "普通话", Cantonese: "粤语", Korean: "韩语" },
 };
 
+// Traditional Chinese for Hong Kong and Cantonese-speaking clients: standard
+// written Chinese with Hong Kong vocabulary (電髮, 駁髮, 電郵, 短訊, 架空列車, 加幣),
+// not a character conversion of the Simplified copy.
+const hk: Dict = {
+  nav: { services: "服務項目", team: "髮型師", visit: "到訪", book: "立即預約", menu: "選單", close: "關閉" },
+  common: {
+    min: "分鐘",
+    from: "起",
+    free: "免費",
+    freeConsult: "免費",
+    book: "預約",
+    bookNow: "立即預約",
+    call: "致電",
+    back: "返回",
+    continue: "繼續",
+    change: "更改",
+    closed: "休息",
+    today: "今日",
+    photoSlot: "相片位置",
+    loading: "載入中",
+    to: "至",
+    listSep: "、",
+  },
+  days: { mon: "星期一", tue: "星期二", wed: "星期三", thu: "星期四", fri: "星期五", sat: "星期六", sun: "星期日" },
+  daysShort: { mon: "週一", tue: "週二", wed: "週三", thu: "週四", fri: "週五", sat: "週六", sun: "週日" },
+  home: {
+    eyebrow: "高貴林 · Henderson Place 商場",
+    titleA: "用心，",
+    titleB: "成就好髮型。",
+    lead: "全天候網上預約，一分鐘搞掂。",
+    ctaBook: "網上預約",
+    ctaCall: "致電",
+    badge: "網上預約 · 每週七天營業 · ",
+    factHours: "每週七天營業",
+    factLangs: "服務語言",
+    factTransit: "毗鄰 Lincoln 架空列車站",
+    marquee: ["剪髮", "染髮", "電髮", "漸層染", "角蛋白護理", "盤髮", "頭皮護理", "編髮"],
+    menuEyebrow: "服務項目",
+    menuTitle: "剪、染、電，還有日常護理。",
+    menuLead: "每次服務，都由了解你的想法和日常打理習慣開始。",
+    menuCta: "查看完整價目表",
+    services: "項服務",
+    whyEyebrow: "為甚麼選擇 CF",
+    whyTitle: "用心經營的社區髮型屋。",
+    why: [
+      { t: "擅長電髮與髮質造型", d: "韓式 Down Perm、數碼電髮、負離子直髮，以及精準的日常剪髮。" },
+      { t: "母語溝通", d: "可以用{langs}溝通，你想要的效果，我們都能準確掌握。" },
+      { t: "隨時預約", d: "網上或電話預約均可。我們忙於服務客人時，智能助理會代為接聽，所有預約統一管理。" },
+      { t: "交通便利", d: "位於Henderson Place 商場內，對面是高貴林中心，毗鄰 Lincoln 架空列車站。" },
+    ],
+    teamEyebrow: "我們的團隊",
+    teamTitle: "為你服務的髮型師。",
+    teamCta: "認識團隊",
+    visitEyebrow: "到訪",
+    visitTitle: "Henderson Place 商場見。",
+    hours: "營業時間",
+    address: "地址",
+    phone: "電話",
+    openMaps: "在 Google 地圖開啟",
+    ctaTitle: "你的座位已準備好。",
+    ctaLead: "選好服務、髮型師和時間，即時收到確認。",
+  },
+  services: {
+    eyebrow: "服務及價目",
+    title: "價目表",
+    lead: "以下為加幣起價。長髮或髮量較多可能需要更多時間和用料，開始前我們一定會先跟你確認價錢。",
+    bookThis: "預約此項目",
+    note: "未決定做甚麼？可以預約諮詢，或致電我們幫你決定。",
+  },
+  team: {
+    eyebrow: "我們的團隊",
+    title: "認識你的髮型師。",
+    lead: "小團隊，每次來都是熟悉的面孔。",
+    specialties: "服務項目",
+    bookWith: "預約",
+    portrait: "個人照",
+  },
+  contact: {
+    eyebrow: "到訪及聯絡",
+    title: "歡迎過來坐坐。",
+    lead: "有空位時歡迎即場光顧。染髮和電髮建議預早預約。",
+    formTitle: "有問題？問我們",
+    formLead: "留下電話號碼，我們會盡快回電。",
+    name: "你的姓名",
+    phone: "電話號碼",
+    message: "有甚麼可以幫到你？",
+    send: "發送",
+    sent: "多謝！我們會盡快回電。",
+    error: "發送失敗，請直接致電我們。",
+    email: "電郵",
+    walkIns: "歡迎即場光顧",
+    policy: "如需取消或更改預約，請最少提前 {h} 小時通知。",
+    late: "遲到超過 {m} 分鐘，服務時間或需縮短。",
+    gettingHere: "交通",
+    gettingHereText: "Henderson Place 商場位於高貴林中心對面，步行即可到達千禧線 Lincoln 架空列車站。",
+  },
+  book: {
+    eyebrow: "網上預約",
+    title: "預約你的時間。",
+    steps: ["服務", "髮型師", "時間", "資料"],
+    serviceTitle: "今日想做甚麼？",
+    staffTitle: "想由哪位髮型師為你服務？",
+    noPref: "不指定",
+    noPrefSub: "最早有空的髮型師",
+    timeTitle: "選擇時間",
+    noSlots: "這天已經額滿，請選擇其他日期。",
+    closedDay: "這天休息。",
+    morning: "上午",
+    afternoon: "下午",
+    detailsTitle: "你的資料",
+    name: "姓名",
+    phone: "手提電話號碼",
+    phoneHint: "只會用作確認或更改預約。",
+    smsOptIn: "有好消息記得通知我！我願意間中收到 {salon} 的短訊，了解最新優惠和空檔時段。",
+    smsOptInFine: "完全自願。無論是否剔選，你都會收到預約確認及提示短訊。隨時回覆 STOP 即可取消訂閱。{salon}，{address}，{phone}。",
+    email: "電郵（選填）",
+    notes: "有甚麼需要我們留意？（選填）",
+    confirm: "確認預約",
+    confirming: "預約中",
+    errName: "請輸入姓名。",
+    errPhone: "請輸入有效的電話號碼。",
+    errEmail: "請檢查電郵地址。",
+    errTaken: "抱歉，這個時間剛剛被預約了，請選擇其他時間。",
+    errGeneric: "出現錯誤，請再試一次或致電我們。",
+    summary: "你的預約",
+    with: "髮型師",
+    anyStylist: "任何髮型師",
+    selectTime: "請選擇時間",
+    total: "預計價錢",
+  },
+  confirmed: {
+    eyebrow: "預約成功",
+    title: "預約成功！",
+    lead: "{name}，期待與你見面。確認通知將發送至 {phone}。",
+    addCal: "加入日曆",
+    home: "返回主頁",
+    change: "需要更改？請致電",
+    ref: "預約編號",
+    when: "時間",
+    service: "服務",
+    stylist: "髮型師",
+    where: "地點",
+  },
+  ics: {
+    summary: "{salon}：{service}",
+    description: "髮型師：{stylist}。如需更改或取消，請致電 {phone}。",
+  },
+  footer: { tagline: "高貴林市中心的男女髮型屋。", rights: "版權所有。", owner: "店主登入" },
+  serviceNames: {
+    "mens-cut": "男士剪髮",
+    "womens-cut": "女士剪髮",
+    "kids-cut": "小童剪髮（12 歲或以下）",
+    "senior-cut": "長者剪髮（65 歲以上）",
+    "wash-blowdry": "洗髮及吹髮造型",
+    updo: "晚裝盤髮",
+    braiding: "編髮",
+    "root-colour": "髮根補染",
+    "full-colour": "全頭染髮",
+    highlights: "全頭挑染（錫紙）",
+    balayage: "手刷漸層染（Balayage）",
+    "mens-perm": "男士電髮",
+    "down-perm": "韓式 Down Perm（貼髮）",
+    "digital-perm": "數碼電髮",
+    straightening: "負離子直髮",
+    keratin: "角蛋白順滑護理",
+    "scalp-treatment": "頭皮護理",
+    "extensions-consult": "駁髮諮詢",
+  },
+  serviceDescriptions: {
+    "mens-cut": "剪髮及造型，包括洗髮。",
+    "womens-cut": "諮詢、洗髮、剪髮及吹乾造型。",
+    "kids-cut": "快捷、溫柔的小童剪髮。",
+    "senior-cut": "長者剪髮及造型。",
+    "wash-blowdry": "洗髮、護髮及吹乾造型。",
+    updo: "晚宴或伴娘盤髮造型。",
+    braiding: "編髮造型，價錢視乎長度及複雜程度。",
+    "root-colour": "補染一吋內新生髮根，包括吹乾。",
+    "full-colour": "全頭單色染髮，長髮另計。",
+    highlights: "全頭錫紙挑染，包括調色。",
+    balayage: "手刷立體漸層染，包括調色及造型。",
+    "mens-perm": "短髮紋理電髮，包括剪髮。",
+    "down-perm": "令兩側頭髮服貼，適合男士髮型。",
+    "digital-perm": "柔和自然的數碼曲髮，長髮另計。",
+    straightening: "日式負離子直髮，長髮另計。",
+    keratin: "改善毛躁的順滑護理。",
+    "scalp-treatment": "深層清潔頭皮護理，包括按摩。",
+    "extensions-consult": "免費諮詢，駁髮價錢視乎方式及長度。",
+  },
+  categories: { Haircuts: "剪髮", Styling: "造型", Colour: "染髮", Perm: "電髮", Treatment: "護理", Extensions: "駁髮" },
+  roles: { "Owner / Senior Stylist": "店主 / 資深髮型師", Stylist: "髮型師", "Junior Stylist": "初級髮型師" },
+  bios: {
+    "stylist-a": "資深髮型師，擅長染髮及電髮。",
+    "stylist-b": "專注剪髮、男士電髮及髮型紋理。",
+    "stylist-c": "負責剪髮、造型、編髮及護理。",
+  },
+  languages: { English: "英語", Mandarin: "普通話", Cantonese: "廣東話", Korean: "韓語" },
+};
+
 const ko: Dict = {
   nav: { services: "서비스", team: "디자이너", visit: "오시는 길", book: "예약하기", menu: "메뉴", close: "닫기" },
   common: {
@@ -370,6 +586,7 @@ const ko: Dict = {
     photoSlot: "사진 자리",
     loading: "불러오는 중",
     to: " ~ ",
+    listSep: ", ",
   },
   days: { mon: "월요일", tue: "화요일", wed: "수요일", thu: "목요일", fri: "금요일", sat: "토요일", sun: "일요일" },
   daysShort: { mon: "월", tue: "화", wed: "수", thu: "목", fri: "금", sat: "토", sun: "일" },
@@ -491,6 +708,10 @@ const ko: Dict = {
     stylist: "디자이너",
     where: "장소",
   },
+  ics: {
+    summary: "{salon}: {service}",
+    description: "디자이너: {stylist}. 변경이나 취소는 {phone}로 전화 주세요.",
+  },
   footer: { tagline: "코퀴틀람 타운 센터의 남녀 헤어살롱.", rights: "All rights reserved.", owner: "관리자 로그인" },
   serviceNames: {
     "mens-cut": "남성 커트",
@@ -542,7 +763,7 @@ const ko: Dict = {
   languages: { English: "영어", Mandarin: "중국어(보통화)", Cantonese: "광둥어", Korean: "한국어" },
 };
 
-export const dictionaries: Record<Lang, Dict> = { en, zh, ko };
+export const dictionaries: Record<Lang, Dict> = { en, zh, hk, ko };
 
 export function isLang(v: unknown): v is Lang {
   return typeof v === "string" && (LANGS as readonly string[]).includes(v);

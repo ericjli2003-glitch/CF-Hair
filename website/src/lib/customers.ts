@@ -1,6 +1,6 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "./db";
-import { DEFAULT_LANGUAGE, isLanguageCode, type LanguageCode } from "./languages";
+import { DEFAULT_LANGUAGE, isLanguageCode, preferredLanguageAfterWebBooking, type LanguageCode } from "./languages";
 import { SALON_TZ } from "./salon";
 import { dateKeyOf, toZonedISO } from "./time";
 
@@ -37,27 +37,51 @@ export function parseAddress(raw: string | null | undefined): MailingAddress | n
 /**
  * Creates or updates the customer for a phone number (E.164). New customers inherit
  * the language remembered by the phone agent, and the caller profile is linked.
+ *
+ * `siteLanguage` is the website language of an online booking. It becomes the
+ * preferred language when the customer is new or still on the default (en-US), and
+ * the caller profile follows. An explicit non-default preference on the customer or
+ * the caller profile (set by the phone agent or the owner) is never overwritten.
  */
 export async function upsertCustomer(
   db: Db,
-  input: { phone: string; name: string; email?: string | null },
+  input: { phone: string; name: string; email?: string | null; siteLanguage?: LanguageCode | null },
 ) {
   const caller = await db.callerProfile.findUnique({ where: { phone: input.phone } });
+  const callerLang = isLanguageCode(caller?.preferredLanguage) ? caller.preferredLanguage : DEFAULT_LANGUAGE;
+  const site = input.siteLanguage ?? null;
   // A single atomic upsert (INSERT ... ON CONFLICT on Postgres and SQLite), so two
   // simultaneous first bookings from the same new phone cannot both try to insert.
-  const customer = await db.customer.upsert({
+  let customer = await db.customer.upsert({
     where: { phone: input.phone },
     create: {
       phone: input.phone,
       name: input.name,
       email: input.email || null,
-      preferredLanguage: caller?.preferredLanguage ?? DEFAULT_LANGUAGE,
+      preferredLanguage: preferredLanguageAfterWebBooking(callerLang, site),
     },
     update: {
       ...(input.name ? { name: input.name } : {}),
       ...(input.email ? { email: input.email } : {}),
     },
   });
+  if (site && site !== DEFAULT_LANGUAGE && callerLang === DEFAULT_LANGUAGE) {
+    const next = preferredLanguageAfterWebBooking(customer.preferredLanguage, site);
+    if (next !== customer.preferredLanguage) {
+      // Conditional on the stored value, so a change made meanwhile is not overwritten.
+      const r = await db.customer.updateMany({
+        where: { id: customer.id, preferredLanguage: customer.preferredLanguage },
+        data: { preferredLanguage: next },
+      });
+      if (r.count) customer = { ...customer, preferredLanguage: next };
+    }
+    if (caller && customer.preferredLanguage === site) {
+      await db.callerProfile.updateMany({
+        where: { phone: caller.phone, preferredLanguage: caller.preferredLanguage },
+        data: { preferredLanguage: site },
+      });
+    }
+  }
   if (caller && !caller.customerId) {
     await db.callerProfile.update({ where: { phone: caller.phone }, data: { customerId: customer.id } });
   }

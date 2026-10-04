@@ -191,7 +191,7 @@ export default async function Home() {
                   <div className="border-t border-ink/80 pt-5">
                     <span className="display text-[1.1rem] italic text-clay">{["i.", "ii.", "iii.", "iv."][i]}</span>
                     <h3 className="mt-2 text-lg font-medium">{w.t}</h3>
-                    <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-soft">{fill(w.d, { langs: langs.join(", ") })}</p>
+                    <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-soft">{fill(w.d, { langs: langs.join(t.common.listSep) })}</p>
                   </div>
                 </Reveal>
               ))}

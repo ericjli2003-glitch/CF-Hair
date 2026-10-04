@@ -35,26 +35,26 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
         scrolled ? "border-b border-line/70 bg-bone/85 backdrop-blur-md" : "border-b border-transparent"
       }`}
     >
-      <div className="container-x flex h-[72px] items-center justify-between gap-4">
-        <Link href="/" aria-label="CF Hair Salon home" onClick={() => setOpen(false)}>
+      <div className="container-x flex h-[72px] items-center justify-between gap-3 lg:gap-4">
+        <Link href="/" aria-label="CF Hair Salon home" className="shrink-0" onClick={() => setOpen(false)}>
           <Logo />
         </Link>
-        <nav className="hidden items-center gap-9 md:flex">
+        <nav className="hidden items-center gap-4 md:flex lg:gap-9">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className={`link-u text-[0.8rem] uppercase tracking-[0.18em] ${path === l.href ? "text-clay" : "text-ink"}`}
+              className={`link-u whitespace-nowrap text-[0.8rem] uppercase tracking-[0.08em] lg:tracking-[0.18em] ${path === l.href ? "text-clay" : "text-ink"}`}
             >
               {l.label}
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 lg:gap-3">
           <div className="hidden sm:block">
             <LangToggle />
           </div>
-          <Link href="/book" className="btn-primary hidden !px-5 !py-2.5 sm:inline-flex">
+          <Link href="/book" className="btn-primary hidden whitespace-nowrap !px-4 !py-2.5 !tracking-[0.1em] sm:inline-flex lg:!px-5 lg:!tracking-[0.14em]">
             {t.nav.book}
           </Link>
           <button

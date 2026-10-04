@@ -9,6 +9,8 @@ export async function getLang(): Promise<Lang> {
   if (isLang(v)) return v;
   const accept = (await headers()).get("accept-language") ?? "";
   const first = accept.split(",")[0]?.trim().toLowerCase() ?? "";
+  // Traditional Chinese browsers (Hong Kong, Macau, Taiwan, zh-Hant) and Cantonese get "hk".
+  if (/^(zh-(hk|mo|tw|hant)|yue)\b/.test(first)) return "hk";
   if (first.startsWith("zh")) return "zh";
   if (first.startsWith("ko")) return "ko";
   return "en";

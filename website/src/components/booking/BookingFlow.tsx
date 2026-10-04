@@ -170,6 +170,7 @@ export function BookingFlow(props: {
           customer: { name: form.name.trim(), phone: form.phone, email: form.email.trim() || undefined },
           notes: form.notes.trim() || undefined,
           source: "web",
+          siteLang: lang,
           smsOptIn,
           smsOptInLang: lang,
         }),
