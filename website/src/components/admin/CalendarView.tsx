@@ -26,9 +26,11 @@ export function CalendarView(props: {
   dayStartMin: number;
   dayEndMin: number;
   closedDays: string[];
+  /** Opens this booking's drawer on load (links from the Calls tab). */
+  openBookingId?: string;
 }) {
   const { view, days, staff, bookings, dayStartMin, dayEndMin } = props;
-  const [selected, setSelected] = useState<BookingView | null>(null);
+  const [selected, setSelected] = useState<BookingView | null>(() => bookings.find((b) => b.id === props.openBookingId) ?? null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [showCancelled, setShowCancelled] = useState(false);
   const colorOf = useMemo(() => new Map(staff.map((s) => [s.id, s.color])), [staff]);

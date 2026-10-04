@@ -65,6 +65,8 @@ model Customer {
   caller            CallerProfile?
   smsConsent        SmsConsent?
   campaignMessages  CampaignMessage[]
+  calls             Call[]
+  cards             Card[]
 }
 
 // Phone agent memory, keyed by E.164 phone. Linked to the Customer with the same
@@ -251,4 +253,100 @@ model Notification {
 
   @@index([bookingId])
   @@index([to, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Phone receptionist call log. See docs/ARCHITECTURE.md, "Calls".
+// ---------------------------------------------------------------------------
+
+// One row per phone call, upserted by Twilio's callSid when the call ends (and again
+// if the phone agent learns more, e.g. a transfer result). Linked to the Customer
+// with the same phone. The transcript is cleared after CALL_TRANSCRIPT_DAYS (default
+// 90); the summary is kept.
+model Call {
+  id                  String    @id @default(cuid())
+  callSid             String    @unique
+  fromPhone           String? // E.164, null when caller ID was withheld
+  customerId          String?
+  customer            Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  startedAt           DateTime
+  endedAt             DateTime?
+  durationSec         Int       @default(0)
+  language            String    @default("en-US") // en-US | zh-CN | zh-HK | ko-KR
+  languageSource      String    @default("default") // saved | detected | keypad | asked | default
+  outcome             String // booked | rescheduled | cancelled | message | transferred | info | abandoned | spam
+  summary             String // 1 to 3 plain English sentences for the owner
+  bookingId           String?
+  messageId           String?
+  transferResult      String? // answered | no-answer | busy | failed
+  smsConsent          String? // yes | no | not-asked
+  transcript          String? // JSON [{role, text, lang?, at?}]; null once cleared
+  transcriptClearedAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([startedAt])
+  @@index([fromPhone, startedAt])
+  @@index([outcome, startedAt])
+  @@index([customerId])
+}
+
+// ---------------------------------------------------------------------------
+// Handwritten cards approval queue. See docs/ARCHITECTURE.md, "Handwritten cards".
+// ---------------------------------------------------------------------------
+
+// One upload from the notes pipeline (one campaign run).
+model CardBatch {
+  id           String   @id @default(cuid())
+  campaignId   String
+  campaignName String
+  occasion     String
+  generatedAt  DateTime
+  mock         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cards        Card[]
+
+  @@index([campaignId, generatedAt])
+  @@index([createdAt])
+}
+
+// One card. Status: pending -> approved | skipped -> sent | failed. Nothing is mailed
+// until the owner approves it; approvals per calendar month are capped (AppSetting
+// cards.monthlyCap).
+model Card {
+  id              String    @id @default(cuid())
+  batchId         String
+  batch           CardBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  campaignId      String // copied from the batch: (campaignId, clientRef) is the idempotency key while pending
+  clientRef       String // customer id or phone, as sent by the pipeline
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  name            String
+  mailingAddress  String // JSON {line1, line2?, city, province, postalCode, country}
+  stylistName     String
+  lastServiceName String?
+  cardDesign      String
+  message         String
+  messageAlt      String?
+  altLanguage     String? // zh-CN | zh-HK | ko-KR
+  maxChars        Int
+  mock            Boolean   @default(false) // template text, not written for this client
+  status          String    @default("pending") // pending | approved | skipped | sent | failed
+  editedAt        DateTime?
+  approvedAt      DateTime?
+  skippedAt       DateTime?
+  provider        String? // handwrytten | plotter
+  providerOrderId String?
+  sentAt          DateTime?
+  costCAD         Float?
+  failedAt        DateTime?
+  error           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([campaignId, clientRef, status])
+  @@index([batchId, status])
+  @@index([status, approvedAt])
+  @@index([customerId])
 }

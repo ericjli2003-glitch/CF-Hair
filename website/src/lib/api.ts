@@ -22,6 +22,8 @@ export class HttpError extends Error {
     public status: number,
     public code: string,
     message?: string,
+    /** Extra fields merged into the JSON error body. */
+    public extra?: Record<string, unknown>,
   ) {
     super(message ?? code);
   }
@@ -33,7 +35,10 @@ export function handle<A extends unknown[]>(fn: (...args: A) => Promise<Response
     try {
       return await fn(...args);
     } catch (e) {
-      if (e instanceof HttpError) return apiError(e.status, e.code, e.message !== e.code ? e.message : undefined);
+      if (e instanceof HttpError) {
+        if (e.extra) return NextResponse.json({ error: e.code, ...(e.message !== e.code ? { message: e.message } : {}), ...e.extra }, { status: e.status });
+        return apiError(e.status, e.code, e.message !== e.code ? e.message : undefined);
+      }
       console.error(e);
       return apiError(500, "INTERNAL_ERROR");
     }

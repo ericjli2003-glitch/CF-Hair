@@ -18,7 +18,8 @@
     "postinstall": "node scripts/prepare-db.mjs && prisma generate",
     "screenshots": "node scripts/screenshots.mjs",
     "screenshots:sms": "node scripts/screenshots-sms.mjs",
-    "screenshots:redesign": "node scripts/screenshots-redesign.mjs"
+    "screenshots:redesign": "node scripts/screenshots-redesign.mjs",
+    "screenshots:calls-cards": "node scripts/screenshots-calls-cards.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

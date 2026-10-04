@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { LangChip, OutcomeChip, duration } from "@/components/admin/calls/ui";
 import { ConsentForm } from "@/components/admin/promo/ConsentForm";
 import { ConsentChip, dateTime, shortDate } from "@/components/admin/promo/ui";
-import { phonePretty } from "@/lib/admin-format";
+import { dayLabel, phonePretty, time12 } from "@/lib/admin-format";
 import { listCustomers } from "@/lib/customers";
 import { prisma } from "@/lib/db";
 import { LANGUAGE_LABELS } from "@/lib/languages";
+import { SALON_TZ } from "@/lib/salon";
+import { toZonedISO } from "@/lib/time";
 import { getConsent, SOURCE_LABEL } from "@/lib/sms/consent";
 
 export const dynamic = "force-dynamic";
@@ -29,13 +32,15 @@ export default async function ClientPage(props: PageProps<"/admin/customers/[id]
   const row = await prisma.customer.findUnique({ where: { id } });
   if (!row) notFound();
   const [summary] = await listCustomers({ phone: row.phone });
-  const [consent, events, promos, notices, row2, staff] = await Promise.all([
+  const [consent, events, promos, notices, row2, staff, calls, callCount] = await Promise.all([
     getConsent(row.phone),
     prisma.consentEvent.findMany({ where: { phone: row.phone }, orderBy: { createdAt: "desc" } }),
     prisma.campaignMessage.findMany({ where: { phone: row.phone, isTest: false }, include: { campaign: true }, orderBy: { createdAt: "desc" }, take: 10 }),
     prisma.notification.findMany({ where: { OR: [{ to: row.phone }, ...(row.email ? [{ to: row.email }] : [])] }, orderBy: { createdAt: "desc" }, take: 6 }),
     prisma.smsConsent.findUnique({ where: { phone: row.phone } }),
     prisma.staff.findMany(),
+    prisma.call.findMany({ where: { OR: [{ customerId: row.id }, { fromPhone: row.phone }] }, orderBy: { startedAt: "desc" }, take: 5 }),
+    prisma.call.count({ where: { OR: [{ customerId: row.id }, { fromPhone: row.phone }] } }),
   ]);
   const lang = LANGUAGE_LABELS[summary.preferredLanguage];
   const fav = staff.find((s) => s.id === summary.favouriteStaffId)?.name;
@@ -173,6 +178,40 @@ export default async function ClientPage(props: PageProps<"/admin/customers/[id]
                     </span>
                   </li>
                 ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="rounded-3xl bg-paper p-6 ring-1 ring-line">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="font-medium">Recent calls</p>
+              {callCount > calls.length && (
+                <Link href={`/admin/calls?phone=${encodeURIComponent(row.phone)}`} className="text-sm text-clay hover:underline">
+                  All {callCount}
+                </Link>
+              )}
+            </div>
+            {calls.length === 0 ? (
+              <p className="mt-2 text-sm text-mute">No calls to the phone assistant yet.</p>
+            ) : (
+              <ul className="mt-3 divide-y divide-line/70">
+                {calls.map((c) => {
+                  const at = toZonedISO(c.startedAt, SALON_TZ);
+                  return (
+                    <li key={c.id}>
+                      <Link href={`/admin/calls?call=${c.id}`} className="group block py-3 first:pt-1">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-mute">
+                          <span className="tabular-nums">
+                            {dayLabel(at.slice(0, 10))}, {time12(at)} · {duration(c.durationSec)}
+                          </span>
+                          <OutcomeChip outcome={c.outcome} />
+                          <LangChip lang={c.language} compact />
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-sm text-ink-soft group-hover:text-ink">{c.summary}</p>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

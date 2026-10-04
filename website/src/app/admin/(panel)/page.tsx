@@ -103,6 +103,7 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
         dayStartMin={dayStartMin}
         dayEndMin={dayEndMin}
         closedDays={DAY_KEYS.filter((d) => !salon.hours[d])}
+        openBookingId={typeof sp.booking === "string" ? sp.booking : undefined}
       />
     </div>
   );

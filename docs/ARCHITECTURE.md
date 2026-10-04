@@ -96,6 +96,12 @@ transfer result); the website shows them in the admin Calls tab.
 The website links a call to the customer with the same phone. Transcripts are kept 90 days, then
 the website clears `transcript` and keeps the summary (configurable `CALL_TRANSCRIPT_DAYS`).
 
+Implementation notes (website):
+- `POST /api/calls`: a new `callSid` needs `startedAt`, `outcome` and `summary`; a later post for the same `callSid` may send only the fields that changed (e.g. `{callSid, transferResult}`) and the rest are kept. `durationSec` defaults to `endedAt - startedAt`. `from` is normalised to E.164; `null`, `""` or `"anonymous"` mean withheld. Errors: `400 INVALID_BODY` with a `message` naming the field, `401 UNAUTHORIZED`.
+- `GET /api/calls` returns `{calls: [call], nextCursor}` (pass `nextCursor` as `cursor` for older calls; `limit` up to 200). List items omit `transcript` and carry `hasTranscript`; `phone` accepts a full number or a few digits, or `withheld`.
+- `GET /api/calls/{id}` returns `{call}` with `transcript` (`null` once cleared, with `transcriptClearedAt`). Each call also has `customer: {id, name} | null`.
+- The clean-up runs from `/api/sms/queue` (its response has `transcripts: {cleared, days}`).
+
 ### Handwritten cards (approval queue)
 
 The notes pipeline generates cards and uploads each batch; the owner reviews, edits, approves or
@@ -114,6 +120,15 @@ reports back what was sent.
 Statuses: `pending` → `approved` | `skipped` → `sent` | `failed`. The monthly cap (cards approved
 or sent per calendar month) and the per-card price shown to the owner are admin settings.
 
+Implementation notes (website):
+- `POST /api/cards/batches`: re-posting the same run (`campaignId` + `generatedAt`) reuses its batch; a client with a `pending` card in that campaign keeps the same card id (its text is refreshed unless the owner already edited it). Cards that are approved, skipped, sent or failed are never changed by an upload. `clientRef` must be unique within a batch (`400 DUPLICATE_CLIENT_REF`). `customerId` is resolved from `customerId`, then `clientRef` as a customer id, then `clientRef` as a phone.
+- `GET /api/cards` returns `{cards: [card]}`, oldest first. Each card has the upload fields plus `id, batchId, status, editedAt, approvedAt, skippedAt, provider, providerOrderId, sentAt, costCAD, failedAt, error`; `mailingAddress` is an object. The pipeline mails `GET /api/cards?status=approved`.
+- `GET /api/cards/batches` returns `{batches: [{id, campaignId, campaignName, occasion, generatedAt, mock, createdAt, counts: {pending, approved, skipped, sent, failed, total}}], month: {label, used, cap, left, pricePerCardCAD, estimatedCAD}}`.
+- `PATCH /api/cards/{id}` returns `{card}`. Text is normalised first (curly quotes to straight, the ellipsis character to three dots), then checked: length in graphemes up to `maxChars` (the second-language line too), no emoji, no em or en dash, and the English message only uses characters a pen font can write (ASCII and Latin-1 letters). Failures: `400 {error: "INVALID_TEXT", issues: [{field, code: "empty"|"too_long"|"dash"|"emoji"|"unsupported_char", message}]}`. `409 MONTHLY_CAP` carries `{cap, used, left}`. `409 CARD_SENT` once mailed. A failed card can be approved again (retry) or skipped.
+- The cap counts cards with status `approved` or `sent` whose `approvedAt` is in the current calendar month (America/Vancouver).
+- `POST /api/cards/{id}/sent` returns `{card}`. Only `approved` (or `failed`, for a retry) cards can be reported: `409 NOT_APPROVED` otherwise. Repeating the same sent report is a no-op; a different one, or `failed` after `sent`, is `409 ALREADY_SENT`.
+- Extra admin endpoints used by the Cards tab: `POST /api/cards/batches/{id}/approve-all` (`{limit?}`; `409 MONTHLY_CAP` with `{ready, left}` when they do not all fit) and `GET, PUT /api/cards/settings` (`{monthlyCap, pricePerCardCAD}`).
+
 `booking` shape:
 `{id, serviceId, serviceName, staffId, staffName, start, end, status:"confirmed"|"cancelled"|"completed"|"no-show", customer:{name, phone, email}, source, notes, createdAt}`
 
@@ -130,6 +145,8 @@ Phone numbers are stored in E.164 (`+16045551234`).
 | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | voice-agent, website (SMS, optional; without them the website records texts in an offline outbox) |
 | `TWILIO_TXN_MESSAGING_SERVICE_SID` or `TWILIO_TXN_FROM` | website: booking confirmations and reminders (falls back to `TWILIO_MESSAGING_SERVICE_SID` / `TWILIO_FROM_NUMBER`) |
 | `TWILIO_PROMO_MESSAGING_SERVICE_SID` or `TWILIO_PROMO_FROM` | website: promotional campaigns, a different sender from appointment texts |
+| `CALL_TRANSCRIPT_DAYS` | website: days to keep call transcripts (default 90) |
+| `CARDS_MONTHLY_CAP`, `CARDS_PRICE_CAD` | website: defaults for the card cap (40) and price per card (8.50) until the owner saves them in the Cards tab |
 | `PUBLIC_BASE_URL`, `CRON_SECRET` | website: Twilio callbacks and signature checks; Vercel Cron auth for `/api/sms/queue` |
 | `ANTHROPIC_PROMO_MODEL` | website: model for "Draft with Claude" (default `claude-sonnet-5-5`), with `ANTHROPIC_API_KEY` |
 | `SALON_FORWARD_NUMBER` | voice-agent (live transfer target) |

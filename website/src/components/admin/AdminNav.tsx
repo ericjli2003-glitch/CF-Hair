@@ -9,11 +9,13 @@ const TABS = [
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/new", label: "New booking" },
   { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/calls", label: "Calls" },
   { href: "/admin/customers", label: "Clients" },
   { href: "/admin/promotions", label: "Promotions" },
+  { href: "/admin/cards", label: "Cards" },
 ];
 
-export function AdminNav({ newMessages }: { newMessages: number }) {
+export function AdminNav({ newMessages, cardsWaiting = 0 }: { newMessages: number; cardsWaiting?: number }) {
   const path = usePathname();
   const router = useRouter();
   async function logout() {
@@ -45,11 +47,19 @@ export function AdminNav({ newMessages }: { newMessages: number }) {
                     {newMessages}
                   </span>
                 )}
+                {t.href === "/admin/cards" && cardsWaiting > 0 && (
+                  <span
+                    title={`${cardsWaiting} card${cardsWaiting === 1 ? "" : "s"} waiting for approval`}
+                    className="grid h-5 min-w-5 place-items-center rounded-full bg-ink px-1.5 text-[0.68rem] font-medium text-paper"
+                  >
+                    {cardsWaiting}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
-        <Link href="/" className="hidden text-sm text-ink-soft hover:text-ink md:inline">
+        <Link href="/" className="hidden shrink-0 text-sm text-ink-soft hover:text-ink lg:inline">
           View site
         </Link>
         <button onClick={logout} className="shrink-0 rounded-full border border-line px-4 py-2 text-sm text-ink-soft hover:border-ink hover:text-ink">

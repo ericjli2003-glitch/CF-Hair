@@ -29,6 +29,11 @@ export interface Candidate {
   messageAlt?: string;
   signature: string;
   mock: boolean;
+  /**
+   * The owner approved this exact text in the admin. Their wording wins over the drafting
+   * guidelines (greeting by name, offer code, tone); hard limits still apply.
+   */
+  ownerApproved?: boolean;
   /** Called after a real (non-test) send succeeds. */
   onSent?: (res: SendResult, costCAD: number) => Promise<void>;
   /** Called after a real send fails. */
@@ -58,6 +63,9 @@ export interface SendSummary {
   dryRun: boolean;
 }
 
+/** Drafting guidelines an owner's approved edit may override. */
+const OWNER_OVERRIDABLE = new Set(["missing_name", "offer_missing", "salesy"]);
+
 /** Text and provider checks for one card. Returns the ready item or the problems. */
 export function prepare(c: Candidate, provider: string, adapter: { validate(i: SendItem): string[] }): { item?: SendItem; problems: string[] } {
   const note = c.note;
@@ -82,7 +90,8 @@ export function prepare(c: Candidate, provider: string, adapter: { validate(i: S
     }),
   });
   const item: SendItem = { note, campaign: c.campaign, message, messageAlt, signature: c.signature, address: note.recipient.address };
-  const problems = [...v.issues.map((i) => i.message), ...adapter.validate(item)];
+  const issues = c.ownerApproved ? v.issues.filter((i) => !OWNER_OVERRIDABLE.has(i.code)) : v.issues;
+  const problems = [...issues.map((i) => i.message), ...adapter.validate(item)];
   return problems.length ? { problems } : { item, problems };
 }
 

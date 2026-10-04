@@ -203,6 +203,27 @@ describe("send --from-admin", () => {
     expect(new History(historyFile).records.filter((x) => x.status === "sent")).toHaveLength(2);
   });
 
+  it("mails the owner's approved wording even without the name greeting or offer code", async () => {
+    const { manifest, dir, historyFile } = await makeRun({ mock: false });
+    const { batchId } = await admin.pushRun(manifest, dir, api(), quiet);
+    const ownWords = "It has been a while and we would love to see you back at Henderson Place. Your chair is ready whenever you are.";
+    world.approve(["c012"], { c012: ownWords });
+    const s = await admin.sendFromAdmin({ api: api(), batchId, provider: "handwrytten", send: true, historyFile, today: TODAY, fetchImpl: world.fetch, log: quiet });
+    expect(s.sent).toEqual(["win-back-c012"]);
+    expect(s.skipped).toHaveLength(0);
+    const placed = world.handwrytten.filter((h) => h.path.endsWith("placeBasket"));
+    expect(placed.map((p) => p.body!.message)).toContain(ownWords);
+  });
+
+  it("still enforces hard limits on the owner's approved wording", async () => {
+    const { manifest, dir, historyFile } = await makeRun({ mock: false });
+    const { batchId } = await admin.pushRun(manifest, dir, api(), quiet);
+    world.approve(["c012"], { c012: "Hi Arash, see you soon. ".repeat(40) });
+    const s = await admin.sendFromAdmin({ api: api(), batchId, provider: "handwrytten", send: true, historyFile, today: TODAY, fetchImpl: world.fetch, log: quiet });
+    expect(s.sent).toHaveLength(0);
+    expect(s.skipped[0].reason).toMatch(/limit/);
+  });
+
   it("never mails a card twice: already-sent cards are skipped and re-reported, not resent", async () => {
     const { manifest, dir, historyFile } = await makeRun({ mock: false });
     await admin.pushRun(manifest, dir, api(), quiet);

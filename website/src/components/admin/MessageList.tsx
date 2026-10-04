@@ -44,7 +44,7 @@ export function MessageList({ items }: { items: Item[] }) {
       {items.map((m) => {
         const done = m.status === "done";
         return (
-          <li key={m.id} className={`rounded-2xl bg-paper p-5 ring-1 ring-line transition sm:p-6 ${done ? "opacity-60" : ""}`}>
+          <li key={m.id} id={`m-${m.id}`} className={`scroll-mt-24 rounded-2xl bg-paper p-5 ring-1 ring-line transition target:ring-2 target:ring-clay sm:p-6 ${done ? "opacity-60" : ""}`}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">

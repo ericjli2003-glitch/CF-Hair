@@ -336,6 +336,7 @@ export function cardToCandidate(card: AdminCard, campaign: Campaign, local: Loca
     signature,
     // Mock if either side says so: mock copy is never mailed.
     mock: card.mock === true || local?.run.mock === true,
+    ownerApproved: card.status === "approved" || card.status === "failed",
   };
 }
 

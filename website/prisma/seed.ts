@@ -4,6 +4,8 @@ import { PrismaClient } from "@prisma/client";
 import { blocksFor, computeSlots, type BusyBlock, type StaffLite } from "../src/lib/availability";
 import { salon, SALON_TZ } from "../src/lib/salon";
 import { addDays, dateKeyOf, zonedTime } from "../src/lib/time";
+import { seedCards } from "./seed-cards";
+import { seedCalls } from "./seed-calls";
 import { seedSms } from "./seed-sms";
 
 const prisma = new PrismaClient();
@@ -58,8 +60,8 @@ const CUSTOMERS: DemoCustomer[] = [
   { name: "Hassan Ahmadi", kind: "m", weight: 1 },
   { name: "Chloe Yeung", referredBy: "Ka Yan Leung", kind: "f", lang: "zh-HK", email: true, weight: 1 },
   { name: "Margaret Wilson", kind: "sf", address: { line1: "2980 Mariner Way", city: "Coquitlam", postalCode: "V3C 4J2" }, birthday: "04-03", tags: ["prefers-phone"], weight: 2 },
-  { name: "Raymond Fung", kind: "sm", lang: "zh-HK", weight: 2, calls: 2 },
-  { name: "Hana Choi", kind: "f", lang: "ko-KR", email: true, weight: 1 },
+  { name: "Raymond Fung", kind: "sm", lang: "zh-HK", address: { line1: "1190 Pipeline Rd", line2: "#504", city: "Coquitlam", postalCode: "V3B 4S1" }, weight: 2, calls: 2 },
+  { name: "Hana Choi", kind: "f", lang: "ko-KR", email: true, address: { line1: "3080 Lincoln Ave", line2: "Unit 1207", city: "Coquitlam", postalCode: "V3B 0L9" }, weight: 1 },
   { name: "Lucas Martins", kind: "m", weight: 1 },
 ];
 
@@ -90,6 +92,9 @@ async function main() {
     throw new Error("Refusing to wipe and seed a non-SQLite database. Set SEED_ALLOW_REMOTE=1 to seed a fresh Postgres demo database.");
   }
   console.log("Seeding from salon.json:", salon.name);
+  await prisma.card.deleteMany();
+  await prisma.cardBatch.deleteMany();
+  await prisma.call.deleteMany();
   await prisma.campaignMessage.deleteMany();
   await prisma.campaign.deleteMany();
   await prisma.smsConsent.deleteMany();
@@ -230,6 +235,10 @@ async function main() {
 
   const sms = await seedSms(prisma, customers, now);
   console.log(`SMS consent: ${JSON.stringify(sms.counts)}; past campaign bookings attributed: ${sms.attributed}`);
+
+  const calls = await seedCalls(prisma, now);
+  const cards = await seedCards(prisma, now);
+  console.log(`Calls: ${calls}; handwritten cards: ${cards}`);
 
   console.log(`Seeded ${salon.services.length} services, ${salon.staff.length} staff, ${customers.length} customers, ${created} bookings, 4 messages.`);
 }

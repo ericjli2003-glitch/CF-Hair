@@ -5,6 +5,8 @@ Next.js (App Router, TypeScript, Tailwind v4) with Prisma. SQLite for local deve
 - Public site: home, services and pricing, team, visit and contact, online booking with "Add to calendar" (.ics).
 - Languages: English, 简体中文, 繁體中文 for Cantonese-speaking (Hong Kong) clients and 한국어 (toggle `EN | 简体 | 繁體 | 한국어` in the header, remembered in a cookie; site codes `en`, `zh`, `hk`, `ko`).
 - Owner admin at `/admin`: day and week schedule by stylist, bookings list with status changes, walk-in and phone bookings, callback messages, client list with visit counts, language and referral editing, CSV export.
+- Calls tab: every call the phone receptionist answered, with outcome, language, summary and the transcript in chat form, linked to the booking, message and client. See [Calls and cards](#calls-and-handwritten-cards).
+- Cards tab: the approval queue for handwritten cards from the notes pipeline, with inline edits, a monthly limit and the cost. Nothing is mailed until the owner approves it.
 - Promotional texts (Promotions tab): CASL consent records, campaign composer in four languages with live preview and cost, audience builder, quiet hours, frequency cap, STOP handling, results with booking attribution. Works offline in an outbox mode for demos. See [Promotional texts](#promotional-texts-sms-campaigns).
 - REST API for the phone agent and notes pipeline, with `x-api-key` auth.
 
@@ -23,13 +25,14 @@ npm run dev                 # http://localhost:3000, owner login at /admin
 | `npm run dev` | Dev server (syncs `../shared/salon.json` first) |
 | `npm run build` / `npm start` | Production build and server |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest: slot logic, double-booking races, caller profiles, customer fields, SMS keywords, quiet hours, frequency cap, consent and implied expiry, segments, both senders, campaigns |
+| `npm test` | Vitest: slot logic, double-booking races, caller profiles, customer fields, SMS keywords, quiet hours, frequency cap, consent and implied expiry, segments, both senders, campaigns, call log, card text rules, card cap and sent/failed reports, transcript clean-up, seed-if-empty |
 | `npm run db:reset` | Recreates the local SQLite database and seeds it |
 | `npm run db:push` | Applies the schema without deleting data |
 | `npm run db:seed` | Re-seeds (wipes demo tables first; refuses on Postgres unless `SEED_ALLOW_REMOTE=1`) |
 | `npm run screenshots` | Playwright screenshots into `../docs/screenshots/website` (server must be running) |
 | `npm run screenshots:sms` | Screenshots of the promotional SMS screens (`3x-*.png`) |
 | `npm run screenshots:redesign` | Screenshots of the redesigned public site and one admin page (`5x-*.png`) |
+| `npm run screenshots:calls-cards` | Screenshots of the Calls and Cards tabs (`6x-*.png`; needs `AGENT_API_KEY`) |
 
 ## Salon data
 
@@ -112,6 +115,14 @@ curl -s -X POST $B/api/sms/inbound -H "$K" --data-urlencode "From=+17785550108" 
 curl -s "$B/api/customers/consent?phone=%2B17785550108" -H "$K"   # status: withdrawn, excluded from the next campaign
 ```
 
+## Calls and handwritten cards
+
+**Calls.** The phone agent posts one record per call to `POST /api/calls` when the call ends, keyed by Twilio's `callSid` (posting again updates it, for example with the transfer result). The Calls tab lists them newest first with the caller (client name, the name they gave, the number, or "Withheld"), language, outcome, length and a one-line summary; filter by outcome and dates or search a phone number. Opening a call shows the summary, links to the booking (opens its drawer in the schedule), the callback message and the client, the transfer result, the answer to the promotional-text question, and the transcript in chat form with each line's language. The tiles count calls today, bookings made by phone this week and callback messages this week. Each client's page lists their recent calls. Transcripts are cleared after `CALL_TRANSCRIPT_DAYS` (default 90) by the queue endpoint; summaries are kept.
+
+**Cards.** The notes pipeline uploads each batch to `POST /api/cards/batches`. In the Cards tab the owner reads every card as it will be written (Caveat handwriting, with the addressed envelope and the client's last service, stylist and language), edits the text with a live count against the card's limit, and approves or skips it. Edits are checked again on the server: the length, no emoji, no em or en dashes, and only characters the pen can write; curly quotes from a phone keyboard are straightened automatically. Chinese and Korean lines are written by hand at the salon, not by the robot. Cards filled in from a template carry a "Sample text" label. "Approve all remaining" stops at the monthly limit (default 40, approved or mailed per calendar month) and offers to approve as many as still fit. The pipeline mails approved cards and reports each one back as sent (provider, order and date) or failed (with the reason); a failed card can be approved again. The limit and the price per card (default 8.50 CAD, used for the estimates) are set on the Cards page.
+
+The endpoints, payloads and error codes are in `../docs/ARCHITECTURE.md` ("Calls" and "Handwritten cards").
+
 ## API
 
 All endpoints in the contract are implemented. Times are ISO 8601 with the `America/Vancouver` offset. `(agent)` needs `x-api-key: $AGENT_API_KEY`; `(admin)` accepts the agent key or the owner's session cookie.
@@ -128,7 +139,7 @@ All endpoints in the contract are implemented. Times are ISO 8601 with the `Amer
 | GET | `/api/customers?since=&tag=&phone=&q=` | (admin) See fields below |
 | GET, PUT | `/api/callers/{phone}` | (agent) Caller profile and remembered language; unknown numbers return a default |
 
-Promotional SMS endpoints (consent, campaigns, webhooks, queue) are listed in `../docs/ARCHITECTURE.md`. Extra endpoints used by the site and admin: `GET /api/bookings?from=&to=` (admin), `GET /api/bookings/{id}` (admin), `POST /api/bookings/{id}/status` (admin, `{status}`), `GET /api/bookings/{id}/ics`, `GET /api/messages` and `PATCH /api/messages/{id}` (admin), `PATCH /api/customers/{id}` (admin: `preferredLanguage`, `referredBy`, `tags`, `birthday`, `notes`), `GET /api/customers/export` (admin CSV), `POST /api/contact` (public contact form), `POST /api/admin/login` and `/api/admin/logout`.
+Promotional SMS endpoints (consent, campaigns, webhooks, queue) are listed in `../docs/ARCHITECTURE.md`. Extra endpoints used by the site and admin: `GET /api/bookings?from=&to=` (admin), `GET /api/bookings/{id}` (admin), `POST /api/bookings/{id}/status` (admin, `{status}`), `GET /api/bookings/{id}/ics`, `GET /api/messages` and `PATCH /api/messages/{id}` (admin), `PATCH /api/customers/{id}` (admin: `preferredLanguage`, `referredBy`, `tags`, `birthday`, `notes`), `GET /api/customers/export` (admin CSV), `POST /api/cards/batches/{id}/approve-all` and `GET, PUT /api/cards/settings` (admin, Cards tab), `POST /api/contact` (public contact form), `POST /api/admin/login` and `/api/admin/logout`.
 
 Customer fields: `id, name, phone, email, mailingAddress, firstVisit, lastVisit, visitCount, favouriteStaffId, birthday, preferredLanguage, lastServiceId, lastServiceName, nextBookingAt, referredBy, tags`, plus `upcomingCount` and `noShowCount`.
 
@@ -155,7 +166,7 @@ curl -s -X PUT -H "$K" -H 'content-type: application/json' "$B/api/callers/%2B16
 1. Create a Postgres database on [Neon](https://neon.tech) or [Supabase](https://supabase.com) and copy its connection string (use the pooled URL on Neon, or the "Transaction pooler" URL on Supabase, with `sslmode=require`).
 2. In Vercel, import the repository and set **Root Directory** to `website`. Keep "Include files outside the root directory" enabled so `shared/salon.json` is picked up (a committed copy in `src/data/salon.json` is used otherwise).
 3. Environment variables: `DATABASE_URL` (Postgres URL), `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` (a long random string), `AGENT_API_KEY`, and optionally the `TWILIO_*` variables (two senders, see [Twilio setup for Canada](#twilio-setup-for-canada)), `PUBLIC_BASE_URL`, `CRON_SECRET` and `ANTHROPIC_API_KEY`.
-4. Deploy. On Vercel, npm runs the `vercel-build` script (`scripts/vercel-build.mjs`) instead of `build`. It switches the Prisma provider to `postgresql`, runs `prisma generate` and `prisma db push` to create or update the tables, seeds the demo data only when the database is empty (set `SEED_ON_DEPLOY=1` for one deploy to force a fresh demo reset), then runs `next build`. Redeploys never wipe real bookings.
+4. Deploy. On Vercel, npm runs the `vercel-build` script (`scripts/vercel-build.mjs`) instead of `build`. It switches the Prisma provider to `postgresql`, runs `prisma generate` and `prisma db push` to create or update the tables, seeds the demo data only when the database is empty (set `SEED_ON_DEPLOY=1` for one deploy to force a fresh demo reset), then runs `next build`. Redeploys never wipe real bookings. When the database already has data, `prisma/seed-if-empty.ts` still fills the demo calls and cards, each only if its tables are empty and the demo clients exist, so an existing demo picks them up without a reset; a database without the demo clients is never touched (`SEED_DEMO_EXTRAS=0` turns it off).
 5. To manage the database from your machine instead, use `DATABASE_URL="postgresql://..." npm run db:push` (and `SEED_ALLOW_REMOTE=1 npm run db:seed` for demo data). This switches the provider in your working copy to `postgresql`; run `npm run db:prepare` with the SQLite URL to switch back for local work.
 6. Point the phone agent and notes pipeline at the deployed URL with `BOOKING_API_URL` and the same `AGENT_API_KEY`.
 
@@ -163,9 +174,15 @@ curl -s -X PUT -H "$K" -H 'content-type: application/json' "$B/api/callers/%2B16
 
 ```
 prisma/schema.prisma      data model (Service, Staff, Customer, CallerProfile, Booking, SlotLock, Message,
-                          SmsConsent, ConsentEvent, Campaign, CampaignMessage, Notification, AppSetting)
+                          SmsConsent, ConsentEvent, Campaign, CampaignMessage, Notification, AppSetting,
+                          Call, CardBatch, Card)
 prisma/seed.ts            seed from salon.json plus demo clients, bookings, caller profiles, messages
 prisma/seed-sms.ts        consent mix with history, a past campaign with results, a scheduled one, a draft
+prisma/seed-calls.ts      about 25 calls in four languages with transcripts, phone bookings and message links
+prisma/seed-cards.ts      a pending "We miss you" card batch and a mailed thank-you batch
+prisma/seed-extras.ts     seed-if-empty for calls and cards (run on deploy by seed-if-empty.ts)
+src/lib/calls.ts          call log: validation, upsert by callSid, filters, transcript clean-up
+src/lib/cards/            card queue: uploads, review, monthly cap, sent/failed; text.ts holds the text rules
 src/lib/availability.ts   pure slot computation (unit tested)
 src/lib/bookings.ts       create, cancel, reschedule, status, lookup (transactions and slot locks)
 src/lib/customers.ts      customer upsert, summaries, CSV
