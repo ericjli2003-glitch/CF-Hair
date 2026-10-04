@@ -81,6 +81,39 @@ Supported codes: `en-US` (English), `zh-CN` (Mandarin), `zh-HK` (Cantonese), `ko
 the remembered language for that number (see `voice-agent/README.md`). The website and notes
 pipeline may also use `preferredLanguage` (e.g. Chinese or Korean card text).
 
+### Calls (phone receptionist log)
+
+The phone agent posts one record per call when the call ends (and again if it learns more, e.g. a
+transfer result); the website shows them in the admin Calls tab.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/calls` **(agent)** | Upsert by `callSid`. Body below. Returns `201 {call}` (or `200` on update). |
+| GET | `/api/calls?from=YYYY-MM-DD&to=YYYY-MM-DD&outcome=&phone=` **(admin)** | Newest first, paginated (`cursor`, `limit` 50). |
+| GET | `/api/calls/{id}` **(admin)** | One call with its transcript. |
+
+`call` body: `{callSid, from: E.164 | null (withheld), startedAt, endedAt, durationSec, language: "en-US"|"zh-CN"|"zh-HK"|"ko-KR", languageSource: "saved"|"detected"|"keypad"|"asked"|"default", outcome: "booked"|"rescheduled"|"cancelled"|"message"|"transferred"|"info"|"abandoned"|"spam", summary: string (1 to 3 plain English sentences for the owner, whatever language the call was in), bookingId?: string, messageId?: string, transferResult?: "answered"|"no-answer"|"busy"|"failed", smsConsent?: "yes"|"no"|"not-asked", transcript: [{role: "caller"|"agent", text, lang?, at?}]}`.
+The website links a call to the customer with the same phone. Transcripts are kept 90 days, then
+the website clears `transcript` and keeps the summary (configurable `CALL_TRANSCRIPT_DAYS`).
+
+### Handwritten cards (approval queue)
+
+The notes pipeline generates cards and uploads each batch; the owner reviews, edits, approves or
+skips them in the admin Cards tab; the pipeline then fetches the approved cards to mail them and
+reports back what was sent.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/cards/batches` **(agent)** | Body `{campaignId, campaignName, occasion, generatedAt, mock: boolean, cards: [card]}`. Returns `201 {batch: {id, cards: [{id, clientRef}]}}`. Idempotent on `(campaignId, clientRef)` for cards still `pending`. |
+| GET | `/api/cards/batches` **(admin)** | Batches with counts by status. |
+| GET | `/api/cards?batchId=&status=` **(admin, agent)** | Cards, filtered. |
+| PATCH | `/api/cards/{id}` **(admin)** | `{status?: "pending"|"approved"|"skipped", message?, messageAlt?}`. Edits re-check `maxChars` and plain-punctuation rules; approving past the monthly cap returns `409 {error: "MONTHLY_CAP"}`. |
+| POST | `/api/cards/{id}/sent` **(agent)** | `{provider: "handwrytten"|"plotter", providerOrderId?, sentAt, costCAD?}` sets `sent`; `{failed: true, error}` sets `failed`. |
+
+`card`: `{clientRef (customer id or phone), customerId?, name, mailingAddress: {line1, line2?, city, province, postalCode, country}, stylistName, lastServiceName?, cardDesign, message, messageAlt?, altLanguage?: "zh-CN"|"zh-HK"|"ko-KR", maxChars, mock: boolean}`.
+Statuses: `pending` → `approved` | `skipped` → `sent` | `failed`. The monthly cap (cards approved
+or sent per calendar month) and the per-card price shown to the owner are admin settings.
+
 `booking` shape:
 `{id, serviceId, serviceName, staffId, staffName, start, end, status:"confirmed"|"cancelled"|"completed"|"no-show", customer:{name, phone, email}, source, notes, createdAt}`
 
