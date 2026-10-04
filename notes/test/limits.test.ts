@@ -204,3 +204,14 @@ describe("second-language versions", () => {
     expect(notes.every((n) => n.status === "ok")).toBe(true);
   });
 });
+
+describe("Henderson Place is never translated", () => {
+  it("flags Chinese or Korean renderings of the mall name and accepts the English name", () => {
+    const opts = { ...base, maxCharsAlt: 200, altScript: "zh-Hans" as const };
+    const codes = (alt: string, script: "zh-Hans" | "ko" = "zh-Hans") =>
+      validateNote("Hi Arash, see you soon.", alt, { ...opts, altScript: script }).issues.map((i) => i.code);
+    expect(codes("欢迎来亨德森广场。")).toContain("translated_place");
+    expect(codes("헨더슨 플레이스에서 만나요.", "ko")).toContain("translated_place");
+    expect(codes("欢迎来 Henderson Place。")).not.toContain("translated_place");
+  });
+});

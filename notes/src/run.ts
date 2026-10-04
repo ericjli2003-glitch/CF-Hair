@@ -3,19 +3,18 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { selectAudience, type Selection } from "./audience.js";
 import { loadCampaign } from "./campaigns.js";
+import { effectiveLimitsFor } from "./limits.js";
+import { deliver, type Candidate, type SendSummary } from "./deliver.js";
 import { DEFAULT_HISTORY, loadSettings, OUT_DIR, providerSettings } from "./config.js";
 import { loadData, type SourceOptions } from "./data/index.js";
 import { toCsv } from "./data/csv.js";
-import { History, withHistoryLock } from "./history.js";
+import { History } from "./history.js";
 import { buildFonts } from "./proof/fonts.js";
 import { renderProof } from "./proof/html.js";
 import { createProvider } from "./providers/index.js";
-import type { SendItem } from "./providers/types.js";
-import { altLimit } from "./language.js";
-import { charCount, sanitizeAlt, sanitizeForPen, validateNote } from "./text.js";
 import type { ApprovedFile, Campaign, IsoDate, RunManifest } from "./types.js";
 import { ClaudeWriter } from "./writer/claude.js";
-import { forbiddenDetails, generateNotes } from "./writer/generate.js";
+import { generateNotes } from "./writer/generate.js";
 import { MockWriter } from "./writer/mock.js";
 import type { NoteWriter } from "./writer/types.js";
 
@@ -29,14 +28,7 @@ export interface CommonOptions extends SourceOptions {
   log?: Log;
 }
 
-export function effectiveLimits(campaign: Campaign, provider: string) {
-  const p = providerSettings(provider);
-  return {
-    maxChars: Math.min(campaign.maxChars, p.maxMessageChars),
-    maxCharsAlt: campaign.maxCharsAlt,
-    maxSignatureChars: p.maxSignatureChars,
-  };
-}
+export const effectiveLimits = effectiveLimitsFor;
 
 export function claudeCostEstimateUSD(n: number, batch: boolean): number {
   const c = loadSettings().claude;
@@ -146,6 +138,7 @@ export async function generate(opts: CommonOptions & { writer?: NoteWriter; mock
     writer: writer.name,
     mock: writer.mock,
     providerForLimits: p.provider,
+    source: p.source,
     offer: p.campaign.offer ?? null,
     notes,
     usage: writer.mock ? undefined : { ...writer.usage },
@@ -209,12 +202,7 @@ export interface SendOptions {
   fetchImpl?: typeof fetch;
 }
 
-export interface SendSummary {
-  sent: string[];
-  skipped: Array<{ noteId: string; reason: string }>;
-  failed: Array<{ noteId: string; error: string }>;
-  dryRun: boolean;
-}
+export type { SendSummary };
 
 /**
  * Sends ONLY what is in the approved file, re-validating every card. Dry run unless
@@ -232,124 +220,35 @@ export async function sendApproved(opts: SendOptions): Promise<SendSummary> {
   if (run.mock && opts.send && !opts.testMode && provider !== "plotter") {
     throw new Error("Refusing to mail MOCK copy. Re-run generate with ANTHROPIC_API_KEY set, review the proof, and export a new approved list.");
   }
-  const plotterDir = path.join(OUT_DIR, "plotter", `${run.runId}-${provider}`);
-  const adapter = createProvider(provider, { outDir: plotterDir, fetchImpl: opts.fetchImpl });
-  if (run.mock && opts.send && provider === "plotter") {
-    mkdirSync(plotterDir, { recursive: true });
-    writeFileSync(path.join(plotterDir, "MOCK-COPY-DO-NOT-MAIL.txt"), "These SVGs contain mock template copy from a demo run. Do not plot and mail them.\n");
-    log("Warning: plotting MOCK copy (demo only). A MOCK-COPY-DO-NOT-MAIL.txt marker sits next to the SVGs.");
-  }
-  const limits = effectiveLimits(campaign, provider);
-  const historyFile = opts.historyFile ?? DEFAULT_HISTORY;
   const byId = new Map(run.notes.map((n) => [n.noteId, n]));
-  const summary: SendSummary = { sent: [], skipped: [], failed: [], dryRun: !opts.send };
-
-  const mode = !opts.send ? "DRY RUN (nothing leaves this computer)" : opts.testMode ? "PROVIDER TEST MODE" : "LIVE SEND";
-  log(`\n${mode}: ${approved.approved.length} approved card(s) from ${run.runId} via ${provider}${approved.approvedBy ? `, reviewed by ${approved.approvedBy}` : ""}`);
-
-  const work = async () => {
-    const history = new History(historyFile);
-    const items: SendItem[] = [];
-    for (const a of approved.approved) {
-      const note = byId.get(a.noteId);
-      if (!note) {
-        summary.skipped.push({ noteId: a.noteId, reason: "not in this run" });
-        continue;
-      }
-      if (a.idempotencyKey !== note.idempotencyKey) {
-        summary.skipped.push({ noteId: a.noteId, reason: "idempotency key mismatch (approved list from a different run?)" });
-        continue;
-      }
-      const prior = history.get(note.idempotencyKey);
-      if (prior && (prior.status === "sent" || prior.status === "submitting")) {
-        summary.skipped.push({
-          noteId: a.noteId,
-          reason: prior.status === "sent" ? `already sent on ${prior.sentOn} (${prior.provider} ${prior.providerRef ?? ""})` : "a previous send was interrupted; check the provider dashboard, then fix history",
-        });
-        continue;
-      }
-      if (!note.recipient.address) {
-        summary.skipped.push({ noteId: a.noteId, reason: "no address" });
-        continue;
-      }
-      const message = sanitizeForPen(a.message);
-      // Tolerate approved lists exported before the field was renamed.
-      const altRaw = a.messageAlt ?? (a as { messageZh?: string }).messageZh;
-      const messageAlt = altRaw && note.altScript ? sanitizeAlt(altRaw, note.altScript) : undefined;
-      const client = { firstName: note.recipient.firstName };
-      const v = validateNote(message, messageAlt, {
-        firstName: client.firstName,
-        maxChars: limits.maxChars,
-        maxCharsAlt: altLimit(limits.maxCharsAlt, note.altScript),
-        maxSignatureChars: limits.maxSignatureChars,
-        signature: a.signature,
-        // The second-language lines are optional at send time (hand-written), but checked if present.
-        altScript: messageAlt ? note.altScript : undefined,
-        offerCode: campaign.offer?.code,
-        forbidden: forbiddenDetails({
-          client: { ...note.recipient, id: note.clientId, visitCount: note.visitCount, preferredLanguage: note.preferredLanguage, tags: [] },
-          reasons: [],
-          occasion: {},
-          idempotencyKey: note.idempotencyKey,
-        }),
-      });
-      const item: SendItem = { note, campaign, message, messageAlt, signature: a.signature, address: note.recipient.address };
-      const problems = [...v.issues.map((i) => i.message), ...adapter.validate(item)];
-      if (problems.length) {
-        summary.skipped.push({ noteId: a.noteId, reason: problems.join("; ") });
-        continue;
-      }
-      items.push(item);
+  const early: SendSummary["skipped"] = [];
+  const cands: Candidate[] = [];
+  for (const a of approved.approved) {
+    const note = byId.get(a.noteId);
+    if (!note) {
+      early.push({ noteId: a.noteId, reason: "not in this run" });
+      continue;
     }
-
-    if (!opts.send) {
-      items.forEach((it, i) => {
-        log(`  would send ${it.note.noteId.padEnd(26)} ${`${it.note.recipient.firstName} ${it.note.recipient.lastName}`.padEnd(20)} ${charCount(it.message)} chars`);
-        // Show the full request for the first card so the payload can be checked once.
-        if (i === 0) log(`    payload: ${JSON.stringify(adapter.preview(it), null, 2).replace(/\n/g, "\n    ")}`);
-        summary.sent.push(it.note.noteId);
-      });
-      return;
+    if (a.idempotencyKey !== note.idempotencyKey) {
+      early.push({ noteId: a.noteId, reason: "idempotency key mismatch (approved list from a different run?)" });
+      continue;
     }
-
-    if (items.length && adapter.preflight) await adapter.preflight({ testMode: !!opts.testMode });
-    for (const it of items) {
-      const base = {
-        idempotencyKey: it.note.idempotencyKey,
-        campaignId: campaign.id,
-        clientId: it.note.clientId,
-        noteId: it.note.noteId,
-        runId: run.runId,
-        provider,
-      };
-      if (!opts.testMode) history.upsert({ ...base, status: "submitting" });
-      try {
-        const res = await adapter.send(it, { testMode: !!opts.testMode });
-        if (opts.testMode) {
-          log(`  test ok ${it.note.noteId}: ${res.providerRef}`);
-        } else {
-          history.upsert({ ...base, status: "sent", providerRef: res.providerRef, sentOn: opts.today });
-          log(`  sent ${it.note.noteId}: ${res.providerRef}${res.detail ? ` (${res.detail})` : ""}`);
-        }
-        summary.sent.push(it.note.noteId);
-      } catch (err) {
-        const msg = (err as Error).message;
-        // A failed request is safe to retry; only "submitting" (crash mid-call) blocks.
-        if (!opts.testMode) history.upsert({ ...base, status: "failed", error: msg });
-        summary.failed.push({ noteId: it.note.noteId, error: msg });
-        log(`  FAILED ${it.note.noteId}: ${msg}`);
-      }
-    }
-  };
-
-  if (opts.send) await withHistoryLock(historyFile, work);
-  else await work();
-
-  for (const s of summary.skipped) log(`  skipped ${s.noteId}: ${s.reason}`);
-  log(
-    `${opts.send ? (opts.testMode ? "Tested" : "Sent") : "Would send"} ${summary.sent.length}, skipped ${summary.skipped.length}, failed ${summary.failed.length}.${
-      !opts.send ? " Add --send to mail them." : ""
-    }`,
-  );
+    // Tolerate approved lists exported before the field was renamed.
+    const messageAlt = a.messageAlt ?? (a as { messageZh?: string }).messageZh;
+    cands.push({ note, campaign, runId: run.runId, message: a.message, messageAlt, signature: a.signature, mock: run.mock });
+  }
+  for (const e of early) log(`  skipped ${e.noteId}: ${e.reason}`);
+  const summary = await deliver(cands, {
+    provider,
+    send: opts.send,
+    testMode: opts.testMode,
+    historyFile: opts.historyFile,
+    today: opts.today,
+    outDir: path.join(OUT_DIR, "plotter", `${run.runId}-${provider}`),
+    label: `${approved.approved.length} approved card(s) from ${run.runId}${approved.approvedBy ? `, reviewed by ${approved.approvedBy}` : ""}`,
+    log,
+    fetchImpl: opts.fetchImpl,
+  });
+  summary.skipped.unshift(...early);
   return summary;
 }

@@ -130,6 +130,7 @@ export interface NoteIssue {
     | "offer_missing"
     | "alt_missing"
     | "wrong_script"
+    | "translated_place"
     | "refusal"
     | "api_error";
   message: string;
@@ -176,6 +177,8 @@ export interface RunManifest {
   writer: string;
   mock: boolean;
   providerForLimits: string;
+  /** Where the clients came from: "csv:<file>" or "api:<url>". */
+  source?: string;
   offer?: Offer | null;
   notes: Note[];
   usage?: { inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; batchId?: string };

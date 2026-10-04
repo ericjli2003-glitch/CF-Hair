@@ -1,7 +1,9 @@
 /**
  * End-to-end demo on the sample CSV:
  *   plan -> generate -> proof -> (demo auto-approval) -> send --dry-run (Handwrytten)
- *   -> send --send (plotter SVGs) -> send again to show idempotency.
+ *   -> send --send (plotter SVGs) -> send again to show idempotency
+ *   -> (optional) push to the website admin and dry-run send --from-admin, when
+ *      BOOKING_API_URL answers; skipped cleanly otherwise.
  * Uses real Claude when ANTHROPIC_API_KEY is set, otherwise labelled mock templates.
  * Everything is written under out/demo-<date>/ with its own history file, so the
  * demo never touches the real sent-history ledger.
@@ -10,7 +12,8 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { NOTES_ROOT, OUT_DIR } from "./config.js";
 import { generate, plan, printPlan, proof, sendApproved } from "./run.js";
-import type { ApprovedFile } from "./types.js";
+import { CardsApi, pushRun, sendFromAdmin, websiteReachable } from "./admin.js";
+import type { ApprovedFile, RunManifest } from "./types.js";
 
 const TODAY = process.env.NOTES_TODAY ?? "2026-10-09"; // Friday's sales meeting; the sample CSV is anchored to it
 const CSV = path.join(NOTES_ROOT, "sample", "clients.csv");
@@ -31,6 +34,7 @@ async function main() {
 
   const proofs: string[] = [];
   let firstApproved: string | undefined;
+  let firstRun: { run: RunManifest; dir: string } | undefined;
   for (const campaign of CAMPAIGNS) {
     const common = { campaign, csv: CSV, staffFile: STAFF, today: TODAY, historyFile };
     rule(`1. plan --campaign ${campaign}`);
@@ -56,6 +60,7 @@ async function main() {
     writeFileSync(approvedFile, JSON.stringify(approved, null, 2) + "\n");
     console.log(`Demo approval file: ${path.relative(process.cwd(), approvedFile)} (${approved.approved.length} of ${run.notes.length} cards)`);
     firstApproved ??= approvedFile;
+    firstRun ??= { run, dir };
   }
 
   if (firstApproved) {
@@ -67,6 +72,26 @@ async function main() {
 
     rule("6. send --send again: idempotency means nobody is mailed twice");
     await sendApproved({ approvedFile: firstApproved, provider: "plotter", send: true, historyFile, today: TODAY });
+  }
+
+  // Optional: the website's approval queue. Only runs when a website answers at BOOKING_API_URL.
+  rule("7. push to the website admin (optional)");
+  const site = process.env.BOOKING_API_URL;
+  if (!site || !process.env.AGENT_API_KEY) {
+    console.log("Skipped: set BOOKING_API_URL and AGENT_API_KEY (and start the website) to push this batch to the admin Cards tab.");
+  } else if (!(await websiteReachable(site))) {
+    console.log(`Skipped: no website answering at ${site}. Start it (cd website && npm run dev) and run the demo again.`);
+  } else if (firstRun) {
+    try {
+      const api = CardsApi.fromEnv();
+      const { batchId } = await pushRun(firstRun.run, firstRun.dir, api);
+      rule("8. send --from-admin --dry-run (whatever the owner has approved so far)");
+      await sendFromAdmin({ api, batchId, provider: "handwrytten", send: false, historyFile, today: TODAY });
+      console.log(`Approve cards at ${api.adminUrl(batchId)}, then: npm run notes -- send --from-admin --batch ${batchId}`);
+    } catch (err) {
+      // The website may not have the Cards API yet; the offline flow above already worked.
+      console.log(`Skipped: the website answered but the card queue did not (${(err as Error).message}).`);
+    }
   }
 
   rule("Done");

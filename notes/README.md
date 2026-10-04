@@ -1,13 +1,15 @@
 # CF Hair handwritten notes
 
-Real pen-on-paper cards for CF Hair Salon clients, at scale: a thank-you after a first visit, a birthday card, a gentle "thinking of you" for lapsed clients, Lunar New Year and holiday greetings, and referral thank-yous. Claude writes every card individually from what the salon knows about the client; the owner reviews every card on a proof sheet; nothing is mailed without an approved list.
+Real pen-on-paper cards for CF Hair Salon clients, at scale: a thank-you after a first visit, a birthday card, a gentle "thinking of you" for lapsed clients, Lunar New Year and holiday greetings, and referral thank-yous. Claude writes every card individually from what the salon knows about the client; the owner reviews and approves every card in the website admin (Cards tab), or offline on a proof sheet; nothing is mailed without that approval.
 
 ```
 clients (booking API or CSV)
    -> plan       who qualifies, who is excluded and why, what it costs
    -> generate   Claude writes each note (Batches API for big runs), validated and retried
-   -> proof      HTML proof sheet: card front, handwritten inside, addressed envelope; approve / skip / edit
-   -> send       only the exported approved list; dry run unless --send; never twice
+   -> push       upload the batch to the website admin (Cards tab): owner edits, approves or skips
+      (or proof  offline HTML proof sheet with the same approve / skip / edit, exported as a file)
+   -> send       only approved cards (--from-admin, or --approved <file>); dry run unless --send; never twice
+                 results reported back to the admin as sent (with cost) or failed
                  handwrytten (robot pens, mailed for you)  or  plotter (AxiDraw SVGs, you mail them)
 ```
 
@@ -19,10 +21,12 @@ clients (booking API or CSV)
 cd notes
 npm install
 npm run demo        # whole flow on sample/clients.csv; pretends today is Friday 2026-10-09
-npm test            # vitest: audience rules, limits, retries, idempotency, Claude request shapes
+npm test            # vitest: audience rules, limits, retries, idempotency, Claude request shapes, admin queue
 ```
 
 Without `ANTHROPIC_API_KEY` the demo uses deterministic template copy, labelled "Mock copy" on the proof sheet, in the CSV (`writer=mock`) and in the run manifest, and the CLI refuses to mail mock copy through a real provider. With the key set, Claude writes every note. Open the proof sheets it prints (for example `out/win-back-2026-10-09/proof.html`) in a browser.
+
+If `BOOKING_API_URL` and `AGENT_API_KEY` are set and the website answers there, the demo also pushes the win-back batch to the admin Cards tab and dry-runs `send --from-admin` for it; otherwise that step prints why it was skipped. The demo's batch is marked mock, so it can be reviewed but never mailed.
 
 Behind a corporate HTTPS proxy, also set `NODE_USE_ENV_PROXY=1` so the proof can fetch its Chinese font subsets (it still works offline; it just links to Google Fonts instead of embedding).
 
@@ -32,6 +36,12 @@ Behind a corporate HTTPS proxy, also set `NODE_USE_ENV_PROXY=1` so the proof can
 npm run notes -- campaigns
 npm run notes -- plan     --campaign win-back --csv sample/clients.csv --staff sample/staff.sample.json --today 2026-10-09
 npm run notes -- generate --campaign win-back --csv sample/clients.csv --staff sample/staff.sample.json --today 2026-10-09
+# Approve in the website admin (needs BOOKING_API_URL + AGENT_API_KEY)
+npm run notes -- generate --campaign win-back --push                    # or later: push --run win-back-2026-10-09
+npm run notes -- send     --from-admin --batch <batchId>                # dry run of what the owner approved
+npm run notes -- send     --from-admin --batch <batchId> --send         # mail it and report back to the admin
+
+# Or approve offline on the proof sheet
 npm run notes -- proof    --run win-back-2026-10-09
 npm run notes -- send     --approved ~/Downloads/approved-win-back-2026-10-09.json            # dry run
 npm run notes -- send     --approved ~/Downloads/approved-win-back-2026-10-09.json --send     # mail it
@@ -63,7 +73,11 @@ Why Traditional for Cantonese clients: Hong Kong readers learn and read Traditio
 
 **Proof** (`src/proof/`). A self-contained HTML page: the printed card front for the campaign's design, the inside in a ballpoint-style hand (Caveat with seeded per-letter tilt, baseline drift and ink-pressure variation on a paper texture), and the addressed envelope. Each card shows why the client was picked, a character meter and any problems, with Approve / Skip and Edit (live re-validation). "Export approved list" downloads `approved-<run>.json`: the only input `send` accepts. Fonts are embedded so the page works offline.
 
-**Sending** (`src/run.ts`, `src/providers/`). `send` re-validates every approved card, refuses anything whose idempotency key does not match the run, and is a dry run unless `--send` is given. Each card's idempotency key is `campaign:client:occasion` (for example `win-back:c012:lv-2026-07-20`, `birthday:c007:2026`), recorded in `data/history.json` (gitignored) as `submitting` before the provider call and `sent` after it. A key that is `sent` is never mailed again; one left in `submitting` by a crash blocks a resend until someone checks the provider dashboard; a `failed` call can be retried. A lock file stops two sends running at once.
+**Approval in the website admin** (`src/admin.ts`). `push` (or `generate --push`) uploads the run to `POST /api/cards/batches` with the agent key. Each note becomes a contract card: `clientRef` (client id), `customerId` (only for runs loaded from the booking API), `name`, `mailingAddress`, `stylistName` ("CF Hair team" when there is no favourite stylist), `lastServiceName`, `cardDesign` (the campaign design), `message`, `messageAlt` and `altLanguage` (zh-CN, zh-HK or ko-KR, only when there is a second version), `maxChars` and `mock`. Notes that failed a check stay local and are listed. The batch id, the card ids and their notes are saved in `out/<run>/admin-batch.json`, and the command prints the review link (`/admin/cards?batch=<id>`). The owner edits, approves or skips cards there (the website enforces the monthly cap and re-checks length and punctuation on edits).
+
+`send --from-admin [--batch <id>]` fetches `GET /api/cards?status=approved` and sends those cards through the same checks, ledger and provider adapters as below, using the owner's edited text. Cards are matched to their local notes through `admin-batch.json`, so they share idempotency keys with the offline flow: a card mailed one way is never mailed again the other way. On another computer, without the local run, the campaign comes from the batch and the key from the card id. Each live result is reported with `POST /api/cards/{id}/sent`: `{provider, providerOrderId, sentAt, costCAD}` or `{failed: true, error}`. If a report-back is lost, the next run sees the card as sent in the ledger, does not resend it, and re-reports it. Dry runs and `--test-mode` never write to the admin.
+
+**Sending** (`src/deliver.ts`, `src/providers/`). Both send paths share one loop. It re-validates every approved card (including any edits), refuses an approved list whose idempotency keys do not match the run, and is a dry run unless `--send` is given. Each card's idempotency key is `campaign:client:occasion` (for example `win-back:c012:lv-2026-07-20`, `birthday:c007:2026`), recorded in `data/history.json` (gitignored) as `submitting` before the provider call and `sent` after it. A key that is `sent` is never mailed again; one left in `submitting` by a crash blocks a resend until someone checks the provider dashboard; a `failed` call can be retried. A lock file stops two sends running at once.
 
 - `handwrytten`: one basket per card (`POST orders/placeBasket` then `POST basket/send`), API key in the `Authorization` header, the idempotency key as `client_metadata` and an `Idempotency-Key` header. Before the first card it checks the basket is empty so a stale item cannot ride along. Built against Handwrytten's official TypeScript SDK (v1.7.0) request shapes.
 - `plotter`: two millimetre-accurate single-stroke SVGs per card (A2 card inside 108 x 140 mm in EMS Felix, A2 envelope 146 x 111 mm in EMS Readability Italic) with seeded wobble so no two cards look machine-identical. Plot with `axicli <file>.svg` or Inkscape, add a Canada Post stamp, mail.
@@ -124,4 +138,6 @@ Set `excludeIfBooked` to true for any "come back" campaign so clients with an up
 - Handwrytten prices come from search extracts and third-party listings because the vendor site was not reachable from the build sandbox; confirm Canadian postage and the card id/font on the account (`catalog`, then `send --send --test-mode`).
 - `/api/customers` now carries `preferredLanguage`, `lastServiceId`/`lastServiceName`, `nextBookingAt`, `referredBy` and a structured `mailingAddress`; all are mapped and optional. It has no stylist-notes field, so live cards are a little less specific than the sample ones (which use the CSV `notes` column).
 - Chinese and Korean are never robot-written; they need a person or a printed insert.
+- The website's Cards API was being built at the same time; `notes/` is written to the contract in `docs/ARCHITECTURE.md` and tested against an in-memory fake of it. Run `push` and `send --from-admin` once against the real admin before the first live send.
+- "Henderson Place" is never translated: the writer prompt says so and validation rejects common Chinese and Korean renderings of the name.
 - The Korean and Traditional Chinese copy has only been checked by validation rules, not by a native reader. Have a Cantonese- and a Korean-speaking team member read the first proofs.

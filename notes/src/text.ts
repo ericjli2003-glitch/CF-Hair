@@ -67,6 +67,9 @@ export function hasLongDash(s: string): boolean {
   return LONG_DASH_RE.test(s);
 }
 
+// 亨德森 / 韓德森 / 韩德森 (Chinese transliterations) and 헨더슨 (Korean).
+const TRANSLATED_PLACE_RE = /\u4EA8\u5FB7\u68EE|[\u97D3\u97E9]\u5FB7\u68EE|\uD5E8\uB354\uC2A8/;
+
 const SALESY = [
   /\blimited[- ]time\b/i,
   /\bact (now|fast)\b/i,
@@ -138,6 +141,10 @@ export function validateNote(message: string, messageAlt: string | undefined, op
   const sigLen = charCount(opts.signature);
   if (sigLen > opts.maxSignatureChars) {
     issues.push({ code: "signature_too_long", message: `Signature is ${sigLen} characters; limit ${opts.maxSignatureChars}.` });
+  }
+  // "Henderson Place" stays in English in every language; catch common translations.
+  if (messageAlt && TRANSLATED_PLACE_RE.test(messageAlt)) {
+    issues.push({ code: "translated_place", message: 'Translates the mall name; write "Henderson Place" in English.' });
   }
   let nAlt: number | undefined;
   if (opts.altScript) {
