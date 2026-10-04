@@ -14,7 +14,9 @@ the admin screen and the phone all see the same calendar.
 - [Try it without a phone](#try-it-without-a-phone)
 - [Architecture](#architecture)
 - [Languages and caller memory](#languages-and-caller-memory)
+- [Why Twilio ConversationRelay and not ElevenLabs?](#why-twilio-conversationrelay-and-not-elevenlabs)
 - [Promotional text opt-in](#promotional-text-opt-in)
+- [Calls tab](#calls-tab)
 - [Twilio setup, step by step](#twilio-setup-step-by-step)
 - [Running locally with ngrok](#running-locally-with-ngrok)
 - [Deploying](#deploying)
@@ -30,18 +32,19 @@ the admin screen and the phone all see the same calendar.
 cd voice-agent
 npm install
 cp .env.example .env        # put ANTHROPIC_API_KEY in it
-npm run demo                # five scripted sample calls against a built-in mock calendar
+npm run demo                # six scripted sample calls against a built-in mock calendar
 npm run simulate -- --mock  # type as the caller, read what the receptionist would say
 ```
 
-`npm run demo` plays these calls and prints the transcript, the tools used, the outcome and the
-token usage of each:
+`npm run demo` plays these calls and prints the transcript, the tools used, the outcome, how the
+language was chosen, the token usage, and the one-line summary posted to the website's Calls tab:
 
 1. A new caller books a men's haircut for tomorrow afternoon.
-2. A Mandarin speaker asks about prices (the agent switches to Mandarin).
+2. A first-time Mandarin speaker asks about prices (detected and switched automatically).
 3. An existing client reschedules an appointment.
-4. A Korean speaker asks about a men's cut and Saturday hours.
+4. A first-time Korean speaker asks about a men's cut and Saturday hours (detected automatically).
 5. A returning caller whose saved language is Cantonese: English greeting, then Cantonese.
+6. A first-time Cantonese caller who just starts speaking: detected, switched, and remembered.
 
 Run a subset with `npm run demo -- 1 5`.
 
@@ -159,11 +162,38 @@ the lookup adds no delay. Then:
   Cantonese. How can I help?"), switches text-to-speech and transcription to it, and carries on in
   it. If the caller answers in English or asks for English, it switches back and saves English.
 
-**Switching during a call.** When the caller speaks or asks for another language, Claude calls
-`set_language`. That sends ConversationRelay a `language` message (both `ttsLanguage` and
-`transcriptionLanguage`) and saves the preference with `PUT /api/callers/{phone}`. Switching back to
-English saves English. Callers can also press 1 (English), 2 (Mandarin), 3 (Cantonese) or 4 (Korean)
-at any time.
+**Switching during a call.** Three routes, all of which end the same way: ConversationRelay gets a
+`language` message (both `ttsLanguage` and `transcriptionLanguage`), and the preference is saved with
+`PUT /api/callers/{phone}` (never for withheld numbers). The next call from that number starts with
+the English greeting and goes straight into the saved language.
+
+1. **Automatic (the phone system, `src/agent/langdetect.ts`).** Every final transcript is checked
+   before Claude sees it:
+   - Korean script (two or more Hangul syllables) switches to Korean.
+   - Chinese characters (two or more) switch to Chinese. Cantonese or Mandarin is decided from the
+     words: spoken-Cantonese words and particles (嘅 咗 唔 冇 喺 哋 嗰 乜嘢 係 幾多 聽日 and so on) mean
+     Cantonese; Mandarin function words (的 了 们 什么 吗 明天 多少) mean Mandarin; with no cues, a
+     provider tag of `yue` or traditional characters lean Cantonese.
+   - A caller naming a language in that language or romanized ("講廣東話", "普通话", "한국어",
+     "gwong dung wa", "hangugeo") switches to it.
+   - Claude is told with a short system note and replies in the new language; it does not need a
+     tool call, so the switch adds no delay.
+2. **Asked, not guessed.** When the evidence is weak (a romanized greeting such as "nei hou",
+   "ni hao" or "annyeong" in an English transcript, Japanese-looking output, or a transcriber tag for
+   a language we do not serve), the agent does not guess. It asks one short question, each line in
+   its own voice: "Sorry, which language would you like? For English, press 1. 普通话请按2。廣東話請按3。
+   한국어는 4번을 눌러 주세요." Claude can trigger the same question with the `ask_caller_language` tool
+   when a transcript looks like nonsense English. At most twice per call.
+3. **Fallbacks.** Keypad 1 English, 2 Mandarin, 3 Cantonese, 4 Korean at any time; or the caller asks
+   ("Cantonese please"), and Claude calls `set_language`.
+
+**No flapping.** Short or ambiguous utterances never switch ("OK", "yes", a name, a single
+character). A caller in Korean, Mandarin or Cantonese is only moved back to English after two full
+English sentences in a row, or an explicit request; one English word never does it, and that
+includes Claude: `set_language` refuses a switch the last transcript does not support and tells
+Claude to ask instead. Mandarin moves to Cantonese when Cantonese words appear, but Cantonese is never
+auto-switched to Mandarin (Cantonese transcripts can look like written Mandarin); only an explicit
+request or the keypad does that.
 
 **Privacy.** Nothing is looked up or saved for withheld, anonymous, restricted or unknown caller IDs
 (including Twilio's placeholder numbers such as `+266696687`). The language still switches for
@@ -176,14 +206,110 @@ while the API was down is marked `pendingSync` and pushed to the API the next ti
 and the API is reachable. The API stays the source of truth otherwise. The agent also increments
 `callCount` and saves the caller's name after a booking or message.
 
-**One limitation to know.** Speech recognition listens in the call's current language. A caller who
-starts speaking Cantonese while the call is still in English may be transcribed as garbled English.
-The prompt tells Claude to treat garbled or romanized speech ("nei hou", "annyeong") as a hint and
-switch, and the greeting tells callers they can ask for their language, but the keypad shortcut is
-the most reliable path for a first-time caller. Returning callers are not affected. Twilio also
-offers automatic language detection (`transcriptionLanguage="multi"` with Deepgram, which requires
-ElevenLabs voices); it would remove this gap and is worth testing once the basic setup works, but it
-is not enabled here because it changes the voice provider and the "always greet in English" flow.
+### What the speech services can and cannot detect (checked 2026-10-04)
+
+The goal was to have the transcriber itself detect the language for first-time callers. That is
+not possible today for these four languages:
+
+| Option in ConversationRelay | English | Mandarin | Cantonese | Korean | Notes |
+|---|---|---|---|---|---|
+| Deepgram `transcriptionLanguage="multi"` (nova-3 multilingual) | yes | no | no | no | The only automatic detection Twilio exposes; the prompt's `lang` then carries the detected tag. Covers en, es, fr, de, hi, ru, pt, ja, it, nl. |
+| Deepgram Flux multilingual | yes | no | no | no | Same ten languages. |
+| Google (Chirp 3 has an "auto" language mode) | | | | | Twilio does not expose Google's auto-detect or alternate languages. |
+| Deepgram nova-3, one language at a time | `en-US` | `zh-CN` | `zh-HK` (added March 2026) | `ko` (added 2026) | Good per language, no detection. |
+| Google, one language at a time | yes | `cmn-Hans-CN` | `yue-Hant-HK` | `ko-KR` | Good per language, no detection. |
+| Mid-call `language` message | | | | | Changes transcription and voice; this is what every switch uses. |
+
+Sources: Twilio changelog "ConversationRelay now supports a configuration for automatic language
+detection" and the ConversationRelay TwiML reference (via search; twilio.com is blocked from the
+build environment); Deepgram discussion #1097 (nova-3 multilingual languages; Korean not planned at
+the time), Deepgram changelog March 2026 (Cantonese `zh-HK`, Mandarin `zh-CN`) and 2026 Korean
+support; Deepgram Flux Multilingual launch (April 2026, ten languages); the LiveKit Deepgram plugin's
+language list (includes `zh-HK`, `ko`, `multi`). Confidence: high that `multi` does not cover
+Chinese or Korean; medium on the exact Deepgram language codes Twilio passes through, so test them.
+
+So calls start in English (`CR_START_TRANSCRIPTION_LANGUAGE=en-US`) and the hybrid above does the
+rest. `CR_START_TRANSCRIPTION_LANGUAGE=multi` is supported: the greeting stays English, transcription
+starts in Deepgram's multi mode, and the prompt's `lang` tag feeds the detector. Turn it on if Deepgram
+adds Chinese and Korean to multi; until then it only adds a "this is not English" signal and may cost
+a little English accuracy.
+
+### Reliability, honestly, per language
+
+- **Returning callers (any language):** reliable. English greeting, one line in their language,
+  then the call runs in it with the right transcriber.
+- **Korean, first call:** the first sentence is heard by the English transcriber and usually comes
+  back as garbled English or romanized syllables, not Hangul. If it contains "annyeong" or similar,
+  the four-language question is asked; if it is nonsense, Claude asks it. One keypad press (4) or
+  one more sentence after that. Expect one extra exchange, not a silent failure.
+- **Mandarin, first call:** same as Korean ("ni hao" is the most common opener and triggers the
+  question). Once the call is in Mandarin, Mandarin vs Cantonese cues work on real Chinese text.
+- **Cantonese, first call:** same first-sentence problem. After the switch, Cantonese particles are
+  distinctive and detection between Mandarin and Cantonese is good when the transcriber writes
+  colloquial Cantonese; if it writes standard written Chinese, the call may stay in Mandarin until
+  the caller says so or presses 3. This is the language to test hardest on real calls.
+- **English:** unaffected. Short English words never trigger a switch.
+
+### Twilio console settings for language
+
+Nothing extra is needed in the console beyond the setup below: the TwiML returned by `/twiml` declares
+all four `<Language>` entries (code, voice, transcription provider, speech model). Check:
+
+1. Voice > Settings > General: the "Predictive and Generative AI/ML Features Addendum" is accepted.
+2. ConversationRelay voices: the four Google Chirp3-HD voices in `src/languages.ts` play on your
+   account (place one test call per language, pressing 2, 3 and 4).
+3. Speech recognition: Deepgram is enabled for the account (it is the default provider for new
+   ConversationRelay accounts); Korean uses Google `telephony` by default. Override per language with
+   `CR_<LANG>_TRANSCRIPTION_PROVIDER` and `CR_<LANG>_SPEECH_MODEL` if a code is rejected.
+4. Optional, experimental: `CR_START_TRANSCRIPTION_LANGUAGE=multi` (Deepgram, `nova-3-general`).
+
+Settings: `LANG_AUTODETECT` (default true), `LANG_ASK_QUESTION` (default true),
+`CR_START_TRANSCRIPTION_LANGUAGE` (`en-US` or `multi`), `CR_START_SPEECH_MODEL`.
+
+## Why Twilio ConversationRelay and not ElevenLabs?
+
+Checked 2026-10-04. Sources: Twilio blog "Integrate ElevenLabs Voices with Twilio's
+ConversationRelay" and the twilio-samples/conversationrelay-elevenlabs-openai repo; ElevenLabs
+models docs (Flash v2.5 language list), the ElevenLabs v4 launch (TechCrunch, 2026-09-28), ElevenLabs
+Agents docs (language detection tool, SIP trunking, Twilio integration, custom LLM and the list of
+Claude models), and ElevenLabs Agents pricing pages (via search; elevenlabs.io itself is blocked
+from the build environment).
+
+**ElevenLabs voices inside ConversationRelay (option, off by default).** ConversationRelay accepts
+`ttsProvider="ElevenLabs"` with an ElevenLabs voice ID, optionally suffixed with a model
+(`flash_v2_5` default, `turbo_v2_5`, `flash_v2`, `turbo_v2`) and speed, stability and similarity.
+Flash and Turbo v2.5 speak English, Mandarin and Korean, **not Cantonese**. Cantonese is in
+ElevenLabs' new v4 models (launched 2026-09-28), which Twilio does not list for ConversationRelay yet.
+Latency: Flash v2.5 is ElevenLabs' lowest-latency model (about 75 ms), comparable to or better than
+Google. Cost: Twilio's ConversationRelay rate is per minute with voices included as far as published;
+whether ElevenLabs voices carry a premium was not confirmed, so check the Twilio console price list.
+To try it: `CR_TTS_PROVIDER=ElevenLabs` and `CR_ELEVENLABS_VOICE=<voice id>` switch English,
+Mandarin and Korean; Cantonese stays on Google unless `CR_ZH_HK_TTS_PROVIDER` is set (the server
+warns at startup if a language is pointed at a model that does not list it).
+
+**ElevenLabs Agents (their full platform).** It does speech-to-text, the turn-taking, the LLM call
+and the voice in one product. Relevant points:
+
+- Language detection: a built-in `language_detection` tool switches the agent's language when the
+  caller speaks or asks for another one. That is the automatic detection Twilio lacks. Mandarin and
+  Korean are in its language list; Cantonese is in their Scribe speech-to-text and in v4 voices, but
+  whether Agents can run a Cantonese conversation end to end was not confirmed. Unsure.
+- Telephony: native Twilio number import or SIP trunking, so it can sit behind forwarding from the
+  salon's existing Canadian number.
+- LLM: Claude models are selectable (including Sonnet 5.5 and Haiku 4.5), or a custom LLM endpoint.
+- Tools: webhook tools can call our booking API with the agent key.
+- Price: about $0.08 per minute on every plan (plan minutes included), plus LLM tokens and
+  telephony billed separately. Roughly comparable to ConversationRelay's $0.07 plus voice minutes.
+
+**Recommendation for this salon: stay on ConversationRelay for Friday, offer ElevenLabs voices as a
+listening test, and revisit ElevenLabs Agents only if first-call detection matters more than control.**
+Reasons: the whole agent (prompt, tools, booking rules, language memory, barge-in trimming, call
+logs, Calls tab) is built and tested here, and Cantonese, the language most likely at Henderson
+Place, is covered by Google voices today but not by ElevenLabs voices in ConversationRelay, nor
+clearly by ElevenLabs Agents. ElevenLabs Agents would fix first-call detection for Mandarin and
+Korean, at the cost of moving tool logic, caller memory and logging onto their platform and
+re-testing everything. Worth a spike after the meeting if the owner hears many first-time Mandarin or
+Korean callers.
 
 ## Promotional text opt-in
 
@@ -213,6 +339,30 @@ The salon texts occasional specials only to clients who agreed (Canada's anti-sp
   the website's consent wording.
 
 The mock API (`npm run mock-api`, `--mock`) implements the same endpoint and the `smsConsent` field.
+
+## Calls tab
+
+At the end of every call the agent posts one record to the website's admin Calls tab
+(`POST /api/calls` with the agent key, upsert by `callSid`; contract in `docs/ARCHITECTURE.md`,
+"Calls"). The record has: caller number (`null` when withheld), start and end time, duration, the
+call's final language and how it was chosen (`languageSource`: `saved`, `detected`, `keypad`,
+`asked`, or `default`), the outcome (`booked`, `rescheduled`, `cancelled`, `message`, `transferred`,
+`info`, `abandoned`, `spam`), the `bookingId` or `messageId`, the SMS opt-in answer only if it was
+asked, and the transcript with each line's language.
+
+**Summary for the owner.** After the call ends, off the call's critical path, a small, cheap model
+(`CALL_SUMMARY_MODEL`, default `claude-haiku-4-5`) writes 1 to 3 plain English sentences for the
+owner, whatever language the call was in. If that fails (no key, timeout, refusal) the summary is
+built from a template using the outcome, name, service and time. `CALL_SUMMARY=off` uses the template
+only.
+
+**Transfers.** When Twilio reports how a transfer went (`/twiml/dial-status`), the call is posted
+again with `transferResult` (`answered`, `no-answer`, `busy`, `failed`). If nobody answered and the
+caller came back to the agent, that second session is merged into the same record (same `callSid`).
+
+**When the website is down.** The record is queued in `data/pending-calls.json` (gitignored) and
+retried at the start and end of the next call and on server startup. A late record is fine; a lost
+one is not. The local JSON log in `logs/` is always written as well.
 
 ## Twilio setup, step by step
 
@@ -369,6 +519,16 @@ Vitest suites, all offline (Claude is replaced by a scripted fake that streams w
   when the caller has no answer on file, a yes is posted with the exact wording and source `phone`, a
   decline is stored so later calls never ask, no offer without caller ID or for another number,
   localised questions for all four languages, and the consent endpoint over HTTP with the agent key.
+- `test/langdetect.test.ts`: first-time callers whose first sentence is Mandarin, Cantonese or
+  Korean are switched (voice and transcription), Claude is told, and the preference is saved and used
+  on the next call (English greeting first); Mandarin vs Cantonese from text cues; short English words
+  never flip a Korean caller back, even when Claude tries; anonymous callers are switched but never
+  saved; romanized greetings get the four-language question without a model call; Claude's
+  `ask_caller_language`; `multi` start mode TwiML; ElevenLabs voice configuration.
+- `test/calls.test.ts`: the Calls payload shape (booking, detected language, withheld number,
+  message id, spam, SMS answer only when asked), the summary fallback template, the retry queue
+  (next call and startup), transfer results and merging the resumed session, and `POST /api/calls`
+  over HTTP.
 - `test/chunker.test.ts`: sentence splitting (English, Chinese, Korean), interrupt matching, phone
   number and language code helpers.
 
@@ -397,11 +557,14 @@ notice, as BC's PIPA expects.
   `zh-CN` and `zh-HK`, and Google `telephony` for Korean transcription should be confirmed in the
   console. All are overridable per language with `CR_<LANG>_*` variables.
 - **No real call has been placed yet** and the scripted demo needs an `ANTHROPIC_API_KEY`.
-- **First-time non-English callers** are transcribed in English until the switch (see above).
+- **First-time non-English callers** are heard by the English transcriber for their first sentence,
+  so detection usually needs one extra exchange or a keypad press (see "Reliability, honestly").
+  Test with real Mandarin, Cantonese and Korean speakers before go-live, especially Cantonese.
 - **Hang-up timing** after a goodbye is estimated from text length, because ConversationRelay does
   not report when speech finishes. `END_CALL_GRACE_MS` adds margin.
 - **Salon data is placeholder** (services, prices, stylist names, policies, parking, hours are
   marked "reported" or "placeholder" in `shared/salon.json`). Confirm with the owner.
 - **Transfers** ring one number with a 20 second timeout and no whisper; if nobody answers, the caller
   comes back to the agent to leave a message.
-- **Pending messages** queued while the API was down are not replayed automatically.
+- **Pending messages** queued while the API was down are not replayed automatically (pending Calls
+  records are).

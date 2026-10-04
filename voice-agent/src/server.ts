@@ -51,6 +51,8 @@ export function createServer(deps: SessionDeps) {
       wsUrl: base.replace(/^http/, "ws") + RELAY_PATH,
       actionUrl: `${base}/twiml/action`,
       languages: deps.languages,
+      startTranscription: cfg.startTranscriptionLanguage,
+      startSpeechModel: cfg.startSpeechModel,
       token: tokenSecret ? relayToken(tokenSecret, callSid) : "dev",
     };
   };
@@ -79,6 +81,8 @@ export function createServer(deps: SessionDeps) {
 
   // <Dial action>: transfer finished. If nobody answered, return to the agent to take a message.
   app.post("/twiml/dial-status", verify, (req, res) => {
+    // Calls tab: post the call again with how the transfer went.
+    if (req.body?.CallSid) void deps.reporter?.transferResult(String(req.body.CallSid), req.body?.DialCallStatus);
     res.type("text/xml").send(dialStatusTwiml({ dialCallStatus: req.body?.DialCallStatus, relay: relayOpts(req) }));
   });
 

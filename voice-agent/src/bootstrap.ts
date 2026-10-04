@@ -10,10 +10,19 @@ import { relayLanguages } from "./languages.js";
 import { AnthropicLlm, type LlmClient } from "./agent/llm.js";
 import { staticSystemPrompt } from "./agent/prompt.js";
 import type { SessionDeps } from "./agent/session.js";
+import { CallReporter, ClaudeSummarizer, type Summarizer } from "./calls.js";
 
 /** Wire everything together. Shared by the server, the simulator and the demo. */
 export function buildDeps(
-  opts: { mock?: boolean; config?: Partial<AppConfig>; llm?: LlmClient; api?: BookingApi; now?: () => DateTime } = {},
+  opts: {
+    mock?: boolean;
+    config?: Partial<AppConfig>;
+    llm?: LlmClient;
+    api?: BookingApi;
+    now?: () => DateTime;
+    /** null disables Claude summaries (template only). */
+    summarizer?: Summarizer | null;
+  } = {},
 ): SessionDeps & { mockApi?: InMemoryBookingApi } {
   const config = loadConfig(opts.config);
   // Keep mock runs (demo, simulate --mock) from touching the real caller store.
@@ -22,8 +31,16 @@ export function buildDeps(
   const mockApi = opts.mock ? new InMemoryBookingApi(salon, { seedDemoData: true, now: opts.now }) : undefined;
   const api = opts.api ?? mockApi ?? new HttpBookingApi(config.bookingApiUrl, config.agentApiKey, config.apiTimeoutMs);
   const callers = new CallerMemory(api, new LocalCallerStore(path.join(config.dataDir, "callers.json")), config.callerLookupTimeoutMs);
+  const summarizer =
+    opts.summarizer !== undefined
+      ? opts.summarizer
+      : process.env.CALL_SUMMARY === "off"
+        ? null
+        : new ClaudeSummarizer(process.env.CALL_SUMMARY_MODEL || "claude-haiku-4-5");
+  const reporter = new CallReporter(api, summarizer, config.dataDir);
   return {
     config,
+    reporter,
     salon,
     api,
     callers,

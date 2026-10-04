@@ -34,8 +34,11 @@ export function modelOptions(cfg: Pick<AppConfig, "anthropicModel" | "anthropicE
   const isHaiku = /haiku/.test(m);
   const supportsDefaultFallbacks = /^claude-(sonnet-5-5|opus-5-5|opus-5|fable-5)/.test(m);
   const fallbacks = cfg.claudeFallbacks === "on" || (cfg.claudeFallbacks === "auto" && supportsDefaultFallbacks);
+  // Mid-conversation `role: "system"` messages (no beta header) are accepted by these models only.
+  const systemMessages = /^claude-(sonnet-5-5|opus-5-5|opus-5|opus-4-8|fable-5|mythos-5)/.test(m);
   return {
     effort: isHaiku ? undefined : cfg.anthropicEffort,
+    systemMessages,
     fallbacks,
   };
 }

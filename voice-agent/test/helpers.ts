@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 import type { LlmClient, LlmMessage, LlmStream, StreamEvent, StreamParams } from "../src/agent/llm.js";
 import { buildDeps } from "../src/bootstrap.js";
 import type { BookingApi } from "../src/api/types.js";
+import type { Summarizer } from "../src/calls.js";
 
 /** Wednesday 7 October 2026, 11:00 in Vancouver: the salon is open. */
 export const FIXED_NOW = DateTime.fromISO("2026-10-07T11:00:00", { zone: "America/Vancouver" });
@@ -96,9 +97,10 @@ export function tempDir(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "cfhair-va-"));
 }
 
-export function testDeps(opts: { llm?: LlmClient; api?: BookingApi; forward?: string } = {}) {
+export function testDeps(opts: { llm?: LlmClient; api?: BookingApi; forward?: string; summarizer?: Summarizer | null } = {}) {
   const dir = tempDir();
   return buildDeps({
+    summarizer: opts.summarizer ?? null,
     mock: !opts.api,
     api: opts.api,
     llm: opts.llm ?? new FakeLlm([]),

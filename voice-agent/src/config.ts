@@ -45,10 +45,18 @@ export interface AppConfig {
   callbackOnAbandon: boolean;
   endCallGraceMs: number;
   welcomeGreeting: string;
+  /** Detect the caller's language from transcripts and switch automatically. */
+  autoDetectLanguage: boolean;
+  /** When the evidence is weak, ask one short question in all four languages. */
+  askLanguageQuestion: boolean;
+  /** Transcription at call start: "en-US" (default) or "multi" (Deepgram automatic detection). */
+  startTranscriptionLanguage: "en-US" | "multi";
+  /** Speech model at call start when startTranscriptionLanguage is "multi". */
+  startSpeechModel: string;
 }
 
 export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
-  const base: AppConfig = {
+  const base: Omit<AppConfig, "autoDetectLanguage" | "askLanguageQuestion" | "startTranscriptionLanguage" | "startSpeechModel"> = {
     port: envInt("PORT", 8080),
     publicBaseUrl: env("PUBLIC_BASE_URL").replace(/\/+$/, ""),
     anthropicModel: env("ANTHROPIC_MODEL", "claude-sonnet-5-5"),
@@ -72,5 +80,12 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
       "Hi, thanks for calling CF Hair Salon at Henderson Place Mall. I'm the salon's virtual assistant. We can also help you in Mandarin, Cantonese, or Korean. How can I help you today?",
     ),
   };
-  return { ...base, ...overrides };
+  const start = env("CR_START_TRANSCRIPTION_LANGUAGE", "en-US").toLowerCase() === "multi" ? "multi" : "en-US";
+  const lang: Pick<AppConfig, "autoDetectLanguage" | "askLanguageQuestion" | "startTranscriptionLanguage" | "startSpeechModel"> = {
+    autoDetectLanguage: envBool("LANG_AUTODETECT", true),
+    askLanguageQuestion: envBool("LANG_ASK_QUESTION", true),
+    startTranscriptionLanguage: start,
+    startSpeechModel: env("CR_START_SPEECH_MODEL", "nova-3-general"),
+  };
+  return { ...base, ...lang, ...overrides };
 }

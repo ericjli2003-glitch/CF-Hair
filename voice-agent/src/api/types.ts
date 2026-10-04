@@ -83,6 +83,28 @@ export interface CallerUpdate {
   incrementCallCount?: boolean;
 }
 
+/** Outcome values in the Calls contract (docs/ARCHITECTURE.md, "Calls"). */
+export type CallOutcome = "booked" | "rescheduled" | "cancelled" | "message" | "transferred" | "info" | "abandoned" | "spam";
+export type TransferResult = "answered" | "no-answer" | "busy" | "failed";
+
+/** POST /api/calls body, upserted by callSid. */
+export interface CallPayload {
+  callSid: string;
+  from: string | null;
+  startedAt: string;
+  endedAt: string;
+  durationSec: number;
+  language: LanguageCode;
+  languageSource: "saved" | "detected" | "keypad" | "asked" | "default";
+  outcome: CallOutcome;
+  summary: string;
+  bookingId?: string;
+  messageId?: string;
+  transferResult?: TransferResult;
+  smsConsent?: "yes" | "no" | "not-asked";
+  transcript: { role: "caller" | "agent"; text: string; lang?: string; at?: string }[];
+}
+
 export interface BookingApi {
   getServices(): Promise<Service[]>;
   getStaff(): Promise<Staff[]>;
@@ -95,6 +117,7 @@ export interface BookingApi {
   getCaller(phone: string): Promise<CallerProfile>;
   putCaller(phone: string, update: CallerUpdate): Promise<CallerProfile>;
   recordSmsConsent(input: SmsConsentInput): Promise<unknown>;
+  postCall(call: CallPayload): Promise<unknown>;
 }
 
 /** The API answered with an error status (4xx or 5xx other than "unreachable"). */

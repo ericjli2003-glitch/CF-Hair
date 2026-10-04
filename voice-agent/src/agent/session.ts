@@ -23,6 +23,11 @@ import {
 import { callContext, staticSystemPrompt } from "./prompt.js";
 import { TOOL_DEFINITIONS, ToolExecutor, type Outcome, type ToolHooks } from "./tools.js";
 import { smsOptInWording } from "./sms-optin.js";
+import { LanguageDetector, analyzeUtterance, languageEvidence } from "./langdetect.js";
+import type { CallReporter } from "../calls.js";
+
+/** How the call's current language was chosen. */
+export type LanguageSource = "default" | "saved" | "detected" | "keypad" | "asked";
 
 /** Where the agent's words go: Twilio ConversationRelay in production, the terminal in simulate/demo. */
 export interface CallChannel {
@@ -44,6 +49,8 @@ export interface SessionDeps {
   now?: () => DateTime;
   /** Pass a precomputed prompt so every call shares the exact same cached bytes. */
   staticPrompt?: string;
+  /** Posts the finished call to the website's Calls tab. Optional (absent in some tests). */
+  reporter?: CallReporter;
 }
 
 export interface SessionInit {
@@ -127,6 +134,11 @@ export class CallSession {
   private spokenAfterGreeting: string | null = null;
   private smsOptInOffered = false;
   private closed = false;
+  private readonly detector: LanguageDetector;
+  private lastCallerText = "";
+  /** Set by ask_caller_language: end the turn after this step's tools. */
+  private stopAfterTools = false;
+  languageSource: LanguageSource = "default";
 
   constructor(
     private readonly deps: SessionDeps,
@@ -146,6 +158,7 @@ export class CallSession {
     });
     this.log.say("agent", this.greeting, { lang: "en-US" });
     this.executor = new ToolExecutor(deps.api, deps.salon, this.hooks());
+    this.detector = new LanguageDetector({ askEnabled: deps.config.askLanguageQuestion, maxAsks: 2 });
   }
 
   /** Called on the ConversationRelay `setup` message. Looks up the caller while the greeting plays. */
@@ -155,6 +168,7 @@ export class CallSession {
   }
 
   private async doStart() {
+    void this.deps.reporter?.flush(); // retry any Calls records queued while the website was down
     this.caller = await this.deps.callers.beginCall(this.init.from);
     const pref = this.caller.preferredLanguage;
     if (pref !== DEFAULT_LANGUAGE && !this.ended) {
@@ -163,6 +177,7 @@ export class CallSession {
       this.spokenAfterGreeting = lang.continueOffer;
       this.channel.sendText(lang.continueOffer, true, pref);
       this.applyLanguage(pref, "saved preference");
+      this.languageSource = "saved";
       this.log.say("agent", lang.continueOffer, { lang: pref });
     }
     this.contextText = callContext({
@@ -188,11 +203,15 @@ export class CallSession {
   private applyLanguage(code: LanguageCode, reason: string) {
     this.language = code;
     this.channel.setLanguage(code);
+    this.detector.reset();
     this.log.record.languages.push({ at: new Date().toISOString(), language: code, reason });
   }
 
-  /** A final transcript from the caller. */
-  handlePrompt(text: string): Promise<void> {
+  /**
+   * A final transcript from the caller. `providerLang` is the prompt message's `lang`: the
+   * transcription language, or the detected language when transcription runs in "multi" mode.
+   */
+  handlePrompt(text: string, providerLang: string | null = null): Promise<void> {
     if (this.ended || !text.trim()) return Promise.resolve();
     if (this.activeTurn) this.interrupt(null); // caller spoke over a reply that had not started playing
     this.cancelPendingEnd();
@@ -200,8 +219,28 @@ export class CallSession {
       await this.start();
       if (this.ended) return;
       this.callerUtterances++;
-      this.log.say("caller", text, { lang: this.language });
-      await this.runTurn([{ type: "text", text }]);
+      this.lastCallerText = text;
+      // Log in the language the caller spoke, which is what detection is about to decide.
+      const decision = this.deps.config.autoDetectLanguage
+        ? this.detector.observe(text, this.language, providerLang)
+        : ({ action: "none" } as const);
+      const spokenLang = decision.action === "switch" ? decision.to : this.language;
+      this.log.say("caller", text, { lang: spokenLang });
+      if (decision.action === "ask") {
+        this.askLanguageQuestion(text, decision.reason);
+        return;
+      }
+      let notice: string | undefined;
+      if (decision.action === "switch") {
+        const named = analyzeUtterance(text).explicitNative === decision.to;
+        const { saved } = await this.switchLanguage(decision.to, `auto-detect: ${decision.reason}`, named ? "asked" : "detected");
+        const l = this.deps.languages[decision.to];
+        this.log.say("system", `auto-detect: ${decision.reason}; switched to ${decision.to} (saved: ${saved})`);
+        notice =
+          `Phone system note: the caller is speaking ${l.englishName}, so speech recognition and the voice are now ${decision.to}. ` +
+          `Reply only in ${l.englishName} from now on. Do not call set_language for this.`;
+      }
+      await this.runTurn([{ type: "text", text }], notice);
     };
     this.chain = this.chain.then(run, run);
     return this.chain;
@@ -217,7 +256,7 @@ export class CallSession {
       if (code) {
         if (this.activeTurn) this.interrupt(null);
         const lang = this.deps.languages[code];
-        const saved = await this.switchLanguage(code, `keypad ${digit}`);
+        const saved = await this.switchLanguage(code, `keypad ${digit}`, "keypad");
         this.messages.push({ role: "user", content: [{ type: "text", text: `(The caller pressed ${digit} on the keypad to choose ${lang.englishName}.)` }] });
         this.messages.push({ role: "assistant", content: [{ type: "text", text: lang.switchedConfirmation }] });
         this.channel.sendText(lang.switchedConfirmation, true, code);
@@ -270,6 +309,12 @@ export class CallSession {
       });
       rec.callbackPosted = r === "sent" || r === "queued";
     }
+    // Calls tab: summary and POST happen after the call, off its critical path.
+    if (this.deps.reporter) {
+      this.reported = this.deps.reporter
+        .submit({ record: rec, language: this.language, languageSource: this.languageSource, timezone: this.deps.salon.timezone })
+        .catch((err) => console.error(`[call ${this.init.callSid}] call report failed: ${(err as Error).message}`));
+    }
     try {
       return this.log.write();
     } catch (err) {
@@ -277,6 +322,9 @@ export class CallSession {
       return null;
     }
   }
+
+  /** Resolves when the Calls record has been posted or queued (for tests and the demo). */
+  reported: Promise<void> = Promise.resolve();
 
   private finalOutcome(endedBy: string): Outcome {
     const rec = this.log.record;
@@ -302,9 +350,25 @@ export class CallSession {
       callSid: this.init.callSid,
       callerPhone: isAnonymousCaller(this.init.from) ? null : toE164(this.init.from),
       currentLanguage: () => this.language,
-      switchLanguage: (code) => this.switchLanguage(code, "set_language tool"),
+      switchLanguage: async (code) => {
+        if (code === this.language) return this.switchLanguage(code, "set_language tool (no change)");
+        const ev = languageEvidence(this.lastCallerText, code);
+        if (!ev.ok) {
+          this.log.say("system", `set_language ${code} refused: ${ev.reason}`);
+          return { saved: "skipped" as const, refused: ev.reason };
+        }
+        const a = analyzeUtterance(this.lastCallerText);
+        const named = a.explicitNative === code || a.explicitEnglish === code;
+        return this.switchLanguage(code, `set_language tool: ${ev.reason}`, named ? "asked" : "detected");
+      },
+      askLanguage: () => {
+        if (!this.detector.canAsk()) return { ok: false as const, spoken: "" };
+        this.stopAfterTools = true;
+        return { ok: true as const, spoken: this.speakLanguageQuestion(true) };
+      },
       requestEnd: (reason) => {
         this.pendingEnd = { reason };
+        this.log.record.endReason = reason;
       },
       requestTransfer: (reason, summary) => {
         if (!this.deps.config.salonForwardNumber) return { ok: false, why: "No transfer number is configured." };
@@ -353,15 +417,46 @@ export class CallSession {
     }
   }
 
-  private async switchLanguage(code: LanguageCode, reason: string): Promise<{ saved: "api" | "local" | "skipped" }> {
-    if (code !== this.language) this.applyLanguage(code, reason);
+  /**
+   * The four-language question: one short line per language, each spoken in its own voice
+   * (per-token `lang`), pointing at the keypad shortcuts. Used instead of guessing.
+   */
+  private speakLanguageQuestion(final: boolean): string {
+    const order: LanguageCode[] = ["en-US", "zh-CN", "zh-HK", "ko-KR"];
+    const parts = order.map((c) => ({ c, t: this.deps.languages[c].questionPart }));
+    parts.forEach(({ c, t }, i) => this.channel.sendText(i === 0 ? t : ` ${t}`, final && i === parts.length - 1, c));
+    this.detector.noteAsked();
+    const text = parts.map((p) => p.t).join(" ");
+    this.log.say("agent", text, { lang: "multi" });
+    return text;
+  }
+
+  /** Detector found weak signs of another language: ask, without a model call. */
+  private askLanguageQuestion(callerText: string, reason: string) {
+    this.log.say("system", `language unclear (${reason}); asked which language`);
+    const question = this.speakLanguageQuestion(true);
+    this.messages.push({ role: "user", content: [{ type: "text", text: callerText }] });
+    this.messages.push({ role: "assistant", content: [{ type: "text", text: question }] });
+  }
+
+  private async switchLanguage(
+    code: LanguageCode,
+    reason: string,
+    source: LanguageSource = "detected",
+  ): Promise<{ saved: "api" | "local" | "skipped" }> {
+    if (code !== this.language) {
+      this.applyLanguage(code, reason);
+      this.languageSource = source;
+    }
     const saved = await this.deps.callers.saveLanguage(this.caller?.phone ?? null, code);
     return { saved };
   }
 
   private async postMessage(m: { callerName: string; phone: string; message: string; urgency: "low" | "normal" | "high" }) {
     try {
-      await this.deps.api.postMessage(m);
+      const res = (await this.deps.api.postMessage(m)) as { id?: unknown; message?: { id?: unknown } } | undefined;
+      const id = res?.message?.id ?? res?.id;
+      if (id !== undefined && id !== null) this.log.record.messageId = String(id);
       return "sent" as const;
     } catch (err) {
       // Keep it so it is not lost; an operator can replay data/pending-messages.jsonl.
@@ -407,13 +502,19 @@ export class CallSession {
     this.channel.sendText(text, last, this.language);
   }
 
-  private async runTurn(content: ContentBlockParam[]) {
+  private async runTurn(content: ContentBlockParam[], notice?: string) {
     const turn = new Turn();
     this.activeTurn = turn;
     this.lastTurn = turn;
     let resolveDone!: () => void;
     turn.done = new Promise((r) => (resolveDone = r));
-    this.messages.push({ role: "user", content });
+    if (notice && modelOptions(this.deps.config).systemMessages) {
+      // Harness notice as a mid-conversation system message, kept separate from the caller's words.
+      this.messages.push({ role: "user", content });
+      this.messages.push({ role: "system", content: notice });
+    } else {
+      this.messages.push({ role: "user", content: notice ? [...content, { type: "text", text: `(${notice})` }] : content });
+    }
     try {
       for (let step = 0; step < MAX_STEPS; step++) {
         if (turn.signal.aborted) break;
@@ -462,6 +563,11 @@ export class CallSession {
         }
         this.messages.push({ role: "user", content: results });
         if (turn.signal.aborted) break; // interrupted while tools ran: keep results, let the caller talk
+        if (this.stopAfterTools) {
+          // ask_caller_language already spoke the question and ended the reply.
+          this.stopAfterTools = false;
+          break;
+        }
         // The goodbye or handoff line was already said in this step: no need for another model call.
         if ((this.pendingEnd || this.pendingTransfer) && spokenText.trim()) {
           this.speak(turn, "", true);

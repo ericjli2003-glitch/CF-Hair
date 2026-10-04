@@ -35,6 +35,10 @@ export interface CallRecord {
   toolCalls: ToolCallEntry[];
   usage: { input: number; output: number; cacheRead: number; cacheWrite: number; requests: number };
   callbackPosted?: boolean;
+  /** end_call reason (completed, spam, caller_request, no_response, technical_error). */
+  endReason?: string;
+  /** Id returned by POST /api/messages for this call's callback message. */
+  messageId?: string;
   /** Answer to the promotional text question, if it was asked on this call. */
   smsOptIn?: { accepted: boolean; language: string; saved: boolean };
   errors: string[];

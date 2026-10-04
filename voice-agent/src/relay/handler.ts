@@ -80,7 +80,8 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
       }
       case "prompt":
         if (msg.last === false) return; // partial transcript (only sent if partialPrompts is enabled)
-        void session?.handlePrompt(msg.voicePrompt ?? "");
+        // `lang` is the transcription language, or the detected language in "multi" mode.
+        void session?.handlePrompt(msg.voicePrompt ?? "", msg.lang ?? null);
         break;
       case "interrupt":
         session?.interrupt(msg.utteranceUntilInterrupt ?? null);

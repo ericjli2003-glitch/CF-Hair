@@ -70,6 +70,14 @@ export function createMockApiApp(api: InMemoryBookingApi, apiKey = "") {
     agentOnly,
     wrap(async (req, res) => res.json(await api.putCaller(String(req.params.phone), req.body ?? {}))),
   );
+  app.post(
+    "/api/calls",
+    agentOnly,
+    wrap(async (req, res) => {
+      const r = await api.postCall(req.body ?? {});
+      res.status(r.created ? 201 : 200).json({ call: r.call });
+    }),
+  );
   app.post("/api/customers/consent", agentOnly, wrap(async (req, res) => res.status(201).json(await api.recordSmsConsent(req.body ?? {}))));
   return app;
 }

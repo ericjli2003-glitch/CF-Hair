@@ -29,7 +29,7 @@ const CALLS: DemoCall[] = [
     ],
   },
   {
-    title: "Mandarin speaker asks about prices",
+    title: "First-time Mandarin speaker asks about prices (detected automatically)",
     from: DEMO_PHONES.mandarin,
     lines: ["你好，请问你们女士剪发多少钱？", "染发呢？全头染多少钱？要多长时间？", "好的，谢谢你，再见。"],
   },
@@ -44,7 +44,7 @@ const CALLS: DemoCall[] = [
     ],
   },
   {
-    title: "Korean caller asks about a men's cut and Saturday hours",
+    title: "First-time Korean caller asks about a men's cut and Saturday hours (detected automatically)",
     from: DEMO_PHONES.korean,
     lines: ["안녕하세요, 남자 커트 가격이 얼마예요?", "토요일에도 문 열어요? 몇 시까지 해요?", "네, 감사합니다. 안녕히 계세요."],
   },
@@ -52,6 +52,11 @@ const CALLS: DemoCall[] = [
     title: "Returning caller with a saved Cantonese preference",
     from: DEMO_PHONES.returningCantonese,
     lines: ["你好，我想問下聽日下晝有冇位剪女士頭髮？", "唔使喇，我遲啲再打嚟。唔該晒，拜拜。"],
+  },
+  {
+    title: "First-time Cantonese caller who just starts speaking (detected, then remembered)",
+    from: DEMO_PHONES.newCantonese,
+    lines: ["你好，我想問下你哋星期日幾點開門？", "剪女士頭髮幾多錢呀？", "好，唔該晒，拜拜。"],
   },
 ];
 
@@ -69,9 +74,12 @@ async function playCall(call: DemoCall, n: number, deps: ReturnType<typeof build
   // Let a pending goodbye or transfer fire, then hang up.
   await new Promise((r) => setTimeout(r, 300));
   const file = await session.close(session.ended ? "agent" : "caller");
+  await session.reported;
+  const posted = deps.mockApi!.calls.get(session.init.callSid);
+  if (posted) console.log(colors.sys(`Calls tab: [${posted.outcome}, ${posted.language} via ${posted.languageSource}] ${posted.summary}`));
   const r = session.log.record;
   const tools = r.toolCalls.map((t) => `${t.name}${t.isError ? " (error)" : ""}`).join(", ") || "none";
-  console.log(colors.dim(`Outcome: ${r.outcome} | tools: ${tools} | languages: ${r.languages.map((l) => l.language).join(" > ") || "en-US"}`));
+  console.log(colors.dim(`Outcome: ${r.outcome} | tools: ${tools} | languages: ${r.languages.map((l) => `${l.language} (${l.reason})`).join(" > ") || "en-US"}`));
   console.log(
     colors.dim(
       `Tokens: ${r.usage.input} input, ${r.usage.cacheRead} cache read, ${r.usage.cacheWrite} cache write, ${r.usage.output} output over ${r.usage.requests} requests | log: ${file}`,

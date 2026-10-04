@@ -14,6 +14,7 @@ import {
   type MessageInput,
   type Slot,
   type SmsConsentInput,
+  type CallPayload,
 } from "./types.js";
 
 export interface StoredMessage extends MessageInput {
@@ -35,6 +36,7 @@ export const DEMO_PHONES = {
   mandarin: "+16045550168",
   korean: "+16045550142",
   returningCantonese: "+16045550188",
+  newCantonese: "+16045550177",
 } as const;
 
 /**
@@ -48,6 +50,9 @@ export class InMemoryBookingApi implements BookingApi {
   /** Promotional SMS consent by phone, with the append-only event list the website keeps. */
   readonly consents = new Map<string, { status: "none" | "express"; declinedAt: string | null }>();
   readonly consentEvents: (SmsConsentInput & { at: string })[] = [];
+  /** POST /api/calls records, upserted by callSid. `posts` counts every POST for tests. */
+  readonly calls = new Map<string, CallPayload & { id: string }>();
+  callPosts = 0;
   /** Set to true to simulate the website being down. */
   offline = false;
   private readonly now: () => DateTime;
@@ -214,6 +219,18 @@ export class InMemoryBookingApi implements BookingApi {
     this.check();
     const base = this.callers.get(phone) ?? { phone, preferredLanguage: "en-US", callCount: 0, lastCallAt: null, name: null };
     return { ...base, smsConsent: this.smsConsentFor(phone) };
+  }
+
+  async postCall(call: CallPayload): Promise<{ call: CallPayload & { id: string }; created: boolean }> {
+    this.check();
+    this.callPosts++;
+    for (const k of ["callSid", "startedAt", "endedAt", "language", "languageSource", "outcome", "summary", "transcript"] as const) {
+      if (call[k] === undefined || call[k] === null) throw new ApiError(400, "BAD_CALL", `missing ${k}`);
+    }
+    const existing = this.calls.get(call.callSid);
+    const saved = { ...call, id: existing?.id ?? `call_${randomUUID().slice(0, 8)}` };
+    this.calls.set(call.callSid, saved);
+    return { call: saved, created: !existing };
   }
 
   async recordSmsConsent(input: SmsConsentInput): Promise<unknown> {

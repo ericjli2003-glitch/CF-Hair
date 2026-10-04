@@ -43,6 +43,9 @@ export interface RelayTwimlOptions {
   languages: Record<LanguageCode, RelayLanguage>;
   token: string;
   resume?: string;
+  /** "multi" starts transcription in Deepgram automatic language detection mode. */
+  startTranscription?: "en-US" | "multi";
+  startSpeechModel?: string;
 }
 
 /**
@@ -53,16 +56,25 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
   const vr = new VoiceResponse();
   const connect = vr.connect({ action: o.actionUrl, method: "POST" });
   const en = o.languages["en-US"];
+  const multi = o.startTranscription === "multi";
+  // The greeting and voice are always English. Transcription starts in English, or in Deepgram's
+  // "multi" mode, which tags each prompt with the detected language (see README for coverage).
+  const languageAttrs = multi
+    ? {
+        ttsLanguage: "en-US",
+        transcriptionLanguage: "multi",
+        transcriptionProvider: "Deepgram",
+        speechModel: o.startSpeechModel || "nova-3-general",
+      }
+    : { language: "en-US", transcriptionProvider: en.transcriptionProvider, speechModel: en.speechModel };
   const cr = connect.conversationRelay({
     url: o.wsUrl,
     welcomeGreeting: o.greeting,
     welcomeGreetingInterruptible: "any",
     interruptible: "any",
-    language: "en-US",
+    ...languageAttrs,
     ttsProvider: en.ttsProvider,
     voice: en.voice,
-    transcriptionProvider: en.transcriptionProvider,
-    speechModel: en.speechModel,
     dtmfDetection: true,
     hints: SPEECH_HINTS,
   });

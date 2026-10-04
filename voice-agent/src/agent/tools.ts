@@ -14,7 +14,10 @@ export interface ToolHooks {
   callSid: string;
   callerPhone: string | null;
   currentLanguage(): LanguageCode;
-  switchLanguage(code: LanguageCode): Promise<{ saved: "api" | "local" | "skipped" }>;
+  /** Switch voice and transcription and save the preference. `refused` when the transcript does not support it. */
+  switchLanguage(code: LanguageCode): Promise<{ saved: "api" | "local" | "skipped"; refused?: string }>;
+  /** Speak the four-language "which language?" question. Optional; absent means not available. */
+  askLanguage?(): { ok: boolean; spoken: string };
   requestEnd(reason: string): void;
   requestTransfer(reason: string, summary: string): { ok: boolean; why?: string };
   recordOutcome(outcome: Outcome, detail?: Record<string, unknown>): void;
@@ -88,6 +91,7 @@ export const ToolInputSchemas = {
   transfer_to_human: z.object({ reason: z.string().min(1), summary: z.string().min(1).max(500) }).strict(),
   end_call: z.object({ reason: z.enum(["completed", "spam", "caller_request", "no_response"]) }).strict(),
   set_language: z.object({ language: z.enum(LANGUAGE_CODES) }).strict(),
+  ask_caller_language: z.object({ reason: z.string().max(200).optional() }).strict(),
   record_sms_consent: z.object({ accepted: z.boolean() }).strict(),
 } as const;
 
@@ -222,11 +226,21 @@ export const TOOL_DEFINITIONS: ToolDef[] = [
   {
     name: "set_language",
     description:
-      "Switch the call's speech recognition and voice to another language and remember it for this caller's number. Call as soon as the caller speaks or asks for Mandarin (zh-CN), Cantonese (zh-HK), Korean (ko-KR), or English (en-US). Then reply in that language.",
+      "Switch the call's speech recognition and voice to another language and remember it for this caller's number. Use when the caller asks for Mandarin (zh-CN), Cantonese (zh-HK), Korean (ko-KR) or English (en-US), or clearly speaks it. The phone system already switches automatically when it sees Chinese or Korean text, so you rarely need this. It refuses a switch the transcript does not support, such as English because of one word.",
     input_schema: {
       type: "object",
       properties: { language: { type: "string", enum: [...LANGUAGE_CODES] } },
       required: ["language"],
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "ask_caller_language",
+    description:
+      "Speaks one short question in English, Mandarin, Cantonese and Korean asking the caller to press 1, 2, 3 or 4 for their language, and ends your reply. Use when the transcript looks like nonsense English or romanized syllables, which usually means the caller is speaking another language. Do not guess a language in that case. Say nothing else in the same reply.",
+    input_schema: {
+      type: "object",
+      properties: { reason: { type: "string", description: "Short note for the call log." } },
       additionalProperties: false,
     },
   },
@@ -341,9 +355,23 @@ export class ToolExecutor {
         return json({ ok: true, instruction: "The call will end after your goodbye is spoken. Do not say anything else." });
       case "record_sms_consent":
         return this.recordSmsConsent(d.accepted);
+      case "ask_caller_language": {
+        const r = this.hooks.askLanguage?.() ?? { ok: false, spoken: "" };
+        return r.ok
+          ? json({ ok: true, spoken: r.spoken, instruction: "The question has been spoken. Wait for the caller's keypad press or answer." })
+          : fail("Already asked twice on this call.", {
+              instruction: "Briefly ask in English whether they would like English, Mandarin, Cantonese or Korean, or offer to take a message.",
+            });
+      }
       case "set_language": {
         const before = this.hooks.currentLanguage();
-        const { saved } = await this.hooks.switchLanguage(d.language);
+        const { saved, refused } = await this.hooks.switchLanguage(d.language);
+        if (refused) {
+          return fail(`Language not changed: ${refused}`, {
+            currentLanguage: before,
+            instruction: `Keep speaking ${before}. If the caller seems to speak another language but the transcript is unclear, call ask_caller_language.`,
+          });
+        }
         return json({
           ok: true,
           language: d.language,
