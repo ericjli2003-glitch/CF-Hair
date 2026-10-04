@@ -259,10 +259,10 @@ export async function createBooking(
       await recordWebOptIn(phone, body.smsOptInLang, { bookingId: id }).catch((e) => console.warn("[consent] web opt-in failed", e));
     }
     if (opts.notify !== false) {
-      const text = confirmationText(view);
+      const text = confirmationText(view, { name, lang: customer.preferredLanguage });
       void sendNotice("confirmation", { bookingId: id, phone, email, name }, text, {
-        subject: `Booking confirmed: ${view.serviceName} at ${salon.name}`,
-        text: `Hi ${name},\n\n${text}\n\n${salon.name}`,
+        subject: `You're booked: ${view.serviceName} at ${salon.name}`,
+        text: `${text}\n\n${salon.name}`,
       }).catch((e) => console.warn("[notify] confirmation failed", e));
     }
     return view;

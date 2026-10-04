@@ -7,7 +7,8 @@
 import { prisma } from "./db";
 import { salon, SALON_TZ, formatPhoneDisplay } from "./salon";
 import { publicBaseUrl, twilioSend, txnMode } from "./sms/twilio";
-import { toZonedISO } from "./time";
+import { DEFAULT_LANGUAGE, isLanguageCode, type LanguageCode } from "./languages";
+import { dateKeyOf, toZonedISO } from "./time";
 
 /** @deprecated kept for older imports; transactional SMS is configured per sender now. */
 export function smsEnabled(): boolean {
@@ -126,8 +127,10 @@ export async function sendNotice(
   return { channel: "sms", status: "failed", reason: r.error };
 }
 
-function when(iso: string): string {
-  return new Date(iso).toLocaleString("en-CA", {
+const DATE_LOCALE: Record<LanguageCode, string> = { "en-US": "en-CA", "zh-CN": "zh-CN", "zh-HK": "zh-HK", "ko-KR": "ko-KR" };
+
+function when(iso: string, lang: LanguageCode = DEFAULT_LANGUAGE): string {
+  return new Date(iso).toLocaleString(DATE_LOCALE[lang], {
     timeZone: SALON_TZ,
     weekday: "short",
     month: "short",
@@ -137,12 +140,75 @@ function when(iso: string): string {
   });
 }
 
-export function confirmationText(b: { serviceName: string; staffName: string; start: string }): string {
-  return `${salon.name}: you're booked for ${b.serviceName} with ${b.staffName} on ${when(b.start)}. Questions or changes: ${formatPhoneDisplay(salon.phone)}.`;
+/** English: "Fri, Oct 9 at 2:30 p.m." (the time already ends the sentence with a period). */
+function whenEn(iso: string): { day: string; time: string } {
+  const d = new Date(iso);
+  return {
+    day: d.toLocaleDateString("en-CA", { timeZone: SALON_TZ, weekday: "short", month: "short", day: "numeric" }),
+    time: d.toLocaleTimeString("en-CA", { timeZone: SALON_TZ, hour: "numeric", minute: "2-digit" }),
+  };
 }
 
-export function reminderText(b: { serviceName: string; staffName: string; start: string }): string {
-  return `${salon.name}: reminder of your ${b.serviceName} with ${b.staffName} on ${when(b.start)}. To change it, call ${formatPhoneDisplay(salon.phone)}.`;
+function firstName(name?: string | null): string {
+  return (name ?? "").trim().split(/\s+/)[0] ?? "";
+}
+
+export interface NoticeBooking {
+  serviceName: string;
+  staffName: string;
+  start: string;
+}
+
+export interface NoticeOptions {
+  name?: string | null;
+  lang?: string | null;
+  now?: Date;
+}
+
+function langOf(lang?: string | null): LanguageCode {
+  return isLanguageCode(lang) ? lang : DEFAULT_LANGUAGE;
+}
+
+// Warm, short and emoji-free (an emoji would switch English texts to the 70
+// character segment size and double the cost).
+export function confirmationText(b: NoticeBooking, opts: NoticeOptions = {}): string {
+  const lang = langOf(opts.lang);
+  const n = firstName(opts.name);
+  const at = when(b.start, lang);
+  const tel = formatPhoneDisplay(salon.phone);
+  switch (lang) {
+    case "zh-CN":
+      return `${n ? `${n}您好！` : "您好！"}${salon.name}已为您预约好：${at}，${b.staffName}为您做${b.serviceName}。期待见到您！如需更改，请致电${tel}。`;
+    case "zh-HK":
+      return `${n ? `${n}你好！` : "你好！"}${salon.name}已為你預約好：${at}，由${b.staffName}為你做${b.serviceName}。期待見到你！如需更改，請致電${tel}。`;
+    case "ko-KR":
+      return `${n ? `${n}님, ` : ""}안녕하세요! ${salon.name} 예약이 완료됐어요: ${at}, ${b.staffName} 디자이너와 ${b.serviceName}. 곧 만나요! 변경이 필요하시면 ${tel}로 전화 주세요.`;
+    default: {
+      const en = whenEn(b.start);
+      return `Hi${n ? ` ${n}` : ""}! You're all set at ${salon.name}: ${b.serviceName} with ${b.staffName} on ${en.day} at ${en.time} See you then! Need to change it? Call ${tel}.`;
+    }
+  }
+}
+
+export function reminderText(b: NoticeBooking, opts: NoticeOptions = {}): string {
+  const lang = langOf(opts.lang);
+  const n = firstName(opts.name);
+  const now = opts.now ?? new Date();
+  const tomorrow = dateKeyOf(new Date(now.getTime() + 86400000), SALON_TZ) === dateKeyOf(new Date(b.start), SALON_TZ);
+  const at = when(b.start, lang);
+  const tel = formatPhoneDisplay(salon.phone);
+  switch (lang) {
+    case "zh-CN":
+      return `${n ? `${n}您好，` : "您好，"}${salon.name}温馨提醒：您${tomorrow ? "明天" : ""}（${at}）约了${b.staffName}做${b.serviceName}。我们期待见到您！如需改期，请致电${tel}。`;
+    case "zh-HK":
+      return `${n ? `${n}你好，` : "你好，"}${salon.name}溫馨提示：你${tomorrow ? "明天" : ""}（${at}）約了${b.staffName}做${b.serviceName}。我們期待見到你！如需改期，請致電${tel}。`;
+    case "ko-KR":
+      return `${n ? `${n}님, ` : ""}${salon.name}에서 알려 드려요: ${tomorrow ? "내일 " : ""}${at}에 ${b.staffName} 디자이너와 ${b.serviceName} 예약이 있어요. 기다릴게요! 일정 변경은 ${tel}로 전화 주세요.`;
+    default: {
+      const en = whenEn(b.start);
+      return `Hi${n ? ` ${n}` : ""}, a friendly reminder from ${salon.name}: your ${b.serviceName} with ${b.staffName} is ${tomorrow ? `tomorrow (${en.day})` : `on ${en.day}`} at ${en.time} We can't wait to see you! Need to reschedule? Call ${tel}.`;
+    }
+  }
 }
 
 export const REMINDER_LEAD_HOURS = { min: 18, max: 30 };
@@ -164,12 +230,12 @@ export async function sendDueReminders(now = new Date()): Promise<{ sent: number
   for (const b of rows) {
     if (b.start.getTime() - b.createdAt.getTime() < 12 * 3600000) continue;
     const view = { serviceName: b.service.name, staffName: b.staff.name, start: toZonedISO(b.start, SALON_TZ) };
-    const text = reminderText(view);
+    const text = reminderText(view, { name: b.customer.name, lang: b.customer.preferredLanguage, now });
     const r = await sendNotice(
       "reminder",
       { bookingId: b.id, phone: b.customer.phone, email: b.customer.email, name: b.customer.name },
       text,
-      { subject: `Reminder: ${b.service.name} at ${salon.name}`, text: `Hi ${b.customer.name},\n\n${text}\n\n${salon.name}` },
+      { subject: `See you soon: ${b.service.name} at ${salon.name}`, text: `${text}\n\n${salon.name}` },
     );
     await prisma.booking.update({ where: { id: b.id }, data: { reminderSentAt: now } });
     if (r.channel === "email") out.email++;
