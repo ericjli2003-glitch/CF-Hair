@@ -110,6 +110,7 @@ export function testDeps(opts: { llm?: LlmClient; api?: BookingApi; forward?: st
       dataDir: path.join(dir, "data"),
       endCallGraceMs: 0,
       salonForwardNumber: opts.forward ?? "",
+      salonMainNumber: "",
       twilioAuthToken: "test_auth_token",
       validateTwilioSignature: true,
       callbackOnAbandon: true,

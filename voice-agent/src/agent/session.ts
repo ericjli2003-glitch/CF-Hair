@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { transferBlockReason } from "../transfer-guard.js";
 import path from "node:path";
 import { DateTime } from "luxon";
 import Anthropic from "@anthropic-ai/sdk";
@@ -58,6 +59,8 @@ export interface SessionInit {
   from: string | null;
   to: string | null;
   resumeReason?: string | null;
+  /** Twilio ForwardedFrom: the number that forwarded this call here, when known. */
+  forwardedFrom?: string | null;
   /** The English welcome greeting that ConversationRelay already played. */
   greeting?: string;
 }
@@ -197,7 +200,17 @@ export class CallSession {
   }
 
   private transferAvailable(): boolean {
-    return !!this.deps.config.salonForwardNumber && openStatus(this.deps.salon, this.now()).isOpen;
+    return this.transferBlocked() === null && openStatus(this.deps.salon, this.now()).isOpen;
+  }
+
+  /** Why a transfer would be unsafe on this call (a loop back to the salon's own line), or null. */
+  private transferBlocked(): string | null {
+    return transferBlockReason({
+      target: this.deps.config.salonForwardNumber,
+      mainNumber: this.deps.config.salonMainNumber || this.deps.salon.phone,
+      forwardedFrom: this.init.forwardedFrom ?? null,
+      alreadyTried: this.init.resumeReason === "transfer_failed",
+    });
   }
 
   private applyLanguage(code: LanguageCode, reason: string) {
@@ -371,7 +384,8 @@ export class CallSession {
         this.log.record.endReason = reason;
       },
       requestTransfer: (reason, summary) => {
-        if (!this.deps.config.salonForwardNumber) return { ok: false, why: "No transfer number is configured." };
+        const blocked = this.transferBlocked();
+        if (blocked) return { ok: false, why: blocked };
         if (!openStatus(this.deps.salon, this.now()).isOpen) return { ok: false, why: "The salon is closed, so no one can pick up." };
         this.pendingTransfer = { reason, summary };
         return { ok: true };

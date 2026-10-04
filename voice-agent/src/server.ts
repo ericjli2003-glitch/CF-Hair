@@ -54,6 +54,7 @@ export function createServer(deps: SessionDeps) {
       startTranscription: cfg.startTranscriptionLanguage,
       startSpeechModel: cfg.startSpeechModel,
       token: tokenSecret ? relayToken(tokenSecret, callSid) : "dev",
+      forwardedFrom: req.body?.ForwardedFrom ? String(req.body.ForwardedFrom) : undefined,
     };
   };
 

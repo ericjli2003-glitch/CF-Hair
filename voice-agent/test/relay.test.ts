@@ -92,6 +92,14 @@ describe("Twilio webhooks", () => {
     expect(xml).toContain(`<Parameter name="token" value="${relayToken(AUTH, "CA1")}"/>`);
   });
 
+  it("passes Twilio's ForwardedFrom through to the session for the transfer loop guard", async () => {
+    const { port } = await startServer([]);
+    const xml = await (await signedPost(port, "/twiml", { CallSid: "CA2", From: "+16045550123", ForwardedFrom: "+16044757705" })).text();
+    expect(xml).toContain('<Parameter name="forwardedFrom" value="+16044757705"/>');
+    const plain = await (await signedPost(port, "/twiml", { CallSid: "CA3", From: "+16045550123" })).text();
+    expect(plain).not.toContain('name="forwardedFrom"');
+  });
+
   it("dials the salon on a live-agent handoff and hangs up otherwise", async () => {
     const { port } = await startServer([], "+16045559999");
     const handoff = JSON.stringify({ reasonCode: "live-agent-handoff", summary: "wants owner" });

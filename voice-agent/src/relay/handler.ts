@@ -16,6 +16,8 @@ export interface SetupMessage {
   to?: string;
   direction?: string;
   callerName?: string;
+  /** Present when the carrier passed on who forwarded the call (not guaranteed). */
+  forwardedFrom?: string;
   customParameters?: Record<string, string>;
 }
 
@@ -70,6 +72,7 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
             from: msg.from ?? null,
             to: msg.to ?? null,
             resumeReason: msg.customParameters?.resume ?? null,
+            forwardedFrom: msg.customParameters?.forwardedFrom ?? msg.forwardedFrom ?? null,
             greeting: opts.greeting,
           },
           channel,

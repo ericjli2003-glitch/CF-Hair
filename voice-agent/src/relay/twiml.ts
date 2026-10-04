@@ -43,6 +43,8 @@ export interface RelayTwimlOptions {
   languages: Record<LanguageCode, RelayLanguage>;
   token: string;
   resume?: string;
+  /** Twilio ForwardedFrom on the inbound call, passed through to the session for the transfer guard. */
+  forwardedFrom?: string;
   /** "multi" starts transcription in Deepgram automatic language detection mode. */
   startTranscription?: "en-US" | "multi";
   startSpeechModel?: string;
@@ -90,6 +92,7 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
   }
   cr.parameter({ name: "token", value: o.token });
   if (o.resume) cr.parameter({ name: "resume", value: o.resume });
+  if (o.forwardedFrom) cr.parameter({ name: "forwardedFrom", value: o.forwardedFrom });
   return vr.toString();
 }
 

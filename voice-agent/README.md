@@ -133,7 +133,7 @@ Main files:
 | `lookup_bookings` | By caller ID unless another number is given |
 | `cancel_booking`, `reschedule_booking` | Require confirmation; flags short-notice cancellations |
 | `take_message` | `POST /api/messages`; if the API is down it is queued in `data/pending-messages.jsonl` |
-| `transfer_to_human` | Only while open and if `SALON_FORWARD_NUMBER` is set; `end` with handoff data, then `<Dial>` |
+| `transfer_to_human` | Only while open, if `SALON_FORWARD_NUMBER` is set and the loop guard allows it; `end` with handoff data, then `<Dial>` |
 | `end_call` | Hangs up after the goodbye has played |
 | `set_language` | Switches voice and transcription and saves the caller's language (see below) |
 | `record_sms_consent` | Saves the answer to the one promotional text question (see [Promotional text opt-in](#promotional-text-opt-in)) |
@@ -384,8 +384,10 @@ one is not. The local JSON log in `logs/` is always written as well.
 5. **Copy credentials** from the Console home page into `.env`: `TWILIO_ACCOUNT_SID` and
    `TWILIO_AUTH_TOKEN`. The auth token is used to validate the `X-Twilio-Signature` header on every
    webhook and to sign a per-call token that the WebSocket `setup` message must carry.
-6. **Set the transfer number**: `SALON_FORWARD_NUMBER=+1604...` (the salon landline or the owner's
-   mobile).
+6. **Set the transfer number**: `SALON_FORWARD_NUMBER=+1604...`, the owner's mobile or a second
+   line, **never the salon's main number**. The main number forwards unanswered calls to this
+   receptionist, so a transfer back to it would ring, go unanswered and loop. The agent refuses such
+   transfers and takes a message instead (see [Transfer loop guard](#transfer-loop-guard)).
 7. **Go live in stages.** Start by forwarding only unanswered calls to the Twilio number (most
    carriers support "forward on no answer" or "forward when busy"), so the AI picks up only the calls
    the salon would have missed. Later the main number can be ported to Twilio if wanted.
@@ -568,3 +570,18 @@ notice, as BC's PIPA expects.
   comes back to the agent to leave a message.
 - **Pending messages** queued while the API was down are not replayed automatically (pending Calls
   records are).
+
+## Transfer loop guard
+
+The salon keeps its existing number and forwards unanswered calls to the Twilio number. A transfer
+that rang that same main line would go unanswered and forward straight back here. `src/transfer-guard.ts`
+blocks a transfer, and the agent takes a message instead, when:
+
+- `SALON_FORWARD_NUMBER` equals the salon's main number (`SALON_MAIN_NUMBER`, or the phone in
+  `shared/salon.json` when unset), compared in E.164 so formatting does not matter;
+- Twilio reports the call was forwarded from the transfer number (`ForwardedFrom`, passed to the
+  session as a ConversationRelay parameter; not every carrier sends it);
+- a transfer was already tried on this call and nobody answered.
+
+At startup the server logs where transfers go, or warns that they are disabled and why.
+

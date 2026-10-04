@@ -39,6 +39,8 @@ export interface AppConfig {
   twilioAuthToken: string;
   validateTwilioSignature: boolean;
   salonForwardNumber: string;
+  /** The salon's public number that forwards unanswered calls here; defaults to salon.json phone. */
+  salonMainNumber: string;
   salonJsonPath: string;
   logDir: string;
   dataDir: string;
@@ -70,6 +72,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     twilioAuthToken: env("TWILIO_AUTH_TOKEN"),
     validateTwilioSignature: envBool("TWILIO_VALIDATE_SIGNATURE", true),
     salonForwardNumber: env("SALON_FORWARD_NUMBER"),
+    salonMainNumber: env("SALON_MAIN_NUMBER"),
     salonJsonPath: env("SALON_JSON_PATH", path.resolve(PROJECT_ROOT, "..", "shared", "salon.json")),
     logDir: env("LOG_DIR", path.resolve(PROJECT_ROOT, "logs")),
     dataDir: env("DATA_DIR", path.resolve(PROJECT_ROOT, "data")),
