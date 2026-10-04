@@ -49,7 +49,7 @@ describe("Traditional Chinese (hk) dictionary", () => {
     expect(Object.keys(hk.serviceNames).sort()).toEqual(Object.keys(dictionaries.zh.serviceNames).sort());
     expect(Object.keys(hk.serviceDescriptions).sort()).toEqual(Object.keys(dictionaries.zh.serviceDescriptions).sort());
     expect(Object.keys(hk.bios).sort()).toEqual(Object.keys(dictionaries.zh.bios).sort());
-    expect(hk.home.why).toHaveLength(en.home.why.length);
+    expect(hk.book.steps).toHaveLength(en.book.steps.length);
     expect(hk.languages.Cantonese).toBe("廣東話");
   });
 
@@ -60,6 +60,12 @@ describe("Traditional Chinese (hk) dictionary", () => {
 
   it("never uses the long dash in any language", () => {
     expect(JSON.stringify(dictionaries)).not.toMatch(/\u2014/);
+  });
+
+  it("writes the mall as \"Henderson Place\" in every language, untranslated", () => {
+    const all = JSON.stringify(dictionaries);
+    expect(all).not.toMatch(/恒信|恆信|商场|商場|广场|廣場|헨더슨|플레이스|Henderson Place Mall/);
+    for (const l of LANGS) expect(dictionaries[l].way.mall).toBe("Henderson Place");
   });
 });
 
@@ -163,6 +169,7 @@ describe("calendar file", () => {
     const ics = bookingToIcs(b, "hk");
     expect(ics).toContain("SUMMARY:CF Hair Salon：男士剪髮");
     expect(ics).toContain("請致電");
-    expect(bookingToIcs(b)).toContain("SUMMARY:Men's Haircut at CF Hair Salon");
+    expect(bookingToIcs(b)).toContain("SUMMARY:Men's haircut at CF Hair Salon");
+    expect(ics).toContain("LOCATION:2140-1163 Pinetree Way (Henderson Place)\\, Coquitlam\\, BC V3B 8A9");
   });
 });

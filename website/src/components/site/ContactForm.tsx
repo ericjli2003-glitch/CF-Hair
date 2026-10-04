@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useI18n } from "../LangProvider";
-import { Sparkle } from "../art/Monogram";
 
 export function ContactForm() {
   const { t } = useI18n();
@@ -25,40 +24,43 @@ export function ContactForm() {
     setState("error");
   }
 
-  if (state === "sent") {
-    return (
-      <div className="grid min-h-[420px] place-items-center rounded-[28px] bg-espresso p-10 text-center text-paper">
-        <div>
-          <Sparkle className="mx-auto h-6 w-6 text-champagne" />
-          <p className="display mt-6 text-[2.2rem] leading-tight">{t.contact.sent}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={onSubmit} className="rounded-[28px] bg-paper p-7 ring-1 ring-line sm:p-9">
-      <h2 className="display text-[2.2rem]">{t.contact.formTitle}</h2>
-      <p className="mt-2 text-sm text-ink-soft">{t.contact.formLead}</p>
-      <div className="mt-7 space-y-5">
-        <div>
-          <label className="label" htmlFor="c-name">{t.contact.name}</label>
-          <input id="c-name" name="name" required autoComplete="name" className="field" />
-        </div>
-        <div>
-          <label className="label" htmlFor="c-phone">{t.contact.phone}</label>
-          <input id="c-phone" name="phone" required type="tel" autoComplete="tel" placeholder="(604) 555-0123" className="field" />
-        </div>
-        <div>
-          <label className="label" htmlFor="c-msg">{t.contact.message}</label>
-          <textarea id="c-msg" name="message" required rows={4} className="field resize-none" />
-        </div>
-        <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
-        {err && <p className="text-sm text-clay">{err}</p>}
-        <button type="submit" disabled={state === "sending"} className="btn-primary w-full !py-4 disabled:opacity-60">
-          {state === "sending" ? "..." : t.contact.send}
-        </button>
-      </div>
-    </form>
+    <section aria-labelledby="ask" className="rounded-xl bg-white p-5 sm:p-7">
+      <h2 id="ask" className="display text-[1.75rem]">
+        {t.contact.formTitle}
+      </h2>
+      {state === "sent" ? (
+        <p role="status" className="mt-4 text-[1.1rem] leading-snug">
+          {t.contact.sent}
+        </p>
+      ) : (
+        <form onSubmit={onSubmit}>
+          <p className="mt-1.5 text-slate">{t.contact.formLead}</p>
+          <div className="mt-6 space-y-5">
+            <div>
+              <label className="s-label" htmlFor="c-name">{t.contact.name}</label>
+              <input id="c-name" name="name" required autoComplete="name" className="s-field" />
+            </div>
+            <div>
+              <label className="s-label" htmlFor="c-phone">{t.contact.phoneField}</label>
+              <input id="c-phone" name="phone" required type="tel" autoComplete="tel" placeholder="(604) 555-0123" className="s-field" />
+            </div>
+            <div>
+              <label className="s-label" htmlFor="c-msg">{t.contact.message}</label>
+              <textarea id="c-msg" name="message" required rows={4} className="s-field resize-y" />
+            </div>
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+            {err && (
+              <p role="alert" className="text-alert">
+                {err}
+              </p>
+            )}
+            <button type="submit" disabled={state === "sending"} className="s-btn w-full">
+              {state === "sending" ? t.contact.sending : t.contact.send}
+            </button>
+          </div>
+        </form>
+      )}
+    </section>
   );
 }

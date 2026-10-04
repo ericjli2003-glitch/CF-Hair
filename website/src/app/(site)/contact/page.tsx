@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { MapArt } from "@/components/art/MapArt";
-import { Arrow } from "@/components/art/Monogram";
-import { Reveal } from "@/components/Reveal";
 import { ContactForm } from "@/components/site/ContactForm";
+import { OpenNow } from "@/components/site/OpenNow";
+import { Wayfinding } from "@/components/site/Wayfinding";
 import { fill } from "@/lib/i18n/dictionary";
 import { formatTime } from "@/lib/i18n/localize";
 import { getI18n } from "@/lib/i18n/server";
@@ -10,7 +9,7 @@ import { DAY_KEYS, formatPhoneDisplay, fullAddress, isPlaceholderOnly, mapsUrl, 
 import { dateKeyOf, weekdayOf } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Visit & contact" };
+export const metadata: Metadata = { title: "Visit" };
 
 export default async function ContactPage() {
   const { lang, t } = await getI18n();
@@ -18,71 +17,69 @@ export default async function ContactPage() {
   const showEmail = !isPlaceholderOnly(salon.email);
 
   return (
-    <div className="container-x pb-24 pt-14 md:pt-20">
-      <Reveal>
-        <p className="eyebrow">{t.contact.eyebrow}</p>
-        <h1 className="display mt-6 text-[clamp(3.4rem,9vw,7rem)]">{t.contact.title}</h1>
-        <p className="mt-6 max-w-xl leading-relaxed text-ink-soft">{t.contact.lead}</p>
-      </Reveal>
+    <div className="frame pb-16 pt-4 md:pt-8">
+      <h1 className="display text-[clamp(2.25rem,5vw,3.25rem)]">{t.contact.title}</h1>
+      <p className="mt-3 max-w-[60ch] text-[1.1rem] leading-snug">{t.contact.lead}</p>
 
-      <div className="mt-16 grid gap-12 lg:grid-cols-12">
-        <div className="space-y-12 lg:col-span-7">
-          <Reveal>
-            <a href={mapsUrl()} target="_blank" rel="noreferrer" className="group relative block overflow-hidden rounded-[28px] bg-paper ring-1 ring-line">
-              <MapArt className="aspect-[16/10] w-full transition-transform duration-700 group-hover:scale-[1.03]" />
-              <span className="absolute bottom-5 left-5 inline-flex items-center gap-3 rounded-full bg-ink px-5 py-3 text-[0.75rem] font-medium uppercase tracking-[0.14em] text-paper">
-                {t.home.openMaps}
-                <Arrow className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </a>
-          </Reveal>
-          <div className="grid gap-10 sm:grid-cols-2">
-            <Reveal>
-              <p className="label">{t.home.address}</p>
-              <p className="mt-3 text-[1.05rem] leading-relaxed">{fullAddress()}</p>
-              <p className="label mt-8">{t.home.phone}</p>
-              <a href={`tel:${salon.phone}`} className="display link-u mt-2 inline-block text-[2rem]">
+      <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="min-w-0">
+          <h2 className="display text-[1.75rem]">{t.way.title}</h2>
+          <div className="mt-6">
+            <Wayfinding t={t} />
+          </div>
+
+          <div className="mt-10 grid gap-8 border-t border-rule pt-8 sm:grid-cols-2">
+            <div>
+              <h2 className="font-medium">{t.contact.address}</h2>
+              <p className="mt-1.5 max-w-[34ch] leading-snug">{fullAddress()}</p>
+              <a href={mapsUrl()} target="_blank" rel="noreferrer" className="s-btn-line mt-3">
+                {t.common.openMaps}
+              </a>
+              <h2 className="mt-6 font-medium">{t.contact.phone}</h2>
+              <a href={`tel:${salon.phone}`} className="s-link nums mt-1 inline-block font-cond text-[1.6rem] font-semibold">
                 {formatPhoneDisplay(salon.phone)}
               </a>
               {showEmail && (
                 <>
-                  <p className="label mt-8">{t.contact.email}</p>
-                  <a href={`mailto:${salon.email}`} className="link-u mt-3 inline-block">{salon.email}</a>
+                  <h2 className="mt-6 font-medium">{t.contact.email}</h2>
+                  <a href={`mailto:${salon.email}`} className="s-link mt-1 inline-block">
+                    {salon.email}
+                  </a>
                 </>
               )}
-            </Reveal>
-            <Reveal delay={80}>
-              <p className="label">{t.home.hours}</p>
-              <ul className="mt-3 space-y-1.5 text-[0.95rem]">
+            </div>
+            <div>
+              <h2 className="font-medium">{t.contact.hours}</h2>
+              <OpenNow t={t} lang={lang} className="mt-1.5 text-slate" />
+              <dl className="mt-3 max-w-[20rem]">
                 {DAY_KEYS.map((d) => {
                   const h = salon.hours[d];
                   return (
-                    <li key={d} className={`flex justify-between gap-4 tabular-nums ${d === today ? "font-medium text-clay" : "text-ink-soft"}`}>
-                      <span>{t.days[d]}</span>
-                      <span>{h ? `${formatTime(h.open, lang)}${t.common.to}${formatTime(h.close, lang)}` : t.common.closed}</span>
-                    </li>
+                    <div key={d} className={`nums flex justify-between gap-4 py-0.5 ${d === today ? "font-semibold" : ""}`}>
+                      <dt>
+                        {t.days[d]}
+                        {d === today && <span className="sr-only"> ({t.common.today})</span>}
+                      </dt>
+                      <dd>{h ? `${formatTime(h.open, lang)}${t.common.to}${formatTime(h.close, lang)}` : t.common.closed}</dd>
+                    </div>
                   );
                 })}
-              </ul>
-            </Reveal>
-          </div>
-          <Reveal>
-            <div className="grid gap-6 border-t border-line pt-10 sm:grid-cols-2">
-              <div>
-                <p className="label">{t.contact.gettingHere}</p>
-                <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-soft">{t.contact.gettingHereText}</p>
-              </div>
-              <div className="space-y-2 text-[0.95rem] leading-relaxed text-ink-soft">
-                {salon.policies.walkIns && <p className="label">{t.contact.walkIns}</p>}
-                <p>{fill(t.contact.policy, { h: salon.policies.cancellationHours })}</p>
-                <p>{fill(t.contact.late, { m: salon.policies.lateMinutes })}</p>
-              </div>
+              </dl>
             </div>
-          </Reveal>
+          </div>
+
+          <div className="mt-8 border-t border-rule pt-8">
+            <h2 className="font-medium">{t.contact.before}</h2>
+            <ul className="mt-2 max-w-[60ch] list-disc space-y-1.5 pl-5 leading-snug marker:text-slate">
+              {salon.policies.walkIns && <li>{t.contact.walkIns}</li>}
+              <li>{fill(t.contact.policy, { h: salon.policies.cancellationHours })}</li>
+              <li>{fill(t.contact.late, { m: salon.policies.lateMinutes })}</li>
+            </ul>
+          </div>
         </div>
-        <Reveal delay={120} className="lg:col-span-5">
+        <div className="lg:pt-1">
           <ContactForm />
-        </Reveal>
+        </div>
       </div>
     </div>
   );

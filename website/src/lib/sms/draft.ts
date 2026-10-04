@@ -34,7 +34,7 @@ const SCHEMA = {
   additionalProperties: false,
 } as const;
 
-const SYSTEM = `You write promotional text messages for ${salon.name}, a friendly unisex hair salon in Henderson Place Mall, Coquitlam, BC, Canada. Clients are local families and professionals; many speak Mandarin, Cantonese or Korean.
+const SYSTEM = `You write promotional text messages for ${salon.name}, a friendly unisex hair salon in Henderson Place, Coquitlam, BC, Canada. Clients are local families and professionals; many speak Mandarin, Cantonese or Korean.
 
 Write one promo from the owner's brief, in four versions:
 - en: English. At most 105 characters, plain ASCII only (no emoji, no curly quotes, no dashes other than a hyphen), so that with the salon name prefix and the opt-out line it fits one 160 character SMS segment.
@@ -46,7 +46,8 @@ Rules:
 - Do not include the salon name, "Reply STOP", or any opt-out wording: they are added automatically.
 - Only state facts from the brief. Never invent prices, percentages, dates, or conditions.
 - Warm and direct, one clear call to action (book online or call). No ALL CAPS, no hashtags, no emoji.
-- The four versions say the same thing; translate the meaning naturally, not word for word.`;
+- The four versions say the same thing; translate the meaning naturally, not word for word.
+- If you mention the mall, write "Henderson Place" exactly, in English, in every version. Never translate or transliterate it and do not add a word for "mall".`;
 
 export async function draftPromo(brief: string): Promise<DraftResult> {
   if (!draftingEnabled()) throw new HttpError(404, "DRAFTING_DISABLED", "Set ANTHROPIC_API_KEY to enable drafting");

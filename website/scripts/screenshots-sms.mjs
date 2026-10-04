@@ -44,10 +44,10 @@ for (const [lang, name, tick] of [["en", "3x-book-sms-optin-en", false], ["zh", 
   const c = await ctx({ width: 1440, height: 900 }, lang);
   const p = await c.newPage();
   await p.goto(BASE + "/book?service=womens-cut", { waitUntil: "networkidle" });
-  await p.locator("section button").filter({ hasText: /No preference|不指定/ }).first().click();
-  await p.locator("section button.tabular-nums").first().waitFor();
+  await p.locator("section button").filter({ hasText: /Any stylist|不指定/ }).first().click();
+  await p.locator("main section button.nums[aria-pressed]").first().waitFor();
   await p.waitForTimeout(800);
-  await p.locator("section button.tabular-nums").nth(2).click();
+  await p.locator("main section button.nums[aria-pressed]").nth(2).click();
   await p.locator("button").filter({ hasText: /^(Continue|继续)/ }).first().click();
   await p.fill("#b-name", lang === "zh" ? "陈美玲" : "Jessica Tam");
   await p.fill("#b-phone", "6045550168");

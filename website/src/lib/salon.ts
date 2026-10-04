@@ -20,6 +20,8 @@ export interface SalonStaff {
   role: string;
   bio: string;
   serviceIds: string[];
+  /** Languages this stylist speaks, when the owner has listed them. */
+  languages?: string[];
 }
 
 export interface Salon {
@@ -58,9 +60,30 @@ export function isPlaceholderOnly(value: string | undefined | null): boolean {
 
 export const SALON_TZ = salon.timezone || "America/Vancouver";
 
+/**
+ * The street line as written for clients. The mall is always "Henderson Place" in
+ * every language, never translated and with no word for "mall" added.
+ */
+export function streetLine(): string {
+  return salon.address.street.replace(/Henderson Place Mall/gi, "Henderson Place");
+}
+
 export function fullAddress(): string {
   const a = salon.address;
-  return `${a.street}, ${a.city}, ${a.province} ${a.postal}`;
+  return `${streetLine()}, ${a.city}, ${a.province} ${a.postal}`;
+}
+
+/** "2140" from "2140-1163 Pinetree Way (...)", or "" when the street has no unit. */
+export function unitNumber(): string {
+  return salon.address.street.match(/^\s*(\w+)-\d/)?.[1] ?? "";
+}
+
+/** "1163 Pinetree Way" from "2140-1163 Pinetree Way (...)". */
+export function buildingAddress(): string {
+  return salon.address.street
+    .replace(/^\s*\w+-(?=\d)/, "")
+    .replace(/\s*\(.*\)\s*/, "")
+    .trim();
 }
 
 export function mapsUrl(): string {
@@ -79,3 +102,9 @@ export function telHref(): string {
 }
 
 export const CATEGORY_ORDER = Array.from(new Set(salon.services.map((s) => s.category)));
+
+/** Languages a stylist speaks, from salon.json when listed there; otherwise none. */
+export function staffLanguages(id: string): string[] {
+  const l = salon.staff.find((s) => s.id === id)?.languages;
+  return Array.isArray(l) ? l.filter((x) => typeof x === "string" && x && !x.startsWith("PLACEHOLDER")) : [];
+}

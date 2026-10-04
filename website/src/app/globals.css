@@ -1,6 +1,21 @@
 @import "tailwindcss";
 
 @theme {
+  /* Public site (see docs/design-plan.md). */
+  --color-tile: #e8ede9;
+  --color-board: #ffffff;
+  --color-slate: #4a5450; /* secondary text: 6.6:1 on tile, 7.9:1 on white */
+  --color-rule: #c3ccc7; /* hairlines, never text */
+  --color-edge: #7d8a84; /* form borders: 3.6:1 on white */
+  --color-rod-pink: #f2a7b8;
+  --color-rod-lilac: #b7a6e0;
+  --color-rod-blue: #7fb2e0;
+  --color-rod-yellow: #f2d27a;
+  --color-rod-green: #a9c7b6;
+  --color-rod-peach: #f4b98a;
+  --color-alert: #a3122a; /* error text: 7.4:1 on white */
+
+  /* Owner admin (unchanged colours; it only picks up the new type). */
   --color-bone: #f4eee6;
   --color-paper: #fbf8f3;
   --color-sand: #e9ddcd;
@@ -16,103 +31,104 @@
   --color-espresso-2: #33271f;
   --color-moss: #5f6a52;
 
-  --font-display: var(--font-cormorant), var(--font-serif-sc), var(--font-serif-hk), var(--font-serif-kr), ui-serif, Georgia, serif;
-  --font-sans: var(--font-jost), var(--font-sans-sc), var(--font-sans-hk), var(--font-sans-kr), ui-sans-serif, system-ui, sans-serif;
+  /* Barlow for Latin text; Chinese and Korean use system fonts first. */
+  --font-sans: var(--font-barlow), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple SD Gothic Neo", "Malgun Gothic",
+    "Noto Sans SC", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-barlow-semi), var(--font-sans);
+  --font-cond: var(--font-barlow-cond), var(--font-sans);
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
-
-  --animate-marquee: marquee 38s linear infinite;
-  --animate-spin-slow: spin 28s linear infinite;
   --animate-draw: draw 3.2s var(--ease-soft) both;
-  --animate-float: float 9s ease-in-out infinite;
+  --animate-fade: fade 0.22s ease-out both;
+  --animate-step: step 0.24s ease-out both;
 
-  @keyframes marquee {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
   @keyframes draw {
     from { stroke-dashoffset: 1; opacity: 0; }
     20% { opacity: 1; }
     to { stroke-dashoffset: 0; opacity: 1; }
   }
-  @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-10px) rotate(1.5deg); }
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes step {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
   }
 }
 
 :root {
   color-scheme: light;
-  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+:root:lang(zh-Hant) {
+  --font-sans: var(--font-barlow), "PingFang HK", "PingFang TC", "Microsoft JhengHei", "Noto Sans HK", "Noto Sans TC",
+    "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+}
+:root:lang(ko) {
+  --font-sans: var(--font-barlow), "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
-  scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--color-bone);
-  color: var(--color-ink);
+  background: var(--color-tile);
+  color: #000;
   font-family: var(--font-sans);
   font-feature-settings: "kern", "liga";
-  text-rendering: optimizeLegibility;
 }
 
 :lang(ko) {
   word-break: keep-all;
 }
-:lang(zh-Hans) .display {
-  letter-spacing: 0.01em;
-  line-height: 1.12;
-}
-/* Traditional Chinese (Hong Kong): Hong Kong glyph forms ahead of the Simplified fonts. */
-:root:lang(zh-Hant) {
-  --font-display: var(--font-cormorant), var(--font-serif-hk), var(--font-serif-sc), var(--font-serif-kr), ui-serif, Georgia, serif;
-  --font-sans: var(--font-jost), var(--font-sans-hk), var(--font-sans-sc), var(--font-sans-kr), ui-sans-serif, system-ui, sans-serif;
-}
-:lang(zh-Hant) .display {
-  letter-spacing: 0.01em;
-  line-height: 1.12;
-}
-:lang(ko) .display {
-  letter-spacing: -0.01em;
-  line-height: 1.12;
-}
 
 ::selection {
-  background: var(--color-clay);
-  color: var(--color-paper);
+  background: #000;
+  color: #fff;
 }
 
-/* Paper grain over the public site (absolute, so full-page captures look right). */
-.grain {
-  position: relative;
+/* Visible keyboard focus on the public site. */
+.site :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
 }
-.grain::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 60;
-  opacity: 0.09;
-  background-image: var(--grain);
-  mix-blend-mode: multiply;
+.site :where(input[type="checkbox"]):focus-visible {
+  outline-offset: 3px;
 }
 
-@utility eyebrow {
-  @apply text-[0.7rem] font-medium uppercase tracking-[0.24em] text-clay;
-}
 @utility display {
   font-family: var(--font-display);
   font-weight: 500;
-  letter-spacing: -0.015em;
-  line-height: 0.98;
+  letter-spacing: -0.01em;
+  line-height: 1.02;
   text-wrap: balance;
 }
-@utility container-x {
-  @apply mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-10;
+@utility frame {
+  @apply mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8;
 }
+@utility nums {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Public buttons: black, no accent colour, never an arrow. */
+@utility s-btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-black px-5 text-[0.98rem] font-medium text-white transition-colors hover:bg-[#2b302e] disabled:cursor-not-allowed disabled:bg-[#5d6662];
+}
+@utility s-btn-line {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border-[1.5px] border-black bg-white px-5 text-[0.98rem] font-medium text-black transition-colors hover:bg-tile;
+}
+@utility s-link {
+  @apply underline decoration-1 underline-offset-[3px] hover:decoration-2;
+}
+@utility s-field {
+  @apply min-h-11 w-full rounded-md border border-edge bg-white px-3.5 py-2.5 text-base text-black placeholder:text-slate/70;
+}
+@utility s-label {
+  @apply mb-1.5 block text-[0.95rem] font-medium text-black;
+}
+
+/* Owner admin utilities (kept as they were). */
 @utility btn {
   @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.82rem] font-medium uppercase tracking-[0.14em] transition-all duration-300;
 }
@@ -125,19 +141,6 @@ body {
 @utility btn-ghost {
   @apply btn border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-paper;
 }
-@utility btn-light {
-  @apply btn border border-paper/30 text-paper hover:bg-paper hover:text-espresso;
-}
-@utility link-u {
-  background-image: linear-gradient(currentColor, currentColor);
-  background-size: 0% 1px;
-  background-repeat: no-repeat;
-  background-position: 0 100%;
-  transition: background-size 0.4s var(--ease-soft);
-  &:hover {
-    background-size: 100% 1px;
-  }
-}
 @utility field {
   @apply w-full rounded-xl border border-line bg-paper px-4 py-3 text-[0.95rem] text-ink outline-none transition placeholder:text-mute/70 focus:border-clay focus:ring-4 focus:ring-clay/10;
 }
@@ -145,32 +148,9 @@ body {
   @apply mb-1.5 block text-[0.72rem] font-medium uppercase tracking-[0.16em] text-ink-soft;
 }
 
-/* Scroll reveal (see components/Reveal.tsx). */
-.reveal {
-  opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.9s var(--ease-soft), transform 0.9s var(--ease-soft);
-  transition-delay: var(--d, 0ms);
-}
-.reveal.in {
-  opacity: 1;
-  transform: none;
-}
-
 .strand {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-}
-
-.arch {
-  border-radius: 999px 999px 18px 18px;
-}
-
-.leader {
-  flex: 1;
-  border-bottom: 1px dotted color-mix(in srgb, var(--color-ink) 28%, transparent);
-  transform: translateY(-0.32em);
-  min-width: 1.5rem;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -180,9 +160,21 @@ body {
   scrollbar-width: none;
 }
 
+/* The price board scrolls inside itself on wide screens: a soft edge at the
+   bottom says there is more, and disappears at the end of the list. */
+@media (min-width: 1024px) {
+  .board-scroll {
+    background:
+      linear-gradient(#fff 30%, rgb(255 255 255 / 0)) center top / 100% 2.5rem no-repeat local,
+      linear-gradient(rgb(255 255 255 / 0), #fff 70%) center bottom / 100% 2.5rem no-repeat local,
+      linear-gradient(rgb(0 0 0 / 0.14), rgb(0 0 0 / 0)) center top / 100% 0.75rem no-repeat scroll,
+      linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.14)) center bottom / 100% 0.75rem no-repeat scroll;
+    background-color: #fff;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
   .strand { stroke-dashoffset: 0; animation: none !important; }
   [class*="animate-"] { animation: none !important; }
-  html { scroll-behavior: auto; }
+  * { transition-duration: 0s !important; }
 }

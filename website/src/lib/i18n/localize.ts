@@ -18,3 +18,23 @@ export function formatTime(hhmm: string, lang: Lang): string {
 }
 
 export const LOCALE: Record<Lang, string> = { en: "en-CA", zh: "zh-CN", hk: "zh-HK", ko: "ko-KR" };
+
+/** "45 min", "1 hr 30 min", "3 hr" in the visitor's language. */
+export function formatDuration(t: Dict, minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  const tpl = h === 0 ? t.common.durM : m === 0 ? t.common.durH : t.common.durHM;
+  return tpl.replace("{h}", String(h)).replace("{m}", String(m));
+}
+
+/** "English, Mandarin, Cantonese and Korean", "英语、普通话、粤语和韩语". */
+export function joinList(lang: Lang, items: string[]): string {
+  try {
+    return new Intl.ListFormat(LOCALE[lang], { style: "long", type: "conjunction" }).format(items);
+  } catch {
+    return items.join(", ");
+  }
+}
+
+/** "$30" or "Free". */
+export const formatPrice = (t: Dict, cad: number) => (cad > 0 ? `$${cad}` : t.common.free);

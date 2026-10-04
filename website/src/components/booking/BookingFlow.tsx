@@ -3,13 +3,24 @@
 import { AsYouType, parsePhoneNumberFromString } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { bookingHref, type BookingStart } from "@/lib/booking-params";
 import type { CatalogService, CatalogStaff } from "@/lib/catalog";
 import { fill } from "@/lib/i18n/dictionary";
-import { categoryName, formatTime, LOCALE, roleName, serviceDesc, serviceName } from "@/lib/i18n/localize";
+import {
+  categoryName,
+  formatDuration,
+  formatPrice,
+  formatTime,
+  LOCALE,
+  roleName,
+  serviceDesc,
+  serviceName,
+} from "@/lib/i18n/localize";
+import { rodColour } from "@/lib/rods";
 import { formatPhoneDisplay, fullAddress, salon, type Hours } from "@/lib/salon";
 import { addDays, weekdayOf } from "@/lib/time";
-import { Arrow, Sparkle } from "../art/Monogram";
 import { useI18n } from "../LangProvider";
+import { Rod } from "../site/Rod";
 
 interface Slot {
   start: string;
@@ -26,20 +37,17 @@ export function BookingFlow(props: {
   categories: string[];
   hours: Hours;
   today: string;
-  initialServiceId?: string;
-  initialStaffId?: string;
+  start: BookingStart;
   cancellationHours: number;
 }) {
   const { t, lang } = useI18n();
   const router = useRouter();
-  const { services, staff, categories, hours, today } = props;
+  const { services, staff, categories, hours, today, start } = props;
 
-  const [serviceId, setServiceId] = useState<string | undefined>(props.initialServiceId);
-  const [staffId, setStaffId] = useState<string | undefined>(
-    props.initialServiceId && props.initialStaffId ? props.initialStaffId : undefined,
-  );
-  const [pendingStaff] = useState<string | undefined>(props.initialStaffId);
-  const [step, setStep] = useState(props.initialServiceId ? (staffId ? 2 : 1) : 0);
+  const [serviceId, setServiceId] = useState<string | undefined>(start.serviceId);
+  const [staffId, setStaffId] = useState<string | undefined>(start.staffId);
+  const pendingStaff = start.pendingStaffId;
+  const [step, setStep] = useState<number>(start.step);
   const [date, setDate] = useState<string | undefined>();
   const [slots, setSlots] = useState<Slot[] | null>(null);
   const [slot, setSlot] = useState<Slot | undefined>();
@@ -51,6 +59,8 @@ export function BookingFlow(props: {
   const [submitting, setSubmitting] = useState(false);
   const [banner, setBanner] = useState("");
   const topRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const moved = useRef(false);
 
   const service = services.find((s) => s.id === serviceId);
   const stylist = staff.find((s) => s.id === staffId);
@@ -59,10 +69,28 @@ export function BookingFlow(props: {
   const days = useMemo(() => Array.from({ length: DAYS_AHEAD }, (_, i) => addDays(today, i)), [today]);
   const isOpen = useCallback((d: string) => !!hours[weekdayOf(d)], [hours]);
 
-  const go = (n: number) => {
-    setStep(n);
-    requestAnimationFrame(() => topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  // Keep the address bar in step with the choice, so a reload or a shared link
+  // lands in the same place.
+  const syncUrl = (sid?: string, tid?: string) => {
+    try {
+      window.history.replaceState(window.history.state, "", bookingHref(sid, tid));
+    } catch {
+      /* not essential */
+    }
   };
+
+  const go = (n: number) => {
+    moved.current = true;
+    setStep(n);
+  };
+
+  // After a step change, bring the new step into view and move focus to its heading.
+  useEffect(() => {
+    if (!moved.current) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    topRef.current?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step]);
 
   const fetchSlots = useCallback(
     async (d: string): Promise<Slot[]> => {
@@ -125,11 +153,17 @@ export function BookingFlow(props: {
     // Keep a stylist chosen from the team page if they offer this service.
     const keep = pendingStaff && staff.find((x) => x.id === pendingStaff)?.serviceIds.includes(s.id);
     setStaffId(keep ? pendingStaff : undefined);
+    syncUrl(id, keep ? pendingStaff : undefined);
     go(keep ? 2 : 1);
   };
   const pickStaff = (id: string) => {
     setStaffId(id);
+    syncUrl(serviceId, id);
     go(2);
+  };
+  const backTo = (n: number) => {
+    if (n === 0) syncUrl(undefined, pendingStaff);
+    go(n);
   };
 
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(LOCALE[lang], { month: "short", timeZone: "UTC" }), [lang]);
@@ -156,6 +190,8 @@ export function BookingFlow(props: {
     if (!phoneValid(form.phone)) errs.phone = t.book.errPhone;
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = t.book.errEmail;
     setErrors(errs);
+    const first = ["name", "phone", "email"].find((k) => errs[k]);
+    if (first) document.getElementById(`b-${first}`)?.focus();
     if (Object.keys(errs).length || !service || !slot) return;
     setSubmitting(true);
     setBanner("");
@@ -197,27 +233,46 @@ export function BookingFlow(props: {
 
   const morning = (slots ?? []).filter((s) => Number(s.start.slice(11, 13)) < 12);
   const afternoon = (slots ?? []).filter((s) => Number(s.start.slice(11, 13)) >= 12);
+  const total = t.book.steps.length;
+
+  const stepHeading = (children: React.ReactNode) => (
+    <h2 ref={headingRef} tabIndex={-1} className="display text-[1.75rem] outline-none sm:text-[2rem]">
+      <span className="sr-only">{fill(t.book.stepOf, { n: step + 1, total })}: </span>
+      {children}
+    </h2>
+  );
+  const backButton = (to: number) => (
+    <button type="button" onClick={() => backTo(to)} className="s-btn-line">
+      {t.common.back}
+    </button>
+  );
 
   return (
-    <div ref={topRef} className="scroll-mt-24">
-      {/* Progress */}
-      <ol className="mt-10 grid grid-cols-4 gap-2 sm:gap-4">
+    <div ref={topRef} className="scroll-mt-4">
+      {/* Steps: a real sequence, so they are numbered. */}
+      <ol className="mt-6 grid grid-cols-4 gap-1.5 sm:gap-3">
         {t.book.steps.map((label, i) => {
           const done = i < step;
           const active = i === step;
           return (
-            <li key={label}>
+            <li key={label} className="min-w-0">
               <button
                 type="button"
                 disabled={!done}
-                onClick={() => go(i)}
-                className="group w-full text-left disabled:cursor-default"
+                onClick={() => backTo(i)}
+                aria-current={active ? "step" : undefined}
+                className={`flex w-full min-w-0 items-center gap-2 rounded-md border-b-[3px] py-2 text-left text-[0.95rem] ${
+                  active ? "border-black font-semibold" : done ? "border-black/40 hover:border-black" : "border-rule text-slate"
+                } disabled:cursor-default`}
               >
-                <span className={`block h-[3px] rounded-full transition-colors duration-500 ${done || active ? "bg-clay" : "bg-line"}`} />
-                <span className={`mt-3 flex items-center gap-2 text-[0.7rem] uppercase tracking-[0.18em] ${active ? "text-ink" : done ? "text-ink-soft group-hover:text-clay" : "text-mute"}`}>
-                  <span className="tabular-nums">0{i + 1}</span>
-                  <span className="hidden sm:inline">{label}</span>
+                <span
+                  className={`nums grid h-6 w-6 shrink-0 place-items-center rounded-full text-[0.85rem] font-semibold ${
+                    active ? "bg-black text-white" : done ? "border-[1.5px] border-black" : "border-[1.5px] border-edge"
+                  }`}
+                >
+                  {i + 1}
                 </span>
+                <span className={`truncate ${active ? "" : "hidden sm:inline"}`}>{label}</span>
               </button>
             </li>
           );
@@ -225,44 +280,47 @@ export function BookingFlow(props: {
       </ol>
 
       {banner && (
-        <div role="alert" className="mt-8 rounded-2xl border border-clay/30 bg-clay/5 px-5 py-4 text-sm text-clay-deep">
+        <div role="alert" className="mt-6 rounded-md border-2 border-alert bg-white px-4 py-3 font-medium text-alert">
           {banner}
         </div>
       )}
 
-      <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-8">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] lg:gap-10">
+        <div key={step} className="min-w-0 animate-step">
           {step === 0 && (
             <section>
-              <h2 className="display text-[2.4rem]">{t.book.serviceTitle}</h2>
-              <div className="mt-8 space-y-10">
+              {stepHeading(t.book.serviceTitle)}
+              <div className="mt-6 overflow-hidden rounded-xl bg-white">
                 {categories.map((c) => (
                   <div key={c}>
-                    <p className="eyebrow !text-mute">{categoryName(t, c)}</p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <h3 style={{ background: rodColour(c) }} className="px-4 py-2.5 font-cond text-[1.3rem] font-semibold leading-none sm:px-5">
+                      {categoryName(t, c)}
+                    </h3>
+                    <ul>
                       {services
                         .filter((s) => s.category === c)
                         .map((s) => (
-                          <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => pickService(s.id)}
-                            className={`group flex flex-col rounded-2xl border p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-clay hover:shadow-[0_18px_40px_-24px_rgba(122,59,31,0.45)] ${
-                              serviceId === s.id ? "border-clay bg-paper" : "border-line bg-paper/60"
-                            }`}
-                          >
-                            <span className="flex items-start justify-between gap-3">
-                              <span className="font-medium leading-snug">{serviceName(t, s.id, s.name)}</span>
-                              <span className="display shrink-0 text-[1.5rem] leading-none">{s.priceCAD > 0 ? `$${s.priceCAD}` : t.common.free}</span>
-                            </span>
-                            <span className="mt-2 line-clamp-2 text-[0.85rem] leading-relaxed text-ink-soft">{serviceDesc(t, s.id, s.description)}</span>
-                            <span className="mt-4 flex items-center justify-between text-[0.7rem] uppercase tracking-[0.18em] text-mute">
-                              {s.durationMin} {t.common.min}
-                              <Arrow className="h-4 w-4 text-ink opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
-                            </span>
-                          </button>
+                          <li key={s.id} className="border-b border-rule last:border-b-0">
+                            <button
+                              type="button"
+                              onClick={() => pickService(s.id)}
+                              aria-current={serviceId === s.id ? "true" : undefined}
+                              style={{ ["--rod" as string]: rodColour(c) }}
+                              className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-4 py-3 text-left hover:bg-[color-mix(in_srgb,var(--rod)_24%,white)] sm:grid-cols-[minmax(0,1fr)_6.5rem_4rem] sm:px-5 ${
+                                serviceId === s.id ? "bg-[color-mix(in_srgb,var(--rod)_40%,white)]" : ""
+                              }`}
+                            >
+                              <span className="min-w-0">
+                                <span className="block text-[1.05rem] font-medium leading-snug">{serviceName(t, s.id, s.name)}</span>
+                                <span className="mt-0.5 block text-[0.88rem] leading-snug text-slate">{serviceDesc(t, s.id, s.description)}</span>
+                                <span className="nums mt-1 block text-[0.88rem] text-slate sm:hidden">{formatDuration(t, s.durationMin)}</span>
+                              </span>
+                              <span className="nums hidden text-[0.95rem] text-slate sm:block">{formatDuration(t, s.durationMin)}</span>
+                              <span className="nums text-right font-cond text-[1.35rem] font-semibold leading-none">{formatPrice(t, s.priceCAD)}</span>
+                            </button>
+                          </li>
                         ))}
-                    </div>
+                    </ul>
                   </div>
                 ))}
               </div>
@@ -271,48 +329,34 @@ export function BookingFlow(props: {
 
           {step === 1 && service && (
             <section>
-              <h2 className="display text-[2.4rem]">{t.book.staffTitle}</h2>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => pickStaff("any")}
-                  className={`group flex items-center gap-4 rounded-2xl border p-5 text-left transition hover:border-clay ${staffId === "any" ? "border-clay bg-paper" : "border-line bg-paper/60"}`}
-                >
-                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-espresso text-champagne">
-                    <Sparkle className="h-5 w-5" />
-                  </span>
-                  <span>
-                    <span className="block font-medium">{t.book.noPref}</span>
-                    <span className="mt-0.5 block text-sm text-ink-soft">{t.book.noPrefSub}</span>
-                  </span>
-                </button>
-                {eligibleStaff.map((s, i) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => pickStaff(s.id)}
-                    className={`group flex items-center gap-4 rounded-2xl border p-5 text-left transition hover:border-clay ${staffId === s.id ? "border-clay bg-paper" : "border-line bg-paper/60"}`}
-                  >
-                    <span
-                      className="display grid h-14 w-14 shrink-0 place-items-center rounded-full text-[1.7rem] italic text-paper"
-                      style={{ background: ["#a2532f", "#6f5a43", "#7c4a45", "#5f6a52"][i % 4] }}
-                    >
-                      {s.name.replace(/^Stylist\s+/i, "").charAt(0)}
-                    </span>
-                    <span>
-                      <span className="block font-medium">{s.name}</span>
-                      <span className="mt-0.5 block text-sm text-ink-soft">{roleName(t, s.role)}</span>
-                    </span>
-                  </button>
-                ))}
+              {stepHeading(t.book.staffTitle)}
+              <ul className="mt-6 overflow-hidden rounded-xl bg-white">
+                {[{ id: "any", name: t.book.noPref, sub: t.book.noPrefSub }, ...eligibleStaff.map((s) => ({ id: s.id, name: s.name, sub: roleName(t, s.role) }))].map(
+                  (s) => (
+                    <li key={s.id} className="border-b border-rule last:border-b-0">
+                      <button
+                        type="button"
+                        onClick={() => pickStaff(s.id)}
+                        aria-current={staffId === s.id ? "true" : undefined}
+                        className={`flex w-full min-h-16 flex-col justify-center px-4 py-3 text-left hover:bg-tile sm:px-5 ${staffId === s.id ? "bg-tile" : ""}`}
+                      >
+                        <span className="text-[1.05rem] font-medium">{s.name}</span>
+                        <span className="text-[0.92rem] text-slate">{s.sub}</span>
+                      </button>
+                    </li>
+                  ),
+                )}
+              </ul>
+              <div className="mt-6">
+                {backButton(0)}
               </div>
             </section>
           )}
 
           {step === 2 && service && (
             <section>
-              <h2 className="display text-[2.4rem]">{t.book.timeTitle}</h2>
-              <div className="no-scrollbar -mx-5 mt-8 flex gap-2 overflow-x-auto px-5 pb-2 sm:mx-0 sm:px-0">
+              {stepHeading(t.book.timeTitle)}
+              <div className="no-scrollbar -mx-4 mt-6 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
                 {days.map((d) => {
                   const open = isOpen(d);
                   const sel = d === date;
@@ -323,37 +367,35 @@ export function BookingFlow(props: {
                       type="button"
                       disabled={!open}
                       onClick={() => loadDate(d)}
-                      className={`flex w-[4.4rem] shrink-0 flex-col items-center rounded-2xl border py-3 transition ${
+                      aria-pressed={sel}
+                      aria-label={`${longDate(d)}${open ? "" : `, ${t.common.closed}`}`}
+                      className={`flex w-[4.25rem] shrink-0 flex-col items-center rounded-md border-[1.5px] py-2.5 ${
                         sel
-                          ? "border-ink bg-ink text-paper"
+                          ? "border-black bg-black text-white"
                           : open
-                            ? "border-line bg-paper/60 hover:border-clay"
-                            : "border-dashed border-line text-mute/60"
+                            ? "border-transparent bg-white hover:border-black"
+                            : "border-dashed border-edge text-slate"
                       }`}
                     >
-                      <span className="text-[0.62rem] uppercase tracking-[0.16em] opacity-70">
-                        {d === today ? t.common.today : t.daysShort[weekdayOf(d)]}
-                      </span>
-                      <span className="display mt-1 text-[1.7rem] leading-none">{dd}</span>
-                      <span className="mt-1 text-[0.62rem] uppercase tracking-[0.14em] opacity-70">
-                        {monthFmt.format(new Date(Date.UTC(y, m - 1, dd)))}
-                      </span>
+                      <span className="text-[0.82rem]">{d === today ? t.common.today : t.daysShort[weekdayOf(d)]}</span>
+                      <span className="nums mt-0.5 font-cond text-[1.6rem] font-semibold leading-none">{dd}</span>
+                      <span className="mt-0.5 text-[0.82rem]">{monthFmt.format(new Date(Date.UTC(y, m - 1, dd)))}</span>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="mt-8 min-h-[220px]">
-                {date && <p className="text-sm text-ink-soft">{longDate(date)}</p>}
+              <div className="mt-6 min-h-[220px]" aria-live="polite" aria-busy={loadingSlots}>
+                {date && <p className="font-medium">{longDate(date)}</p>}
                 {loadingSlots && (
-                  <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                  <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-5">
                     {Array.from({ length: 10 }).map((_, i) => (
-                      <span key={i} className="h-12 animate-pulse rounded-xl bg-sand/60" />
+                      <span key={i} className="h-12 animate-pulse rounded-md bg-white/70" />
                     ))}
                   </div>
                 )}
                 {!loadingSlots && slots && slots.length === 0 && (
-                  <p className="mt-6 rounded-2xl border border-dashed border-line p-6 text-ink-soft">
+                  <p className="mt-4 rounded-md border-[1.5px] border-dashed border-edge p-5">
                     {date && !isOpen(date) ? t.book.closedDay : t.book.noSlots}
                   </p>
                 )}
@@ -365,9 +407,9 @@ export function BookingFlow(props: {
                   ]
                     .filter((g) => g.items.length)
                     .map((g) => (
-                      <div key={g.label} className="mt-6">
-                        <p className="eyebrow !text-mute">{g.label}</p>
-                        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+                      <div key={g.label} className="mt-5">
+                        <h3 className="text-[0.95rem] text-slate">{g.label}</h3>
+                        <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5">
                           {g.items.map((s) => {
                             const sel = slot?.start === s.start;
                             return (
@@ -375,8 +417,9 @@ export function BookingFlow(props: {
                                 key={s.start}
                                 type="button"
                                 onClick={() => setSlot(s)}
-                                className={`rounded-xl border px-2 py-3 text-[0.92rem] tabular-nums transition ${
-                                  sel ? "border-clay bg-clay text-paper shadow-md" : "border-line bg-paper/70 hover:border-clay hover:text-clay"
+                                aria-pressed={sel}
+                                className={`nums min-h-12 rounded-md border-[1.5px] px-2 text-[1rem] font-medium ${
+                                  sel ? "border-black bg-black text-white" : "border-transparent bg-white hover:border-black"
                                 }`}
                               >
                                 {timeOf(s.start)}
@@ -387,13 +430,10 @@ export function BookingFlow(props: {
                       </div>
                     ))}
               </div>
-              <div className="mt-10 flex items-center justify-between gap-4">
-                <button type="button" onClick={() => go(1)} className="text-sm text-ink-soft link-u">
-                  {t.common.back}
-                </button>
-                <button type="button" disabled={!slot} onClick={() => go(3)} className="btn-primary disabled:cursor-not-allowed disabled:opacity-40">
+              <div className="mt-8 flex items-center justify-between gap-3">
+                {backButton(1)}
+                <button type="button" disabled={!slot} onClick={() => go(3)} className="s-btn">
                   {slot ? t.common.continue : t.book.selectTime}
-                  <Arrow className="h-4 w-4" />
                 </button>
               </div>
             </section>
@@ -401,31 +441,32 @@ export function BookingFlow(props: {
 
           {step === 3 && service && slot && (
             <section>
-              <h2 className="display text-[2.4rem]">{t.book.detailsTitle}</h2>
-              <form onSubmit={submit} noValidate className="mt-8 grid gap-5 sm:grid-cols-2">
+              {stepHeading(t.book.detailsTitle)}
+              <form onSubmit={submit} noValidate className="mt-6 grid gap-5 rounded-xl bg-white p-4 sm:grid-cols-2 sm:p-6">
                 <div className="sm:col-span-2">
-                  <label className="label" htmlFor="b-name">{t.book.name}</label>
+                  <label className="s-label" htmlFor="b-name">{t.book.name}</label>
                   <input
                     id="b-name"
                     autoComplete="name"
-                    className="field"
+                    className="s-field"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? "b-name-err" : undefined}
                   />
-                  {errors.name && <p className="mt-1.5 text-sm text-clay">{errors.name}</p>}
+                  {errors.name && <p id="b-name-err" className="mt-1.5 text-[0.92rem] font-medium text-alert">{errors.name}</p>}
                 </div>
                 <div>
-                  <label className="label" htmlFor="b-phone">{t.book.phone}</label>
+                  <label className="s-label" htmlFor="b-phone">{t.book.phone}</label>
                   <div className="relative">
-                    <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[0.95rem] text-mute">+1</span>
+                    <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate">+1</span>
                     <input
                       id="b-phone"
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel-national"
                       placeholder="(604) 555-0123"
-                      className="field !pl-10"
+                      className="s-field !pl-10"
                       value={form.phone}
                       onChange={(e) => {
                         const v = e.target.value;
@@ -433,33 +474,35 @@ export function BookingFlow(props: {
                         setForm({ ...form, phone: v.length < form.phone.length ? v : formatted });
                       }}
                       aria-invalid={!!errors.phone}
+                      aria-describedby="b-phone-hint"
                     />
                   </div>
                   {errors.phone ? (
-                    <p className="mt-1.5 text-sm text-clay">{errors.phone}</p>
+                    <p id="b-phone-hint" className="mt-1.5 text-[0.92rem] font-medium text-alert">{errors.phone}</p>
                   ) : (
-                    <p className="mt-1.5 text-xs text-mute">{t.book.phoneHint}</p>
+                    <p id="b-phone-hint" className="mt-1.5 text-[0.88rem] text-slate">{t.book.phoneHint}</p>
                   )}
                 </div>
                 <div>
-                  <label className="label" htmlFor="b-email">{t.book.email}</label>
+                  <label className="s-label" htmlFor="b-email">{t.book.email}</label>
                   <input
                     id="b-email"
                     type="email"
                     autoComplete="email"
-                    className="field"
+                    className="s-field"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? "b-email-err" : undefined}
                   />
-                  {errors.email && <p className="mt-1.5 text-sm text-clay">{errors.email}</p>}
+                  {errors.email && <p id="b-email-err" className="mt-1.5 text-[0.92rem] font-medium text-alert">{errors.email}</p>}
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="label" htmlFor="b-notes">{t.book.notes}</label>
+                  <label className="s-label" htmlFor="b-notes">{t.book.notes}</label>
                   <textarea
                     id="b-notes"
                     rows={3}
-                    className="field resize-none"
+                    className="s-field resize-y"
                     value={form.notes}
                     onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   />
@@ -467,8 +510,8 @@ export function BookingFlow(props: {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="b-sms"
-                    className={`flex cursor-pointer gap-3.5 rounded-xl border px-4 py-3.5 transition ${
-                      smsOptIn ? "border-clay/60 bg-paper" : "border-line bg-paper/60 hover:border-ink/30"
+                    className={`flex cursor-pointer gap-3 rounded-md border-[1.5px] px-4 py-3.5 ${
+                      smsOptIn ? "border-black bg-tile" : "border-edge bg-white hover:border-black"
                     }`}
                   >
                     <input
@@ -476,67 +519,64 @@ export function BookingFlow(props: {
                       type="checkbox"
                       checked={smsOptIn}
                       onChange={(e) => setSmsOptIn(e.target.checked)}
-                      className="mt-0.5 h-[1.1rem] w-[1.1rem] shrink-0 cursor-pointer accent-clay"
+                      aria-describedby="b-sms-fine"
+                      className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-black"
                     />
                     <span>
-                      <span className="block text-[0.92rem] leading-snug text-ink">
-                        {fill(t.book.smsOptIn, { salon: salon.name })}
-                      </span>
-                      <span className="mt-1 block text-xs leading-relaxed text-mute">
+                      <span className="block leading-snug">{fill(t.book.smsOptIn, { salon: salon.name })}</span>
+                      <span id="b-sms-fine" className="mt-1.5 block text-[0.88rem] leading-relaxed text-slate">
                         {fill(t.book.smsOptInFine, { salon: salon.name, address: fullAddress(), phone: formatPhoneDisplay(salon.phone) })}
                       </span>
                     </span>
                   </label>
                 </div>
-                <div className="flex items-center justify-between gap-4 sm:col-span-2">
-                  <button type="button" onClick={() => go(2)} className="link-u text-sm text-ink-soft">
-                    {t.common.back}
-                  </button>
-                  <button type="submit" disabled={submitting} className="btn-clay !px-8 !py-4 disabled:opacity-60">
-                    {submitting ? `${t.book.confirming}...` : t.book.confirm}
-                    {!submitting && <Arrow className="h-4 w-4" />}
+                <div className="flex items-center justify-between gap-3 sm:col-span-2">
+                  {backButton(2)}
+                  <button type="submit" disabled={submitting} className="s-btn min-h-12 px-6">
+                    {submitting ? t.book.confirming : t.book.confirm}
                   </button>
                 </div>
-                <p className="text-xs leading-relaxed text-mute sm:col-span-2">
-                  {fill(t.contact.policy, { h: props.cancellationHours })}
-                </p>
+                <p className="text-[0.88rem] leading-relaxed text-slate sm:col-span-2">{fill(t.contact.policy, { h: props.cancellationHours })}</p>
               </form>
             </section>
           )}
         </div>
 
-        {/* Summary */}
-        <aside className="lg:col-span-4">
-          <div className="sticky top-28 overflow-hidden rounded-[24px] bg-espresso text-paper">
-            <div className="relative p-7">
-              <p className="text-[0.68rem] uppercase tracking-[0.24em] text-champagne">{t.book.summary}</p>
-              <dl className="mt-6 space-y-5 text-sm">
-                <SummaryRow
-                  label={t.book.steps[0]}
-                  value={service ? serviceName(t, service.id, service.name) : undefined}
-                  sub={service ? `${service.durationMin} ${t.common.min}` : undefined}
-                  onChange={step > 0 ? () => go(0) : undefined}
-                  changeLabel={t.common.change}
-                />
-                <SummaryRow
-                  label={t.book.steps[1]}
-                  value={staffId === "any" ? (slot ? slot.staffName : t.book.noPref) : stylist?.name}
-                  sub={staffId === "any" && slot ? t.book.noPref : undefined}
-                  onChange={step > 1 ? () => go(1) : undefined}
-                  changeLabel={t.common.change}
-                />
-                <SummaryRow
-                  label={t.book.steps[2]}
-                  value={slot && date ? longDate(date) : undefined}
-                  sub={slot ? `${timeOf(slot.start)}${t.common.to}${timeOf(slot.end)}` : undefined}
-                  onChange={step > 2 ? () => go(2) : undefined}
-                  changeLabel={t.common.change}
-                />
-              </dl>
-              <div className="mt-7 flex items-baseline justify-between border-t border-paper/15 pt-5">
-                <span className="text-[0.68rem] uppercase tracking-[0.2em] text-paper/60">{t.book.total}</span>
-                <span className="display text-[2.2rem]">{service ? (service.priceCAD > 0 ? `$${service.priceCAD}` : t.common.free) : "."}</span>
-              </div>
+        <aside aria-labelledby="summary-title" className={`lg:pt-[3.25rem] ${service ? "" : "hidden"}`}>
+          <div className="rounded-xl bg-white p-5 lg:sticky lg:top-6">
+            <h2 id="summary-title" className="font-cond text-[1.35rem] font-semibold leading-none">
+              {t.book.summary}
+            </h2>
+            <dl className="mt-4 divide-y divide-rule border-y border-rule">
+              <SummaryRow
+                label={t.book.steps[0]}
+                value={service ? serviceName(t, service.id, service.name) : undefined}
+                sub={service ? formatDuration(t, service.durationMin) : undefined}
+                marker={service ? <Rod category={service.category} className="!h-3 !w-8" /> : undefined}
+                onChange={step > 0 ? () => backTo(0) : undefined}
+                changeLabel={t.common.change}
+                empty={t.book.notChosen}
+              />
+              <SummaryRow
+                label={t.book.steps[1]}
+                value={staffId === "any" ? (slot ? slot.staffName : t.book.noPref) : stylist?.name}
+                sub={staffId === "any" && slot ? t.book.noPref : undefined}
+                onChange={step > 1 ? () => backTo(1) : undefined}
+                changeLabel={t.common.change}
+                empty={t.book.notChosen}
+              />
+              <SummaryRow
+                label={t.book.steps[2]}
+                value={slot && date ? longDate(date) : undefined}
+                sub={slot ? `${timeOf(slot.start)}${t.common.to}${timeOf(slot.end)}` : undefined}
+                onChange={step > 2 ? () => backTo(2) : undefined}
+                changeLabel={t.common.change}
+                empty={t.book.notChosen}
+              />
+            </dl>
+            <div className="mt-4 flex items-baseline justify-between">
+              <span className="font-medium">{t.book.total}</span>
+              <span className="nums font-cond text-[1.75rem] font-semibold leading-none">{service ? formatPrice(t, service.priceCAD) : ""}</span>
             </div>
           </div>
         </aside>
@@ -549,25 +589,33 @@ function SummaryRow({
   label,
   value,
   sub,
+  marker,
   onChange,
   changeLabel,
+  empty,
 }: {
   label: string;
   value?: string;
   sub?: string;
+  marker?: React.ReactNode;
   onChange?: () => void;
   changeLabel: string;
+  empty: string;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <dt className="text-[0.66rem] uppercase tracking-[0.2em] text-paper/50">{label}</dt>
-        <dd className={`mt-1 ${value ? "text-paper" : "text-paper/30"}`}>{value ?? "..."}</dd>
-        {sub && <dd className="text-xs text-paper/60">{sub}</dd>}
+    <div className="flex items-start justify-between gap-4 py-3">
+      <div className="min-w-0">
+        <dt className="text-[0.88rem] text-slate">{label}</dt>
+        <dd className={`mt-0.5 flex items-center gap-2 ${value ? "font-medium" : "text-slate"}`}>
+          {marker}
+          {value ?? empty}
+        </dd>
+        {sub && <dd className="nums text-[0.92rem] text-slate">{sub}</dd>}
       </div>
       {onChange && (
-        <button type="button" onClick={onChange} className="text-[0.68rem] uppercase tracking-[0.16em] text-champagne hover:text-paper">
+        <button type="button" onClick={onChange} className="s-link shrink-0 text-[0.92rem]">
           {changeLabel}
+          <span className="sr-only"> {label}</span>
         </button>
       )}
     </div>

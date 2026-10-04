@@ -6,7 +6,7 @@ import { Logo } from "../art/Monogram";
 
 export function Footer({ t, lang }: { t: Dict; lang: Lang }) {
   const year = new Date().getFullYear();
-  // Group consecutive days with identical hours: "Mon to Sat 10:00 to 18:00".
+  // Group consecutive days with identical hours: "Mon to Sat 10 am to 6 pm".
   const groups: { from: string; to: string; hours: string }[] = [];
   for (const d of DAY_KEYS) {
     const h = salon.hours[d];
@@ -17,48 +17,48 @@ export function Footer({ t, lang }: { t: Dict; lang: Lang }) {
   }
   const dayName = (d: string) => t.daysShort[d as keyof typeof t.daysShort];
   return (
-    <footer className="border-t border-line bg-bone">
-      <div className="container-x grid gap-10 py-14 md:grid-cols-12">
-        <div className="md:col-span-4">
+    <footer className="mt-auto border-t border-rule bg-tile">
+      <div className="frame grid gap-8 py-10 text-[0.95rem] sm:grid-cols-2 lg:grid-cols-[1.2fr_1.2fr_1fr_auto] lg:gap-10">
+        <div>
           <Logo />
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-soft">{t.footer.tagline}</p>
+          <p className="mt-3 max-w-[32ch] text-balance leading-snug text-slate">{t.footer.tagline}</p>
         </div>
-        <div className="text-sm leading-relaxed text-ink-soft md:col-span-3">
-          <p className="eyebrow mb-3 !text-mute">{t.home.address}</p>
-          <a href={mapsUrl()} target="_blank" rel="noreferrer" className="link-u">
+        <div>
+          <h2 className="font-medium">{t.contact.address}</h2>
+          <a href={mapsUrl()} target="_blank" rel="noreferrer" className="s-link mt-1.5 block max-w-[34ch] leading-snug">
             {fullAddress()}
           </a>
-          <p className="mt-3">
-            <a href={`tel:${salon.phone}`} className="link-u">
-              {formatPhoneDisplay(salon.phone)}
-            </a>
-          </p>
+          <a href={`tel:${salon.phone}`} className="s-link nums mt-2 inline-block">
+            {formatPhoneDisplay(salon.phone)}
+          </a>
         </div>
-        <div className="text-sm leading-relaxed text-ink-soft md:col-span-3">
-          <p className="eyebrow mb-3 !text-mute">{t.home.hours}</p>
-          {groups.map((g) => (
-            <p key={g.from} className="flex justify-between gap-4 tabular-nums">
-              <span>{g.from === g.to ? dayName(g.from) : `${dayName(g.from)}${t.common.to}${dayName(g.to)}`}</span>
-              <span>{g.hours}</span>
-            </p>
-          ))}
+        <div>
+          <h2 className="font-medium">{t.contact.hours}</h2>
+          <dl className="mt-1.5">
+            {groups.map((g) => (
+              <div key={g.from} className="nums flex justify-between gap-4 sm:max-w-[18rem]">
+                <dt>{g.from === g.to ? dayName(g.from) : `${dayName(g.from)}${t.common.to}${dayName(g.to)}`}</dt>
+                <dd>{g.hours}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <div className="flex flex-col gap-2 text-sm md:col-span-2 md:items-end">
-          <Link href="/services" className="link-u">{t.nav.services}</Link>
-          <Link href="/team" className="link-u">{t.nav.team}</Link>
-          <Link href="/contact" className="link-u">{t.nav.visit}</Link>
-          <Link href="/book" className="link-u text-clay">{t.nav.book}</Link>
-        </div>
+        <nav aria-label="Footer" className="flex flex-col gap-1.5">
+          <Link href="/services" className="s-link">{t.nav.services}</Link>
+          <Link href="/team" className="s-link">{t.nav.team}</Link>
+          <Link href="/contact" className="s-link">{t.nav.visit}</Link>
+          <Link href="/book" className="s-link font-medium">{t.nav.book}</Link>
+        </nav>
       </div>
-      <div className="container-x">
-      <div className="flex flex-col justify-between gap-2 border-t border-line py-6 text-xs text-mute sm:flex-row">
-        <span>
-          © {year} {salon.name}. {t.footer.rights}
-        </span>
-        <Link href="/admin" className="link-u">
-          {t.footer.owner}
-        </Link>
-      </div>
+      <div className="frame">
+        <div className="flex flex-col justify-between gap-2 border-t border-rule py-5 text-[0.85rem] text-slate sm:flex-row">
+          <span>
+            © {year} {salon.name}. {t.footer.rights}
+          </span>
+          <Link href="/admin" className="s-link">
+            {t.footer.owner}
+          </Link>
+        </div>
       </div>
     </footer>
   );

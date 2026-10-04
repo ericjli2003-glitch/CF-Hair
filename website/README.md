@@ -29,6 +29,7 @@ npm run dev                 # http://localhost:3000, owner login at /admin
 | `npm run db:seed` | Re-seeds (wipes demo tables first; refuses on Postgres unless `SEED_ALLOW_REMOTE=1`) |
 | `npm run screenshots` | Playwright screenshots into `../docs/screenshots/website` (server must be running) |
 | `npm run screenshots:sms` | Screenshots of the promotional SMS screens (`3x-*.png`) |
+| `npm run screenshots:redesign` | Screenshots of the redesigned public site and one admin page (`5x-*.png`) |
 
 ## Salon data
 
@@ -38,7 +39,11 @@ Translations live in `src/lib/i18n/dictionary.ts`: one dictionary per language, 
 
 ### Photos
 
-The design uses abstract art where real photos belong. Every slot is marked with a small "Photo slot" label. To use real photos, put them in `public/photos/` and set the paths in `src/data/photos.ts` (`hero`, `interior`, `detail`, and one per stylist id).
+Each stylist row on the home and team pages has a dashed frame labelled "Photo slot" where their portrait goes. To use real photos, put them in `public/photos/` and set the paths in `src/data/photos.ts` (one per stylist id). A stylist's languages are shown when `salon.json` lists them (`"languages": ["English", "Cantonese"]` on the staff entry).
+
+### Design
+
+The public pages follow `../docs/design-plan.md`: a cool tile background, white boards, black type in Barlow (three widths, Latin only; Chinese and Korean use the visitor's system fonts), and perm-rod colours that mark service categories (`src/lib/rods.ts`). The home page opens on the price board: every service, its duration and price in the visitor's language, and a Book link that opens `/book?service=<id>` at the stylist step (`src/lib/booking-params.ts` validates the id; unknown ids start at step 1). The mall is always written "Henderson Place", untranslated, in every language.
 
 ## Booking rules
 
