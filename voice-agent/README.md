@@ -456,6 +456,10 @@ workspace; on the free Hobby workspace use an API key instead (step 3b).
      service exists, its exact subject
      `workspace:<workspace ID>:environment:<environment ID>:service:<service ID>` (tighter: only
      this one service can act as the account).
+   - **Expected audience** (under Advanced match options): `api.anthropic.com`, exactly. Render's
+     token carries that audience without `https://`, and a blank field means Anthropic expects
+     `https://api.anthropic.com`, so the login fails with `jwt_audience_mismatch`.
+   - Workspaces: pick exactly one (with several, the service also needs `ANTHROPIC_WORKSPACE_ID`).
    - Service account name: `cf-hair-voice`. Scope: `workspace:developer`. Token lifetime: 600 s.
    - Note the three IDs it shows: the rule (`fdrl_...`), the service account (`svac_...`) and your
      organization ID (Settings > Organization).
@@ -478,8 +482,10 @@ workspace; on the free Hobby workspace use an API key instead (step 3b).
    testing first; the salon's number is ported or forwarded later.
 8. **Check the logs** in Render (Logs tab): each call prints one line when it ends, and the call
    appears in the website's admin Calls tab. A federation problem shows as a 401 on the first call;
-   the Console's Workload identity > History tab says why (wrong subject, wrong issuer, a reused
-   token).
+   the Console's Workload identity > Authentication events tab says why (`jwt_audience_mismatch`,
+   wrong subject, wrong issuer, a reused token). To test the login without a call, run this in the
+   service's Shell tab:
+   `node -e "import('@anthropic-ai/sdk').then(async ({default: A}) => { await new A().models.list(); console.log('Claude login OK') })"`
 
 Federation notes: never leave an `ANTHROPIC_API_KEY` set on the service alongside federation; the
 SDK prefers any API key it finds (the server drops an empty one at startup, but a real one wins).
