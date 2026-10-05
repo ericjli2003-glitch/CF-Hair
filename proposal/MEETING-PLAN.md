@@ -16,6 +16,7 @@
 - [ ] Pull the latest demos from `website/`, `voice-agent/` and `notes/`; read each README and confirm the exact commands and routes below still match. Run all three end to end twice.
 - [ ] Load the demo with `shared/salon.json` data but rename stylists to neutral names if the placeholder "Stylist A/B/C" looks odd on screen. Make sure no PLACEHOLDER text is visible on the website demo.
 - [ ] Record a 60-second screen capture of each demo as a backup (mall Wi-Fi may be poor). Bring a phone hotspot.
+- [ ] Optional but strongest demo: deploy the phone agent to Render and point a Twilio test number at it (about 15 minutes, steps in `voice-agent/README.md`, "Deploying"; about $10 USD a month for hosting and the number, plus pennies per call). Upgrade the Twilio account first: a trial account plays a trial notice and only accepts calls from verified numbers, so the owner could not call it. Then the owner can call a real number from their own phone in the meeting.
 - [ ] If a live phone number is configured for `npm run demo`, test calling it from a mobile in English, Mandarin, Cantonese and Korean. If Cantonese or Korean quality is shaky, demo the strongest languages live and say the others will be tuned with them.
 - [ ] Prepare the returning-caller demo (section 2.3, step 7): make sure your demo phone number is already saved with language = Cantonese in the demo database (call once in Cantonese beforehand, or set it in the dashboard). Check `voice-agent/README.md` for how `npm run simulate` sets the caller's number. Rehearse it after pulling the latest `voice-agent/`: the call should now open in Cantonese from the first word, with no English greeting before it.
 - [ ] During the test calls to (604) 475-7705, once, call from two phones at the same moment and note whether the second caller hears a busy signal, rings, or goes to voicemail. That is the evidence for the "More lines" add-on.
@@ -147,7 +148,7 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 
 ### Phone and tech
 
-14. Who is the phone provider (Telus, Rogers, Shaw, other)? Landline or mobile? Who owns the account? Does the line have voicemail?
+14. Who is the phone provider (Telus, Rogers, Shaw, other)? Landline or mobile? Who owns the account (exact business name on the bill)? Does the line have voicemail? Does anything else use that line: card terminal, fax, alarm, internet bundle? (Needed for forwarding and for porting; see section 7.)
 15. Do you use any software now (POS, Square, a booking app, WeChat groups, Xiaohongshu, Instagram)?
 16. Do you have a Google Business Profile you can log into? Yelp?
 17. Who would look at the dashboard day to day? Comfortable with a phone or tablet?
@@ -275,7 +276,49 @@ Explaining the data month, if they ask why smart pricing doesn't start straight 
 - Update `shared/salon.json` with confirmed facts (and set `verified.*.status` to "owner-confirmed" with the date).
 - Rebuild the ROI section of the proposal with their real numbers before the onboarding session.
 - If signed: register the domain in the owner's name, start Google Business Profile verification (it can take days), and ask their phone provider about conditional call forwarding. Buy the two toll-free texting numbers (booking texts, promotions) and submit Twilio toll-free verification the same week (free, about 3 to 5 business days), so the opt-in box can go live with the website in Week 2.
-- If they want an add-on: for More lines, call the carrier with the owner about call-forward-busy and an overflow group (or start the port paperwork, which needs a recent phone bill and the account holder's signature; port can take up to 4 weeks). For Pay online, have the owner create their Stripe account (it needs their business and bank details, so they do it, not us). For Smart pricing, nothing to do: the data phase starts when the website goes live; put a reminder in the calendar for the report about 5 weeks later.
+- If they want an add-on: for More lines, call the carrier with the owner about call-forward-busy and an overflow group (or move the number to Twilio: follow the porting checklist in section 7). For Pay online, have the owner create their Stripe account (it needs their business and bank details, so they do it, not us). For Smart pricing, nothing to do: the data phase starts when the website goes live; put a reminder in the calendar for the report about 5 weeks later.
 - If they have an existing opt-in list, get a copy with how and when each person agreed; import only those with a record, and mark the consent source as "imported, [date], [method]".
 - Draft their first two campaigns from the discovery answers (for example a weekday special and a Lunar New Year offer) for the Week 3 session.
 - Order a few sample cards (English, Chinese and Korean) to show at onboarding, and confirm the provider's Chinese and Korean handwriting support.
+
+---
+
+## 7. Number porting checklist (only if the number moves to Twilio)
+
+Porting moves (604) 475-7705 itself to Twilio. Clients dial the same number; Google, Yelp and signs stay correct. Default plan is **forwarding first** (no port): use the existing line's busy and no-answer forwarding to the phone agent for the pilot, and port only when the owner wants "every caller answered" (More lines without a carrier limit). If they leave us later, the number is theirs and can be ported to any phone company.
+
+**Decide first, with the owner**
+- [ ] Forwarding or port? Port only if two-at-once calls are common, or their carrier cannot forward a busy line.
+- [ ] Desk phone after the port: (a) keep the current phone service with a new, unlisted number that Twilio rings first, or (b) an internet desk phone connected to Twilio. (a) is simplest for staff; (b) can be cheaper but needs hardware and setup.
+- [ ] Switch window: a quiet weekday morning, not a Friday or Saturday, and not in December.
+
+**From the owner**
+- [ ] A recent phone bill for (604) 475-7705 (ideally from the last month).
+- [ ] Phone company name and account number, from the bill.
+- [ ] Account holder name and service address, exactly as printed on the bill.
+- [ ] Account PIN or passcode, if the company uses one (always for mobile numbers).
+- [ ] Signature on Twilio's authorization form, by the person named on the account (signed online).
+- [ ] What else runs on the line: card terminal, fax, alarm, internet bundle. Anything that depends on the number must be moved or re-pointed before switch day.
+
+**On our side, before submitting**
+- [ ] Twilio account upgraded (trial accounts cannot port in).
+- [ ] Twilio portability check on the number (free, in the Twilio console).
+- [ ] Phone agent live on Render and tested on a temporary Twilio number: booking, Cantonese, a transfer, a message, two calls at once.
+- [ ] The desk phone's new number set as the first number Twilio rings, with the agent answering on busy or no answer. `SALON_MAIN_NUMBER` stays +16044757705; `SALON_FORWARD_NUMBER` is the owner's mobile, never the main number.
+- [ ] Twilio port fee confirmed (about $7 USD found in search; low confidence) and the timeline (Twilio says up to 4 weeks; plan on 1 to 2).
+
+**Submit and wait**
+- [ ] Submit the port in the Twilio console with the bill and signed authorization.
+- [ ] Watch for a rejection (usually a name, address or account number that does not match the bill exactly); fix and resubmit the same day.
+- [ ] Note the confirmed switch date and tell the owner.
+- [ ] Remind the owner: **do not cancel the old phone service.** The port cancels that number automatically on switch day; cancelling early can lose the number.
+
+**Switch day**
+- [ ] As soon as Twilio shows the number as active, set its "A call comes in" webhook to `https://cf-hair-voice.onrender.com/twiml` (if not already set during the port).
+- [ ] Test from three phones on different carriers (Rogers, Telus, Bell if possible): desk phone rings first, agent answers on no answer, agent answers a second caller while the first is on the desk phone. Calls can trickle over for a few hours as carriers update.
+- [ ] Check the admin Calls tab shows the test calls.
+- [ ] Remove the old busy and no-answer forwarding from the old line (it no longer has the main number).
+
+**After the switch**
+- [ ] Watch the first week of calls in the Calls tab; check nobody hears a busy signal.
+- [ ] Confirm with the owner that their old phone bill has stopped charging for the number (and that any other services on that account still work).
