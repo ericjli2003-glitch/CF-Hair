@@ -69,7 +69,8 @@ Four pieces that work together. You can start with one and add the others later.
 **What your callers experience:**
 - The phone is answered, every time, day or night, by a friendly receptionist voice that introduces itself as the salon's virtual assistant.
 - Callers can speak **English, Mandarin, Cantonese or Korean**. The assistant answers in the same language.
-- **It remembers each caller's language.** Every call opens with your English greeting. If that phone number spoke Cantonese, Mandarin or Korean last time, the receptionist follows the greeting with a short line in that language and carries on in it. Callers can switch back to English any time, and that is remembered too. Your regulars feel recognised and never have to ask twice.
+- **It greets returning callers in their own language.** If a phone number spoke Cantonese, Mandarin or Korean last time, the next call from that number is answered in that language from the very first word: the greeting, the voice and the listening are all in their language. New callers, and calls from private numbers, hear your English greeting first; if a caller sounds unsure, the receptionist asks one short question about language, with keypad options too. Callers can switch back to English any time, and that is remembered too. Your regulars feel recognised and never have to ask twice.
+- **Short, natural answers.** Replies are kept very short, the way a good receptionist talks on the phone, so callers are never kept waiting through a speech.
 - It can **book, reschedule and cancel appointments** directly in your calendar, so there are no double bookings.
 - It answers common questions: **prices, hours, location, parking, what a digital perm involves**, and so on, using only the information you give us.
 - If a caller wants a person, it can **transfer the call to the salon or to your mobile**, or **take a message** that shows up in your dashboard and as a text to you.
@@ -79,7 +80,7 @@ Four pieces that work together. You can start with one and add the others later.
   1. *After hours only*: it answers when the salon is closed.
   2. *Backup* (our recommendation): your phone rings first; if nobody picks up within a few rings, the assistant answers.
   3. *Every call*: it answers everything and transfers when needed.
-- **Your existing number stays the same.** We use call forwarding from your current line, (604) 475-7705, so nothing changes for your clients.
+- **Your existing number stays the same.** We use call forwarding from your current line, (604) 475-7705, so nothing changes for your clients. (If two people often call at the same time, see the "More lines" add-on in section 6.)
 - A short **summary of every call** (who called, what they wanted, what was booked) in your dashboard.
 - **Each client's preferred language**, shown in your client list. You can see it and change it any time. Calls from blocked or private numbers (no caller ID) are never remembered.
 
@@ -191,6 +192,41 @@ Promotional texting is included in Growth and Complete at no extra monthly fee. 
 
 **Payment terms.** Half of the setup fee when we start, half when the website goes live. Monthly fees for each product start only when that product goes live. After the 30-day pilot, everything is month to month with 30 days' notice. No long contract.
 
+### Optional add-ons
+
+Three extras you can add on top of any package, now or later. Like everything else, they are month to month, and the monthly fee starts only when the add-on goes live.
+
+| Add-on | What it does | Setup | Monthly | Available with |
+|---|---|---|---|---|
+| **More lines** | Up to 4 callers answered at the same time, instead of one | $150 | $39 | Growth or Complete |
+| **Smart pricing, option 1: Quiet-hour savings** | Lower prices in your slowest hours to fill empty chairs. Prices only ever go down. | $400 | $59 | Any package |
+| **Smart pricing, option 2: Full smart pricing** | Quiet-hour savings, plus modest increases at your busiest times | $600 | $99 | Any package |
+| **Pay online ahead of time** | Clients pay in full, or pay a deposit, when they book online. Apple Pay and Google Pay. | $400 | $29 | Any package |
+
+**More lines: answer several callers at once.** In backup mode, your salon phone forwards a call to the receptionist when nobody picks up. The receptionist itself can talk with many people at once (each call is its own conversation). The real limit is your phone line: depending on your phone company and type of line, it may pass on only one forwarded call at a time, so a second caller can hear a busy signal. This add-on sets up your line so that 2, 3 or up to 4 callers are all answered at the same time. We do it whichever way suits your line:
+
+- we move (port) your number to our phone provider, Twilio. It stays exactly the same number, and your salon phone still rings first; or
+- we ask your phone company to add "busy" forwarding and an overflow setup to your current line (your phone company may charge a small fee for this on your own phone bill).
+
+We set a limit on how many calls are handled at once. Anyone beyond that limit hears a short take-a-message line instead of a busy signal, and the message lands in your dashboard. Calls still come out of your plan's monthly minutes. Moving a number usually takes 1 to 2 weeks (it can take up to 4, depending on your current phone company) [26], and your number keeps working the whole time: it never goes dark.
+
+**Smart pricing: fill your quiet hours.** Most salons are full on Saturday afternoon and quiet on a Tuesday morning. Smart pricing sets prices by day and hour, on your website and when the phone receptionist quotes a price. It comes in two options:
+
+- **Option 1, Quiet-hour savings ($59 a month, $400 setup).** Prices only ever go **down**, in your slowest hours, for example 15% off a weekday-morning cut, to fill chairs that would otherwise sit empty.
+- **Option 2, Full smart pricing ($99 a month, $600 setup).** The same savings, plus modest increases at your busiest times, for example Saturday afternoon.
+
+**We recommend starting with Option 1.** Clients rarely mind a discount, but a higher Saturday price can upset a regular who has always come on Saturdays. You can move up to Option 2 any time, once you have seen how clients respond.
+
+*First, a free data month.* For the first 4 to 6 weeks after your website goes live, we simply watch. The booking system and phone receptionist already record every booking, cancellation, no-show, call and website visit by day and hour, so you don't need to do anything extra (just keep adding walk-ins in the dashboard, as you will anyway). Why wait? One quiet Tuesday morning could be bad luck or bad weather; five quiet Tuesday mornings in a row is a pattern. Four to six weeks gives us four to six of every weekday, which is enough to see which hours are truly slow and which are always full. Then we show you a simple report and a proposed rules table (for example, "Tuesday to Thursday, 10 am to 12 pm: 15% off cuts"). The data month is free, so you can see the report before you pay anything for the add-on.
+
+*You stay in charge.* Nothing changes until you approve the rules table. You set the limits (we suggest at most 20% off and at most 15% up), you can exempt regulars or specific services, and we review the results with you every month. One click turns it off and your normal menu prices come back.
+
+*Fair and clear for clients.* The price a client sees on the website, or hears from the phone receptionist, is the full price for that day and time, before they book: no booking fees or surprise charges added at checkout, only sales tax as today. Once an appointment is booked, its price is locked and never changes. This follows Canada's Competition Act, which since 2022 treats a price as misleading if extra mandatory fees are added on top (a 2024 update made clear that only government taxes paid by the buyer can be left out), and a cinema chain was fined about $39 million in 2024 for a $1.50 online booking fee [21][22]. It also follows BC's consumer protection law, which requires the total price to be shown clearly and treats a promised saving that isn't real as deceptive [23]. So a "savings" price is always measured against your real everyday price. The Competition Bureau is also studying dynamic pricing more broadly [24], one more reason to keep ours simple, capped and approved by you.
+
+**Pay online ahead of time.** Clients can pay in full, or pay a deposit for long services (colour, perms, extensions), when they book on your website, by card, Apple Pay or Google Pay. When a phone booking needs a deposit, the receptionist can text the client a secure payment link. If a client doesn't show up, the deposit is kept according to your policy, which the client sees before booking. Refunds take one tap in your dashboard.
+
+It runs on Stripe, a large, well-known payment company, using **your own Stripe account**, so the money goes straight to you, not through us. Stripe charges you its standard fee for Canadian cards, **2.9% plus 30 cents per payment** (about $1.46 on a $40 deposit), paid directly to Stripe, not to us. Stripe keeps that fee if you later refund a payment [25]. We recommend not adding a card fee to your clients' price. **We never see or store card numbers**: clients type them into Stripe's secure payment form.
+
 ### How this compares
 
 **Against hiring a part-time receptionist.** BC's minimum wage is **$18.25 an hour** as of June 1, 2026 [11]. A part-time receptionist working 25 hours a week costs about **$1,980 a month in wages**, and about **$2,200 a month** once vacation pay and employer CPP and EI are added (estimate). That person would cover fewer than half of your 54 open hours a week, and none of the evenings, early mornings or holidays when people often call or book. The Growth package costs about one eighth of that and never takes a break. (It does not replace the warmth of your team in the salon, and it isn't meant to; it catches the calls your team can't.)
@@ -207,7 +243,7 @@ Promotional texting is included in Growth and Complete at no extra monthly fee. 
 
 Booking apps are good tools, but they list you on a marketplace right next to your competitors (including salons in your own building), they charge you for new clients, and your client list lives on their platform. With us, the website and the client list are yours.
 
-**Against AI phone services.** Off-the-shelf AI answering services in North America typically start around $70 to $135 CAD a month (USD prices converted) and charge per call or per minute above a small allowance; some charge extra for each appointment booked [13]. Most are English-first, and none are connected to your own booking calendar out of the box. Ours speaks Cantonese, Mandarin and Korean, remembers which language each regular prefers, books straight into your calendar, and is set up and supported locally.
+**Against AI phone services.** Off-the-shelf AI answering services in North America typically start around $70 to $135 CAD a month (USD prices converted) and charge per call or per minute above a small allowance; some charge extra for each appointment booked [13]. Most are English-first, and none are connected to your own booking calendar out of the box. Ours speaks Cantonese, Mandarin and Korean, greets each regular in their own language from the first word, books straight into your calendar, and is set up and supported locally.
 
 ### A simple return-on-investment example
 
@@ -254,7 +290,7 @@ We don't yet know your real call numbers, so here is a deliberately cautious exa
 The assistant only works from the menu, prices, hours and policies you approve. If it doesn't know something, it says so and takes a message or transfers the call; it does not guess. It can only book times that are genuinely free in your calendar. For the first two weeks, we read every call summary ourselves and fix anything that sounds off. And you can switch it to after-hours only, or off entirely, at any time.
 
 **"Will older clients be comfortable talking to an AI?"**
-In backup mode, your phone still rings first. The assistant only answers calls that would otherwise go unanswered, and anyone can ask for a person at any time. Regulars who prefer Cantonese, Mandarin or Korean are greeted in their language automatically, so they never have to ask. We will test Cantonese, Mandarin and Korean carefully with you before going live, and adjust the voice and speaking style to suit your clients.
+In backup mode, your phone still rings first. The assistant only answers calls that would otherwise go unanswered, and anyone can ask for a person at any time. Regulars who prefer Cantonese, Mandarin or Korean are greeted in their language from the very first word, so they never have to ask. We will test Cantonese, Mandarin and Korean carefully with you before going live, and adjust the voice and speaking style to suit your clients.
 
 **"Will a card go out that I don't like?"**
 No. Every card waits for your approval, and you can edit or remove any card. You set a monthly cap on how many cards can be sent.
@@ -275,6 +311,12 @@ Booking confirmations and reminders are sent only to clients who book; they are 
 - **Every promotion names the salon** and links to your website, which shows your address and contact details, and **says "Reply STOP to opt out."** The law allows up to 10 business days to act on an opt-out; we act on it immediately [17][20].
 - **Sensible limits:** no promotions before 9 am or after 8 pm (stricter than the usual industry guideline of 9 pm), and at most 4 a month per client by default.
 - **Privacy:** phone numbers and text permissions are covered by the same privacy policy as the rest of your client data, and are never shared or sold.
+
+**"Will smart pricing upset my regular clients?"** (optional add-on)
+It can, especially higher prices at busy times, which is why we suggest starting with quiet-hour savings only, where prices only go down. You can exempt regulars or specific services, every price is shown in full before booking and locked once booked, and nothing changes until you approve the rules. We look at bookings, cancellations and any client comments with you every month, and one click switches it off.
+
+**"Will deposits put clients off?"** (optional add-on)
+Deposits are your choice, service by service. Most salons ask only for long services like colour, perms and extensions, where a no-show costs the most. Clients see your deposit and cancellation policy before they book, and you decide on refunds from your dashboard. Card details go straight to Stripe and never touch our system.
 
 **"What if something breaks?"**
 If the phone system is ever unavailable, calls simply ring through to the salon as they do today. We monitor the system and fix problems quickly.
@@ -308,7 +350,7 @@ Questions at any time: [Your Name], [Your phone / email].
 
 ### Sources
 
-All accessed October 3, 2026. Some figures come from industry software companies that sell salon tools; we have used the more cautious numbers and marked estimates clearly.
+All accessed October 3, 2026, except sources 21 to 26, accessed October 5, 2026. Some figures come from industry software companies that sell salon tools; we have used the more cautious numbers and marked estimates clearly.
 
 1. Coquitlam Centre: "over 12.1 million shoppers per year" (the mall's own published figure, via directory listings). https://www.bestprosintown.com/bc/coquitlam/coquitlam-centre-/ ; Tri-City News coverage: https://tricitynews.com/local-news/coquitlam-mall-numbers-strong-report-says-3065109
 2. Henderson Place Mall: Chinese-themed mall across from Coquitlam Centre and Lincoln Station. https://en.wikipedia.org/wiki/Henderson_Place_Mall ; https://en.wikipedia.org/wiki/Lincoln_station_(SkyTrain)
@@ -330,3 +372,9 @@ All accessed October 3, 2026. Some figures come from industry software companies
 18. Gurol-Urganci et al., Cochrane Review, "Mobile phone messaging reminders for attendance at scheduled healthcare appointments" (8 trials, 6,615 people): text reminders improved attendance compared with no reminder. https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD007458/abstract (Healthcare, not salons, but independent research.)
 19. Text marketing benchmarks from texting companies, for example click rates of about 19 to 36% and opt-out rates of about 1 to 2% per send: https://sakari.io/blog/sms-marketing-benchmarks-2025-performance-metrics-and-industry-insights ; https://infobip.com/blog/sms-marketing-benchmarks . The often-quoted "98% of texts are opened" goes back to Gartner and is an estimate, not a measurement: https://www.clickminded.com/sms-marketing-statistics/ . (These companies sell texting services; we treat their numbers as optimistic.)
 20. CRTC, Guidance on Implied Consent (existing business relationship: a purchase within the past two years). https://crtc.gc.ca/eng/com500/guide.htm ; Government of Canada, "Texting for good client relations": https://ised-isde.canada.ca/site/canada-anti-spam-legislation/en/texting-good-client-relations
+21. Competition Act drip pricing rules: since June 23, 2022, a price that cannot actually be paid because of added fixed, mandatory charges or fees is deemed false or misleading (civil s. 74.01(1.1), criminal s. 52(1.3)); the June 2024 amendments (Bill C-59) narrowed the exception to charges imposed on the buyer by federal or provincial law, such as sales tax. https://www.dwpv.com/insights/2023/competition-bureau-tests-canadas-drip-pricing-law ; https://canada-insights.bakermckenzie.com/2024/06/17/governments-fight-against-junk-fees-savings-claims-and-greenwashing-heats-up-with-new-proposed-amendments/
+22. Cineplex drip pricing case: Competition Tribunal penalty of about $38.9 million (September 23, 2024) for a $1.50 online booking fee; upheld by the Federal Court of Appeal on January 21, 2026 (2026 FCA 10). https://gowlingwlg.com/en/insights-resources/articles/2024/cineplex-38-million-penalty-hidden-fees ; https://www.canada.ca/en/competition-bureau/news/2026/01/statement-from-the-acting-commissioner-of-competition-on-appeal-courts-ruling-in-cineplex-deceptive-marketing-case.html
+23. BC Business Practices and Consumer Protection Act, section 4 (deceptive acts or practices): includes failing to give the total price at least the same prominence as a unit price, and representing a price benefit or advantage that does not exist. https://www.bclaws.gov.bc.ca/civix/document/id/complete/statreg/04002_02 ; plain-language summary: https://wiki.clicklaw.bc.ca/index.php/Unfair_or_Deceptive_Practices
+24. Competition Bureau, "Algorithmic pricing and competition" discussion paper and What We Heard report (January 2026), covering dynamic and personalized pricing. https://competition-bureau.canada.ca/en/node/963
+25. Stripe pricing for Canada: 2.9% + C$0.30 per successful domestic card payment, same rate for Apple Pay and Google Pay, no setup or monthly fees; processing fees are not returned on refunds; C$15 per dispute. https://stripe.com/en-ca/pricing ; https://support.stripe.com/questions/understanding-fees-for-refunded-payments . Prices change; please check current pricing.
+26. Twilio, Canada number porting guidelines: local, mobile and toll-free numbers can be ported; once paperwork is complete, a port can take up to 4 weeks depending on the current provider. https://www.twilio.com/en-us/guidelines/ca/porting
