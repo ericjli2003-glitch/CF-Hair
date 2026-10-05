@@ -10,6 +10,13 @@ import { normalizeLanguage } from "./languages.js";
 
 export const RELAY_PATH = "/relay";
 
+/** Last four digits only, so logs show which test phone called without storing full numbers. */
+function maskPhone(raw: unknown): string {
+  const s = String(raw ?? "");
+  const digits = s.replace(/\D/g, "");
+  return digits.length >= 4 ? `***${digits.slice(-4)}` : s || "unknown";
+}
+
 /** Base URL Twilio used to reach us. Twilio signs the exact URL configured in the console. */
 function publicBase(cfg: AppConfig, req: Request): string {
   if (cfg.publicBaseUrl) return cfg.publicBaseUrl;
@@ -70,6 +77,7 @@ export function createServer(deps: SessionDeps) {
   app.post("/twiml", verify, async (req, res) => {
     const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
     const opening = known ? "returning" : "welcome";
+    console.log(`[call ${req.body?.CallSid ?? "?"}] incoming from ${maskPhone(req.body?.From)}: opening in ${language} (${opening})`);
     res.type("text/xml").send(
       conversationRelayTwiml({
         ...relayOpts(req),

@@ -84,6 +84,7 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
           },
           channel,
         );
+        console.log(`[call ${callSid}] voice connected (${startLanguage})`);
         // The full caller lookup (name, call count, consent) runs while Twilio plays the greeting.
         void session.start().catch((e) => console.error(`[relay] start failed: ${(e as Error).message}`));
         break;
@@ -100,7 +101,7 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
         void session?.handleDtmf(String(msg.digit ?? ""));
         break;
       case "error":
-        console.error(`[relay] ConversationRelay error: ${msg.description ?? "unknown"}`);
+        console.error(`[call ${session?.init.callSid ?? "?"}] ConversationRelay error: ${msg.description ?? "unknown"}`);
         session?.log.record.errors.push(`relay: ${msg.description ?? "unknown"}`);
         break;
       default:
