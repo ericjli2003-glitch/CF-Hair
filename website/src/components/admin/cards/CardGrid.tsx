@@ -7,6 +7,7 @@ import type { CardView } from "@/lib/cards";
 import { charCount, checkCardText, normalizeCardText, type TextIssue } from "@/lib/cards/text";
 import { isLanguageCode, LANGUAGE_LABELS } from "@/lib/languages";
 import { money, shortDate } from "../promo/ui";
+import { Seal } from "../../art/Seal";
 import { CARD_STATUS_LABEL, CardStatusChip, MonthMeter, PROVIDER_LABEL } from "./ui";
 
 type Item = CardView & { language: string };
@@ -139,11 +140,11 @@ export function CardGrid({
                 onClick={() => setFilter(f)}
                 aria-pressed={filter === f}
                 className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-md px-3.5 text-[0.95rem] ring-1 ${
-                  filter === f ? "bg-ink font-medium text-paper ring-ink" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink"
+                  filter === f ? "bg-primary font-medium text-paper ring-primary" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-primary"
                 }`}
               >
                 {f === "all" ? "All" : CARD_STATUS_LABEL[f]}
-                <span className={`nums ${filter === f ? "text-paper/80" : "text-ink-soft"}`}>{counts[f]}</span>
+                <span className={`nums ${filter === f ? "text-on-primary-soft" : "text-ink-soft"}`}>{counts[f]}</span>
               </button>
             ))}
           </div>
@@ -164,9 +165,9 @@ export function CardGrid({
       </div>
 
       {(capHit || (overCap && ready.length > 0)) && (
-        <div role="status" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-xl bg-amber-50 px-5 py-4 text-amber-950 ring-1 ring-amber-300">
+        <div role="status" className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 rounded-xl bg-terra-wash px-5 py-4 text-terra-deep ring-1 ring-terra-line">
           <div className="min-w-0 flex-1">
-            <p className="font-medium text-amber-950">
+            <p className="font-medium text-terra-deep">
               {left === 0 ? `This month's limit of ${month.cap} cards is reached.` : `Only ${left} more card${left === 1 ? "" : "s"} fit this month's limit of ${month.cap}.`}
             </p>
             <p className="mt-0.5 text-sm">
@@ -176,11 +177,11 @@ export function CardGrid({
           </div>
           <div className="flex flex-wrap gap-2">
             {left > 0 && (
-              <button type="button" onClick={() => approveAll(left)} disabled={busy === "all"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
+              <button type="button" onClick={() => approveAll(left)} disabled={busy === "all"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm text-paper hover:bg-primary-hover disabled:opacity-50">
                 Approve the first {left}
               </button>
             )}
-            <Link href="/admin/cards#card-settings" className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm text-ink ring-1 ring-ink hover:bg-tile">
+            <Link href="/admin/cards#card-settings" className="inline-flex min-h-11 items-center justify-center rounded-md bg-paper px-4 text-sm text-ink ring-1 ring-primary hover:bg-tile">
               Change the limit
             </Link>
           </div>
@@ -225,9 +226,9 @@ export function CardGrid({
 function Chip({ children, tone = "plain", lang }: { children: React.ReactNode; tone?: "plain" | "alt" | "mock"; lang?: string }) {
   const cls =
     tone === "alt"
-      ? "bg-[#fbefed] text-[#8c1d1d] ring-[#e7c2bd]"
+      ? "bg-lilac-wash text-lilac-deep ring-lilac-line"
       : tone === "mock"
-        ? "bg-[#fbedc9] text-[#7a5200] ring-[#ecd395]"
+        ? "bg-terra-wash text-terra-deep ring-terra-line"
         : "bg-paper text-ink-soft ring-line";
   return (
     <span lang={lang} className={`inline-flex whitespace-nowrap rounded-md px-2 py-0.5 text-xs ring-1 ${cls}`}>
@@ -239,9 +240,9 @@ function Chip({ children, tone = "plain", lang }: { children: React.ReactNode; t
 function Meter({ n, max, label }: { n: number; max: number; label?: string }) {
   const over = n > max;
   return (
-    <span className={`flex items-center gap-2 text-xs tabular-nums ${over ? "text-rose-700" : "text-ink-soft"}`}>
+    <span className={`flex items-center gap-2 text-xs tabular-nums ${over ? "text-alert" : "text-ink-soft"}`}>
       <span className="h-1.5 w-16 overflow-hidden rounded-full bg-sand">
-        <span className={`block h-full rounded-full ${over ? "bg-rose-600" : "bg-ink"}`} style={{ width: `${Math.min(100, (n / max) * 100)}%` }} />
+        <span className={`block h-full rounded-full ${over ? "bg-alert" : "bg-primary"}`} style={{ width: `${Math.min(100, (n / max) * 100)}%` }} />
       </span>
       {label ? `${label} ` : ""}
       {n} / {max}
@@ -288,7 +289,7 @@ function CardItem(props: {
   const a = c.mailingAddress;
 
   return (
-    <li className={`flex flex-col rounded-xl bg-paper p-4 ring-1 transition sm:p-5 ${editing ? "ring-2 ring-ink" : "ring-line"}`}>
+    <li className={`flex flex-col rounded-xl bg-paper p-4 ring-1 transition sm:p-5 ${editing ? "ring-2 ring-primary" : "ring-line"}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-lg font-medium leading-tight">
@@ -313,7 +314,7 @@ function CardItem(props: {
       {/* The desk: the inside of the card and its envelope, as on the proof sheet. */}
       <div className={`relative mt-4 rounded-xl bg-tile px-4 pb-5 pt-4 ${dim ? "opacity-55 grayscale-[.4]" : ""}`}>
         <div
-          className="relative rounded-[2px] bg-[#fbf8f1] px-5 pb-8 pt-5"
+          className={`relative rounded-[2px] bg-[#fbf8f1] px-5 pt-5 ${editing ? "pb-8" : "pb-12"}`}
           style={{ boxShadow: PAPER_SHADOW, backgroundImage: PAPER_NOISE, transform: editing ? "none" : `rotate(${props.tilt}deg)` }}
         >
           {editing ? (
@@ -363,7 +364,11 @@ function CardItem(props: {
           {c.mock && !editing && (
             <span className="absolute bottom-2 left-3 rounded-[3px] bg-[#fbedc9] px-1.5 py-px text-sm font-semibold text-[#8a5a00]">Sample text</span>
           )}
-          {altLang && !editing && <span className="absolute bottom-2 right-3 text-xs text-[#a3352f]/80">{altLang.native}: added by hand</span>}
+          {altLang && !editing && <span className="absolute bottom-2 right-14 text-xs text-[#a3352f]/80">{altLang.native}: added by hand</span>}
+          {/* The salon's seal, stamped bottom right beside the signature. */}
+          {!editing && (
+            <Seal size={34} className="absolute bottom-2.5 right-3.5 rotate-[-4deg] opacity-90 mix-blend-multiply" />
+          )}
         </div>
 
         {a && (
@@ -428,9 +433,9 @@ function CardItem(props: {
           </p>
         )}
         {c.status === "failed" && (
-          <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800 ring-1 ring-rose-200">
+          <p className="mt-3 rounded-xl bg-alert-wash px-3 py-2 text-sm text-alert ring-1 ring-alert-line">
             Not mailed: {c.error}
-            <span className="block text-xs text-rose-700/80">
+            <span className="block text-xs text-alert">
               {PROVIDER_LABEL[c.provider ?? ""] ?? c.provider ?? "Provider"}
               {c.failedAt ? `, ${shortDate(c.failedAt, true)}` : ""}. Approve it again to retry, or skip it.
             </span>
@@ -441,7 +446,7 @@ function CardItem(props: {
           <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
             {editing ? (
               <>
-                <button type="button" onClick={props.onCancel} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ring-line hover:ring-ink">
+                <button type="button" onClick={props.onCancel} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ring-line hover:ring-primary">
                   Cancel
                 </button>
                 <button
@@ -449,7 +454,7 @@ function CardItem(props: {
                   disabled={props.busy || live.length > 0}
                   onClick={() => props.onSave(draft, draftAlt)}
                   aria-busy={props.busy || undefined}
-                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm font-medium text-paper hover:bg-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-paper hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {props.busy ? "Saving..." : "Save text"}
                 </button>
@@ -464,7 +469,7 @@ function CardItem(props: {
                       setDraftAlt(c.messageAlt ?? "");
                       props.onEdit();
                     }}
-                    className="mr-auto inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm ring-1 ring-line hover:ring-ink"
+                    className="mr-auto inline-flex min-h-11 items-center justify-center rounded-md bg-paper px-4 text-sm ring-1 ring-line hover:ring-primary"
                   >
                     Edit
                     <span className="sr-only"> card for {c.name}</span>
@@ -477,7 +482,7 @@ function CardItem(props: {
                       disabled={props.busy}
                       aria-busy={(props.busy && acting === "skipped") || undefined}
                       onClick={() => act("skipped")}
-                      className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-ink disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center justify-center rounded-md bg-paper px-4 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {props.busy && acting === "skipped" ? "Skipping..." : "Skip"}
                       <span className="sr-only">, card for {c.name}</span>
@@ -488,7 +493,7 @@ function CardItem(props: {
                       aria-busy={(props.busy && acting === "approved") || undefined}
                       aria-describedby={stored.length ? `issues-${c.id}` : undefined}
                       onClick={() => act("approved")}
-                      className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-5 text-sm font-medium text-paper hover:bg-ink-hover disabled:cursor-not-allowed disabled:opacity-40"
+                      className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-paper hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {props.busy && acting === "approved" ? "Approving..." : c.status === "failed" ? "Approve again" : "Approve"}
                       <span className="sr-only">, card for {c.name}</span>
@@ -500,7 +505,7 @@ function CardItem(props: {
                     disabled={props.busy}
                     aria-busy={(props.busy && acting === "pending") || undefined}
                     onClick={() => act("pending")}
-                    className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-ink disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center justify-center rounded-md bg-paper px-4 text-sm text-ink-soft ring-1 ring-line hover:text-ink hover:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {props.busy && acting === "pending" ? "Saving..." : c.status === "approved" ? "Undo approval" : "Undo skip"}
                     <span className="sr-only">, card for {c.name}</span>

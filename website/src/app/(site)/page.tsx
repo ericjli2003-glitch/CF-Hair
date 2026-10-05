@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HeroPhoto } from "@/components/site/HeroPhoto";
 import { OpenNow } from "@/components/site/OpenNow";
 import { PriceBoard } from "@/components/site/PriceBoard";
 import { TeamRows } from "@/components/site/TeamRows";
@@ -18,23 +19,30 @@ export default async function Home() {
 
   return (
     <>
-      <section className="frame grid gap-8 pb-14 pt-4 md:pt-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12 lg:pb-20">
-        <div className="lg:sticky lg:top-8 lg:self-start lg:pt-4">
-          <h1 className="font-cond text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[0.92] tracking-[-0.01em]">{salon.name}</h1>
+      <section className="frame grid gap-6 pb-10 pt-4 md:gap-8 md:pt-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-center lg:gap-14 lg:pb-14 lg:pt-8">
+        <HeroPhoto alt={t.home.heroAlt} className="lg:order-2" />
+        <div className="lg:order-1">
+          <h1 className="font-cond text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[0.92] tracking-[-0.01em]">
+            {salon.name}
+          </h1>
           <p className="mt-4 max-w-[30ch] text-balance text-[1.25rem] leading-snug">{fill(t.home.lead, { unit: unitNumber() })}</p>
-          <OpenNow t={t} lang={lang} className="mt-6 text-[1.05rem] font-medium" />
-          <a href={`tel:${salon.phone}`} className="nums mt-1 inline-flex min-h-11 items-center text-[1.05rem] underline decoration-1 underline-offset-[3px] hover:decoration-2">
-            {formatPhoneDisplay(salon.phone)}
-          </a>
-          <div className="mt-6 hidden md:block">
-            <Link href="/book" className="s-btn min-h-12 px-6 text-[1.05rem]">
+          {/* One group: when, how to call, how to book, who you can talk to. */}
+          <div className="mt-6 flex flex-col items-start gap-1 border-t border-rule pt-5 lg:mt-8">
+            <OpenNow t={t} lang={lang} className="text-[1.05rem] font-medium" />
+            <a href={`tel:${salon.phone}`} className="nums inline-flex min-h-11 items-center text-[1.05rem] underline decoration-1 underline-offset-[3px] hover:decoration-2">
+              {formatPhoneDisplay(salon.phone)}
+            </a>
+            <Link href="/book" className="s-btn mt-3 hidden min-h-12 px-6 text-[1.05rem] md:inline-flex">
               {t.nav.book}
             </Link>
+            <p className="mt-3 max-w-[36ch] text-balance text-[0.95rem] leading-snug text-slate md:mt-4">{fill(t.home.speak, { langs })}</p>
           </div>
-          <p className="mt-6 max-w-[34ch] text-balance text-[0.95rem] leading-snug text-slate">{fill(t.home.speak, { langs })}</p>
         </div>
-        <PriceBoard services={services} categories={categories} t={t} lang={lang} />
       </section>
+
+      <div className="frame pb-12 md:pb-16">
+        <PriceBoard services={services} categories={categories} t={t} lang={lang} />
+      </div>
 
       <section aria-labelledby="getting-here" className="border-t border-rule">
         <div className="frame py-12 md:py-16">

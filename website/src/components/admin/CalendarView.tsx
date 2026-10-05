@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { BookingView } from "@/lib/bookings";
 import { dayLabel, hhmm, phonePretty, SOURCE_LABEL, STATUS_LABEL, STATUS_STYLES, time12 } from "@/lib/admin-format";
-import { rodColour } from "@/lib/rods";
+import { rodTint } from "@/lib/rods";
 import { hhmmToMin, weekdayOf } from "@/lib/time";
 import { useModal } from "@/lib/use-modal";
 import { CloseIcon } from "./icons";
@@ -73,7 +73,7 @@ export function CalendarView(props: {
               }}
               aria-pressed={!off}
               className={`inline-flex min-h-11 items-center gap-2 rounded-md px-3.5 text-[0.95rem] ring-1 transition-colors ${
-                off ? "bg-transparent text-ink-soft line-through ring-line" : "bg-paper ring-line hover:ring-ink"
+                off ? "bg-transparent text-ink-soft line-through ring-line" : "bg-paper ring-line hover:ring-primary"
               }`}
             >
               <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ background: off ? "transparent" : s.color, border: `1.5px solid ${s.color}` }} />
@@ -83,7 +83,7 @@ export function CalendarView(props: {
           );
         })}
         <label className="ml-auto flex min-h-11 cursor-pointer items-center gap-2.5 px-1 text-[0.95rem] text-ink-soft">
-          <input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} className="h-5 w-5 cursor-pointer accent-black" />
+          <input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} className="h-5 w-5 cursor-pointer accent-primary" />
           Show cancelled
         </label>
       </div>
@@ -102,7 +102,7 @@ export function CalendarView(props: {
                   <p className="flex items-center gap-2 text-sm font-medium">
                     {s && <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{ background: s.color }} />}
                     {c.title}
-                    {isToday && <span className="rounded-md bg-ink px-2 py-0.5 text-xs font-medium text-paper">Today</span>}
+                    {isToday && <span className="rounded-md bg-primary px-2 py-0.5 text-xs font-medium text-paper">Today</span>}
                   </p>
                   <p className="text-sm text-ink-soft">{closed ? "Closed" : c.sub}</p>
                 </div>
@@ -157,18 +157,18 @@ export function CalendarView(props: {
                   ))}
                   {isToday && props.nowMin >= dayStartMin && props.nowMin <= dayEndMin && (
                     <div className="absolute inset-x-0 z-20 flex items-center" style={{ top: ((props.nowMin - dayStartMin) / 15) * ROW_PX }}>
-                      <span className="-ml-1 h-2 w-2 rounded-full bg-ink" />
-                      <span className="h-px flex-1 bg-ink" />
+                      <span className="-ml-1 h-2 w-2 rounded-full bg-primary" />
+                      <span className="h-px flex-1 bg-primary" />
                     </div>
                   )}
                   {colBookings.map((b) => {
-                    const color = colorOf.get(b.staffId) ?? "#3d4a45";
+                    const color = colorOf.get(b.staffId) ?? "var(--color-ink-soft)";
                     const l = lanes.get(b.id);
                     const width = l ? `calc(${100 / l.of}% - 6px)` : "calc(100% - 8px)";
                     const left = l ? `calc(${(100 / l.of) * l.lane}% + 3px)` : "4px";
                     const cancelled = b.status === "cancelled";
                     const h = blockHeight(b);
-                    const rod = rodColour(props.categoryOf?.[b.serviceId] ?? "");
+                    const tint = rodTint(props.categoryOf?.[b.serviceId] ?? "");
                     const status = STATUS_LABEL[b.status] ?? b.status;
                     return (
                       <button
@@ -177,7 +177,7 @@ export function CalendarView(props: {
                         onClick={() => setSelected(b)}
                         aria-haspopup="dialog"
                         aria-label={`${b.customer.name}, ${b.serviceName}, ${time12(b.start)} to ${time12(b.end)}, ${b.staffName}, ${status}`}
-                        className={`absolute z-10 flex flex-col items-start justify-start overflow-hidden rounded-md px-2 py-1 text-left text-[0.8rem] leading-tight text-ink ring-1 ring-black/10 transition-shadow hover:z-30 hover:shadow-md ${
+                        className={`absolute z-10 flex flex-col items-start justify-start overflow-hidden rounded-md px-2 py-1 text-left text-[0.8rem] leading-tight text-ink ring-1 ring-ink/10 transition-shadow hover:z-30 hover:shadow-md ${
                           cancelled || b.status === "no-show" ? "border border-dashed border-ink-soft" : ""
                         }`}
                         style={{
@@ -185,14 +185,14 @@ export function CalendarView(props: {
                           height: h,
                           width,
                           left,
-                          // Category rod colour as the fill (strong while booked, faint once done);
+                          // The category tint as the fill (full while booked, faint once done);
                           // the stylist's colour on the left edge.
                           background:
                             b.status === "confirmed"
-                              ? `color-mix(in srgb, ${rod} 45%, white)`
+                              ? tint
                               : b.status === "completed"
-                                ? `color-mix(in srgb, ${rod} 18%, white)`
-                                : "#fff",
+                                ? `color-mix(in srgb, ${tint} 45%, var(--color-paper))`
+                                : "var(--color-paper)",
                           borderLeft: `4px solid ${color}`,
                         }}
                       >
@@ -224,7 +224,7 @@ export function CalendarView(props: {
       {selected && (
         <BookingDrawer
           booking={selected}
-          color={colorOf.get(selected.staffId) ?? "#3d4a45"}
+          color={colorOf.get(selected.staffId) ?? "var(--color-ink-soft)"}
           today={props.today}
           onClose={() => setSelected(null)}
         />
@@ -249,12 +249,12 @@ function BookingDrawer({ booking: b, color, onClose, today }: { booking: Booking
     };
   }, []);
   return (
-    <div ref={overlay} className="fixed inset-0 z-50 flex justify-end bg-black/35" onClick={onClose}>
+    <div ref={overlay} className="fixed inset-0 z-50 flex justify-end bg-ink/40" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="h-full w-full max-w-md overflow-y-auto bg-white p-6 shadow-2xl sm:p-7"
+        className="h-full w-full max-w-md overflow-y-auto bg-paper p-6 shadow-2xl sm:p-7"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between">

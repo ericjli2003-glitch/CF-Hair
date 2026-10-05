@@ -10,9 +10,9 @@ import { ConsentChip } from "./promo/ui";
 
 const LANG_STYLE: Record<LanguageCode, string> = {
   "en-US": "bg-tile text-slate ring-rule",
-  "zh-CN": "bg-red-50 text-red-800 ring-red-200",
-  "zh-HK": "bg-amber-50 text-amber-900 ring-amber-200",
-  "ko-KR": "bg-sky-50 text-sky-900 ring-sky-200",
+  "zh-CN": "bg-terra-wash text-terra-deep ring-terra-line",
+  "zh-HK": "bg-lilac-wash text-lilac-deep ring-lilac-line",
+  "ko-KR": "bg-primary-wash text-primary ring-primary-line",
 };
 
 export function CustomerTable({
@@ -81,7 +81,7 @@ export function CustomerTable({
               type="button"
               onClick={() => nav({ tag: t })}
               aria-pressed={tag === t}
-              className={`shrink-0 inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm ring-1 ${tag === t ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
+              className={`shrink-0 inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm ring-1 ${tag === t ? "bg-primary text-paper ring-primary" : "bg-paper text-ink-soft ring-line"}`}
             >
               {t || "All"}
             </button>
@@ -143,17 +143,17 @@ export function CustomerTable({
                     <Link href={`/admin/customers/${c.id}`} title="Consent details" className="inline-flex min-h-8 items-center">
                       <ConsentChip status={consent[c.id]?.status ?? "none"} expires={consent[c.id]?.expiresAt} />
                     </Link>
-                    {consent[c.id]?.txnOptedOut && <p className="mt-1 text-xs text-rose-600">Appt texts off</p>}
+                    {consent[c.id]?.txnOptedOut && <p className="mt-1 text-xs text-alert">Appt texts off</p>}
                   </td>
                   <td className="px-3 py-3.5 text-right tabular-nums">
                     <span className="display text-[1.4rem]">{c.visitCount}</span>
-                    {c.noShowCount > 0 && <p className="text-xs text-rose-600">{c.noShowCount} no-show</p>}
+                    {c.noShowCount > 0 && <p className="text-xs text-alert">{c.noShowCount} no-show</p>}
                   </td>
                   <td className="px-3 py-3.5 text-ink-soft">{c.lastVisit ? dayLabel(c.lastVisit.slice(0, 10), { month: "short", day: "numeric", year: "numeric" }) : "No visits yet"}</td>
                   <td className="px-3 py-3.5">
                     <p className="text-ink-soft">{c.lastServiceName ?? ""}</p>
                     {c.nextBookingAt && (
-                      <p className="mt-0.5 inline-block rounded-md bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800 ring-1 ring-emerald-200">
+                      <p className="mt-0.5 inline-block rounded-md bg-primary-wash px-2 py-0.5 text-xs text-primary ring-1 ring-primary-line">
                         Next {dayLabel(c.nextBookingAt.slice(0, 10), { month: "short", day: "numeric" })}
                       </p>
                     )}
@@ -206,10 +206,10 @@ function ReferredBy({ id, value }: { id: string; value: string | null }) {
         onBlur={save}
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
         placeholder="add"
-        className="min-h-8 w-28 rounded-md border border-transparent bg-transparent px-1.5 text-ink-soft hover:border-line focus:border-ink focus:bg-white"
+        className="min-h-8 w-28 rounded-md border border-transparent bg-transparent px-1.5 text-ink-soft hover:border-line focus:border-primary focus:bg-paper"
       />
       {state === "saving" && <span>...</span>}
-      {state === "saved" && <span className="text-emerald-700">saved</span>}
+      {state === "saved" && <span className="text-primary">saved</span>}
     </label>
   );
 }

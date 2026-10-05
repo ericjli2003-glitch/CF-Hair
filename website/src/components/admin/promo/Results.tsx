@@ -64,7 +64,7 @@ export function CampaignActions({ id, status, canEdit }: { id: string; status: s
   return (
     <div className="flex flex-wrap items-center gap-2">
       {canEdit && (
-        <Link href={`/admin/promotions/${id}/edit`} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ring-line hover:ring-ink">
+        <Link href={`/admin/promotions/${id}/edit`} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ring-line hover:ring-primary">
           Edit
         </Link>
       )}
@@ -79,7 +79,7 @@ export function CampaignActions({ id, status, canEdit }: { id: string; status: s
         </button>
       )}
       {(status === "scheduled" || status === "sending") && (
-        <button onClick={() => post(`/api/campaigns/${id}/cancel`, "cancel")} disabled={!!busy} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50 disabled:opacity-50">
+        <button onClick={() => post(`/api/campaigns/${id}/cancel`, "cancel")} disabled={!!busy} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-alert ring-1 ring-alert-line hover:bg-alert-wash disabled:opacity-50">
           {busy === "cancel" ? "Cancelling..." : status === "sending" ? "Stop sending" : "Cancel"}
         </button>
       )}
@@ -145,7 +145,7 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
-            className={`shrink-0 inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm ring-1 ${filter === f.key ? "bg-ink text-paper ring-ink" : "bg-paper text-ink-soft ring-line"}`}
+            className={`shrink-0 inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm ring-1 ${filter === f.key ? "bg-primary text-paper ring-primary" : "bg-paper text-ink-soft ring-line"}`}
           >
             {f.label}
           </button>
@@ -188,16 +188,16 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
                       {r.status === "skipped" ? SKIP[r.skipReason ?? ""] ?? "Skipped" : r.status === "sent" && r.dryRun ? "In outbox" : r.status}
                     </span>
                     {r.sentAt && <p className="mt-1 whitespace-nowrap text-xs text-mute">{dateTime(r.deliveredAt ?? r.sentAt)}</p>}
-                    {r.error && <p className="mt-1 max-w-[14rem] text-xs text-rose-700">{r.error}</p>}
+                    {r.error && <p className="mt-1 max-w-[14rem] text-xs text-alert">{r.error}</p>}
                   </td>
                   <td className="px-5 py-3.5">
                     {r.booked.map((b) => (
-                      <p key={b.id} className="mb-1 inline-block rounded-md bg-emerald-50 px-2.5 py-0.5 text-xs text-emerald-800 ring-1 ring-emerald-200">
+                      <p key={b.id} className="mb-1 inline-block rounded-md bg-primary-wash px-2.5 py-0.5 text-xs text-primary ring-1 ring-primary-line">
                         Booked {b.service} · {shortDate(b.start)} · ${b.priceCAD}
                       </p>
                     ))}
                     {r.optedOutAt && (
-                      <p className="inline-block rounded-md bg-rose-50 px-2.5 py-0.5 text-xs text-rose-700 ring-1 ring-rose-200">
+                      <p className="inline-block rounded-md bg-alert-wash px-2.5 py-0.5 text-xs text-alert ring-1 ring-alert-line">
                         Replied {r.optOutText ? `"${r.optOutText}"` : "STOP"} · {shortDate(r.optedOutAt)}
                       </p>
                     )}
@@ -205,12 +205,12 @@ export function RecipientsTable({ rows, outbox }: { rows: RecipientRow[]; outbox
                       <div className="mt-1">
                         {open === r.id ? (
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <select value={reply} onChange={(e) => setReply(e.target.value)} className="rounded-lg border border-line bg-white px-2 py-1 text-xs">
+                            <select value={reply} onChange={(e) => setReply(e.target.value)} className="rounded-lg border border-line bg-paper px-2 py-1 text-xs">
                               {["STOP", "退订", "수신거부", "HELP", "Do you have parking?"].map((o) => (
                                 <option key={o}>{o}</option>
                               ))}
                             </select>
-                            <button disabled={busy} onClick={() => simulate(r)} className="rounded-lg bg-ink px-2.5 py-1 text-xs text-paper disabled:opacity-50">
+                            <button disabled={busy} onClick={() => simulate(r)} className="rounded-lg bg-primary px-2.5 py-1 text-xs text-paper disabled:opacity-50">
                               {busy ? "..." : "Simulate reply"}
                             </button>
                             <button onClick={() => setOpen(null)} className="text-xs text-mute">

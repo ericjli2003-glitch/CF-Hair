@@ -243,13 +243,13 @@ export function Composer(props: ComposerProps) {
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   id="c-brief"
-                  className="field !bg-white !py-2.5"
+                  className="field !bg-paper !py-2.5"
                   value={brief}
                   onChange={(e) => setBrief(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onDraft())}
                   placeholder="One line, e.g. 15% off perms Mon to Thu until Oct 31"
                 />
-                <button type="button" onClick={onDraft} disabled={drafting || !brief.trim()} className="shrink-0 rounded-xl bg-ink px-4 py-2.5 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
+                <button type="button" onClick={onDraft} disabled={drafting || !brief.trim()} className="shrink-0 rounded-xl bg-primary px-4 py-2.5 text-sm text-paper hover:bg-primary-hover disabled:opacity-50">
                   {drafting ? "Writing..." : "Draft 4 languages"}
                 </button>
               </div>
@@ -269,10 +269,10 @@ export function Composer(props: ComposerProps) {
                     setEditLang(l.code);
                     setViewLang(l.code);
                   }}
-                  className={`relative inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm transition ${editLang === l.code ? "bg-ink text-paper" : "text-ink-soft hover:text-ink"}`}
+                  className={`relative inline-flex min-h-11 items-center justify-center rounded-md px-3.5 text-sm transition ${editLang === l.code ? "bg-primary text-paper" : "text-ink-soft hover:text-ink"}`}
                 >
                   {l.code === "en-US" ? "English" : l.script}
-                  {l.code !== "en-US" && bodies[l.code].trim() && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-ink" />}
+                  {l.code !== "en-US" && bodies[l.code].trim() && <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" />}
                 </button>
               ))}
             </div>
@@ -329,10 +329,10 @@ export function Composer(props: ComposerProps) {
                               : { type: a.type },
                     )
                   }
-                  className={`rounded-xl px-4 py-3.5 text-left ring-1 transition ${on ? "bg-ink text-paper ring-ink" : "bg-white/60 ring-line hover:ring-ink/40"}`}
+                  className={`rounded-xl px-4 py-3.5 text-left ring-1 transition ${on ? "bg-primary text-paper ring-primary" : "bg-white/60 ring-line hover:ring-primary/40"}`}
                 >
                   <span className="block text-[0.95rem] font-medium">{a.title}</span>
-                  <span className={`mt-0.5 block text-xs ${on ? "text-paper/70" : "text-mute"}`}>{a.sub}</span>
+                  <span className={`mt-0.5 block text-xs ${on ? "text-on-primary-soft" : "text-mute"}`}>{a.sub}</span>
                 </button>
               );
             })}
@@ -360,7 +360,7 @@ export function Composer(props: ComposerProps) {
                   key={s.id}
                   type="button"
                   onClick={() => setAudience({ ...audience, staffId: s.id })}
-                  className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ${audience.staffId === s.id ? "bg-ink text-paper ring-ink" : "ring-line"}`}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ${audience.staffId === s.id ? "bg-primary text-paper ring-primary" : "ring-line"}`}
                 >
                   {s.name}
                 </button>
@@ -374,7 +374,7 @@ export function Composer(props: ComposerProps) {
                   key={c}
                   type="button"
                   onClick={() => setAudience({ ...audience, category: c })}
-                  className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ${audience.category === c ? "bg-ink text-paper ring-ink" : "ring-line"}`}
+                  className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm ring-1 ${audience.category === c ? "bg-primary text-paper ring-primary" : "ring-line"}`}
                 >
                   {c}
                 </button>
@@ -382,12 +382,12 @@ export function Composer(props: ComposerProps) {
             </div>
           )}
 
-          <div className={`mt-5 rounded-xl p-4 ring-1 transition ${includeImplied ? "bg-amber-50/70 ring-amber-200" : "bg-tile ring-transparent"}`}>
+          <div className={`mt-5 rounded-xl p-4 ring-1 transition ${includeImplied ? "bg-terra-wash/70 ring-terra-line" : "bg-tile ring-transparent"}`}>
             <label className="flex cursor-pointer items-start gap-3">
               <span className="relative mt-0.5 inline-flex shrink-0">
                 <input type="checkbox" className="peer sr-only" checked={includeImplied} onChange={(e) => setIncludeImplied(e.target.checked)} />
-                <span className="h-6 w-11 rounded-full bg-edge transition peer-checked:bg-ink" />
-                <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+                <span className="h-6 w-11 rounded-full bg-edge transition peer-checked:bg-primary" />
+                <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-paper shadow transition peer-checked:translate-x-5" />
               </span>
               <span>
                 <span className="block text-[0.95rem] font-medium">Include implied consent (visited in the last 2 years)</span>
@@ -410,7 +410,7 @@ export function Composer(props: ComposerProps) {
                 key={w}
                 type="button"
                 onClick={() => setWhen(w)}
-                className={`flex-1 inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm transition ${when === w ? "bg-ink text-paper" : "text-ink-soft"}`}
+                className={`flex-1 inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm transition ${when === w ? "bg-primary text-paper" : "text-ink-soft"}`}
               >
                 {w === "now" ? "Send now" : "Schedule"}
               </button>
@@ -422,26 +422,26 @@ export function Composer(props: ComposerProps) {
               <input id="c-at" type="datetime-local" className="field !py-3" value={at} onChange={(e) => setAt(e.target.value)} />
             </div>
           )}
-          {quietWarning && <p className="mt-3 rounded-xl bg-sky-50 px-3 py-2 text-sm text-sky-900 ring-1 ring-sky-200">{quietWarning}</p>}
+          {quietWarning && <p className="mt-3 rounded-xl bg-lilac-wash px-3 py-2 text-sm text-lilac-deep ring-1 ring-lilac-line">{quietWarning}</p>}
           {props.mode === "outbox" && (
             <p className="mt-3 rounded-xl bg-tile px-3 py-2 text-sm text-ink-soft">
               Outbox mode: Twilio is not connected, so texts are recorded exactly as they would be sent, and nothing leaves the salon.
             </p>
           )}
           {props.mode === "blocked" && (
-            <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800 ring-1 ring-rose-200">
+            <p className="mt-3 rounded-xl bg-alert-wash px-3 py-2 text-sm text-alert ring-1 ring-alert-line">
               Set a separate promotions number (TWILIO_PROMO_MESSAGING_SERVICE_SID or TWILIO_PROMO_FROM) before sending. Appointment texts use their own number so a STOP here never blocks reminders.
             </p>
           )}
           {note && (
-            <p className={`mt-3 rounded-xl px-3 py-2 text-sm ${note.kind === "ok" ? "bg-emerald-50 text-emerald-900" : "bg-rose-50 text-rose-700"}`}>{note.text}</p>
+            <p className={`mt-3 rounded-xl px-3 py-2 text-sm ${note.kind === "ok" ? "bg-primary-wash text-primary" : "bg-alert-wash text-alert"}`}>{note.text}</p>
           )}
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={onSend}
               disabled={!!busy || !bodies["en-US"].trim() || eligible === 0 || props.mode === "blocked" || (when === "later" && !at)}
-              className={`btn-primary !px-6 !py-3.5 !text-[0.95rem] disabled:opacity-50 ${confirming ? "!bg-ink" : ""}`}
+              className={`btn-primary !px-6 !py-3.5 !text-[0.95rem] disabled:opacity-50 ${confirming ? "!bg-primary" : ""}`}
             >
               {busy === "send"
                 ? "Working..."
@@ -455,7 +455,7 @@ export function Composer(props: ComposerProps) {
               type="button"
               onClick={onTest}
               disabled={!!busy || !bodies["en-US"].trim() || !props.ownerPhone || props.mode === "blocked"}
-              className="rounded-full px-5 py-3 text-sm ring-1 ring-line hover:ring-ink disabled:opacity-50"
+              className="rounded-full px-5 py-3 text-sm ring-1 ring-line hover:ring-primary disabled:opacity-50"
               title={props.ownerPhone ? "" : "Set the owner's phone on the Promotions page"}
             >
               {busy === "test" ? "Sending test..." : props.ownerPhone ? `Send test to ${phonePretty(props.ownerPhone)}` : "Send test (set owner phone)"}
@@ -475,7 +475,7 @@ export function Composer(props: ComposerProps) {
       {/* Preview */}
       <aside className="lg:col-span-5">
         <div className="space-y-4 lg:sticky lg:top-24">
-          <div className="rounded-xl bg-ink p-6 text-paper">
+          <div className="rounded-xl bg-primary p-6 text-paper">
             <div className="flex items-center justify-between">
               <p className="text-sm text-white">Live preview</p>
               <div className="flex rounded-lg bg-white/10 p-0.5">
@@ -485,7 +485,7 @@ export function Composer(props: ComposerProps) {
                     type="button"
                     onClick={() => setViewLang(l.code)}
                     aria-label={`Preview ${l.label}`}
-                    className={`grid h-11 min-w-11 place-items-center rounded-md px-2 text-sm transition-colors ${viewLang === l.code ? "bg-paper text-ink" : "text-paper/70 hover:text-paper"}`}
+                    className={`grid h-11 min-w-11 place-items-center rounded-md px-2 text-sm transition-colors ${viewLang === l.code ? "bg-paper text-ink" : "text-on-primary-soft hover:text-paper"}`}
                   >
                     {l.tab}
                   </button>
@@ -505,15 +505,15 @@ export function Composer(props: ComposerProps) {
               <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                 <div className="rounded-xl bg-white/5 px-2 py-2.5">
                   <p className="display text-[1.6rem] leading-none">{view.info.segments}</p>
-                  <p className="mt-1 text-sm text-paper/60">segment{view.info.segments === 1 ? "" : "s"}</p>
+                  <p className="mt-1 text-sm text-on-primary-soft">segment{view.info.segments === 1 ? "" : "s"}</p>
                 </div>
                 <div className="rounded-xl bg-white/5 px-2 py-2.5">
                   <p className="display text-[1.6rem] leading-none tabular-nums">{view.info.units}</p>
-                  <p className="mt-1 text-sm text-paper/60">of {view.info.segments > 1 ? `${view.info.perSegment} x ${view.info.segments}` : view.info.perSegment}</p>
+                  <p className="mt-1 text-sm text-on-primary-soft">of {view.info.segments > 1 ? `${view.info.perSegment} x ${view.info.segments}` : view.info.perSegment}</p>
                 </div>
                 <div className="rounded-xl bg-white/5 px-2 py-2.5">
                   <p className="pt-1 text-sm font-medium">{view.info.encoding}</p>
-                  <p className="mt-1.5 text-sm text-paper/60">encoding</p>
+                  <p className="mt-1.5 text-sm text-on-primary-soft">encoding</p>
                 </div>
               </div>
             )}
@@ -534,9 +534,9 @@ export function Composer(props: ComposerProps) {
             {preview && (
               <>
                 <div className="mt-5 flex gap-2 text-xs">
-                  <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-emerald-800 ring-1 ring-emerald-200">{preview.audience.byConsent.express} opted in</span>
+                  <span className="rounded-md bg-primary-wash px-2.5 py-1 text-primary ring-1 ring-primary-line">{preview.audience.byConsent.express} opted in</span>
                   {includeImplied && (
-                    <span className="rounded-md bg-amber-50 px-2.5 py-1 text-amber-900 ring-1 ring-amber-200">{preview.audience.byConsent.implied} implied</span>
+                    <span className="rounded-md bg-terra-wash px-2.5 py-1 text-terra-deep ring-1 ring-terra-line">{preview.audience.byConsent.implied} implied</span>
                   )}
                   <span className="rounded-md bg-tile px-2.5 py-1 text-slate ring-1 ring-rule">{preview.audience.matched} match the audience</span>
                 </div>

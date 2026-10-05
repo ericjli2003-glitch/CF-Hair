@@ -20,8 +20,8 @@ interface Item {
 }
 
 const URGENCY: Record<string, string> = {
-  high: "bg-rose-700 text-white",
-  normal: "bg-amber-100 text-amber-950",
+  high: "bg-alert text-white",
+  normal: "bg-terra-wash text-terra-deep",
   low: "bg-tile text-slate ring-1 ring-rule",
 };
 const URGENCY_LABEL: Record<string, string> = { high: "Urgent", normal: "Normal", low: "Low" };
@@ -50,13 +50,13 @@ export function MessageList({ items }: { items: Item[] }) {
       {items.map((m) => {
         const done = m.status === "done";
         return (
-          <li key={m.id} id={`m-${m.id}`} className={`scroll-mt-28 rounded-xl p-5 ring-1 transition target:ring-2 target:ring-ink sm:p-6 ${done ? "bg-tile/60 ring-line" : "bg-paper ring-line"}`}>
+          <li key={m.id} id={`m-${m.id}`} className={`scroll-mt-28 rounded-xl p-5 ring-1 transition target:ring-2 target:ring-primary sm:p-6 ${done ? "bg-tile/60 ring-line" : "bg-paper ring-line"}`}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-lg font-medium">{m.callerName}</p>
                   {done ? (
-                    <span className="rounded-md bg-white px-2.5 py-0.5 text-sm font-medium text-ink-soft ring-1 ring-rule">Done</span>
+                    <span className="rounded-md bg-paper px-2.5 py-0.5 text-sm font-medium text-ink-soft ring-1 ring-rule">Done</span>
                   ) : (
                     <span className={`rounded-md px-2.5 py-0.5 text-sm font-medium ${URGENCY[m.urgency] ?? URGENCY.normal}`}>
                       {URGENCY_LABEL[m.urgency] ?? m.urgency}
@@ -67,14 +67,14 @@ export function MessageList({ items }: { items: Item[] }) {
                       Speaks {LANGUAGE_LABELS[m.language].label} · {LANGUAGE_LABELS[m.language].native}
                     </span>
                   )}
-                  {m.isClient && <span className="rounded-md bg-emerald-50 px-2.5 py-0.5 text-sm text-emerald-800 ring-1 ring-emerald-200">Client · {m.bookings} booking{m.bookings === 1 ? "" : "s"}</span>}
+                  {m.isClient && <span className="rounded-md bg-primary-wash px-2.5 py-0.5 text-sm text-primary ring-1 ring-primary-line">Client · {m.bookings} booking{m.bookings === 1 ? "" : "s"}</span>}
                 </div>
                 <p className="mt-1 text-sm text-ink-soft">
                   {m.source === "web" ? "Website form" : m.source === "sms" ? "Text message reply" : "Phone assistant"} · {relTime(m.createdAt)}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <a href={`tel:${m.phone}`} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover">
+                <a href={`tel:${m.phone}`} className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm text-paper hover:bg-primary-hover">
                   Call {phonePretty(m.phone)}
                 </a>
                 <button
@@ -82,7 +82,7 @@ export function MessageList({ items }: { items: Item[] }) {
                   disabled={busy === m.id}
                   aria-busy={busy === m.id || undefined}
                   onClick={() => toggle(m.id, done ? "new" : "done")}
-                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-white px-4 text-sm ring-1 ring-ink hover:bg-tile disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-paper px-4 text-sm ring-1 ring-primary hover:bg-tile disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {busy === m.id ? "Saving..." : done ? "Reopen" : "Mark done"}
                   <span className="sr-only">, {m.callerName}</span>

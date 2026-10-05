@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Monogram } from "../art/Monogram";
+import { Logo } from "../art/Logo";
 
 const TABS = [
   { href: "/admin", label: "Schedule" },
@@ -58,7 +58,7 @@ export function AdminNav({ newMessages, cardsWaiting = 0 }: { newMessages: numbe
     <header ref={ref} className="sticky top-0 z-40 border-b border-line bg-tile/95 backdrop-blur">
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-4 px-4 sm:px-6 lg:px-8">
         <Link href="/admin" className="flex min-h-11 shrink-0 items-center gap-2 py-2.5">
-          <Monogram className="h-9 w-9" />
+          <Logo variant="compact" size={26} decorative />
           <span className="text-[0.95rem] font-medium">Owner</span>
           <span className="sr-only">, schedule</span>
         </Link>
@@ -75,7 +75,7 @@ export function AdminNav({ newMessages, cardsWaiting = 0 }: { newMessages: numbe
                     title={badge ?? undefined}
                     className={`relative flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-2.5 text-[0.95rem] xl:min-h-16 xl:rounded-none xl:px-3 ${
                       active
-                        ? "font-semibold text-ink underline decoration-2 underline-offset-[6px] xl:no-underline xl:after:absolute xl:after:inset-x-3 xl:after:bottom-0 xl:after:h-[3px] xl:after:bg-ink"
+                        ? "font-semibold text-ink underline decoration-2 underline-offset-[6px] xl:no-underline xl:after:absolute xl:after:inset-x-3 xl:after:bottom-0 xl:after:h-[3px] xl:after:bg-primary"
                         : "text-ink-soft hover:bg-paper hover:text-ink"
                     }`}
                   >
@@ -84,7 +84,7 @@ export function AdminNav({ newMessages, cardsWaiting = 0 }: { newMessages: numbe
                       <>
                         <span
                           aria-hidden="true"
-                          className="nums grid h-6 min-w-6 place-items-center rounded-full bg-ink px-1.5 text-[0.8rem] font-semibold text-paper"
+                          className="nums grid h-6 min-w-6 place-items-center rounded-full bg-terra px-1.5 text-[0.8rem] font-semibold text-ink"
                         >
                           {counts[t.href]}
                         </span>
@@ -105,7 +105,7 @@ export function AdminNav({ newMessages, cardsWaiting = 0 }: { newMessages: numbe
             type="button"
             onClick={logout}
             disabled={leaving}
-            className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-ink bg-white px-4 text-[0.95rem] font-medium hover:bg-tile disabled:opacity-60"
+            className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-primary bg-paper px-4 text-[0.95rem] font-medium hover:bg-tile disabled:opacity-60"
           >
             {leaving ? "Logging out..." : "Log out"}
           </button>

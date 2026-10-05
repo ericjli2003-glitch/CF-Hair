@@ -15,15 +15,15 @@ import { ChevronIcon } from "@/components/admin/icons";
 export const dynamic = "force-dynamic";
 
 const EVENT_LABEL: Record<string, { label: string; dot: string }> = {
-  express: { label: "Opted in", dot: "bg-emerald-600" },
-  resubscribed: { label: "Opted back in", dot: "bg-emerald-600" },
-  implied: { label: "Implied consent from a paid visit", dot: "bg-amber-500" },
+  express: { label: "Opted in", dot: "bg-primary" },
+  resubscribed: { label: "Opted back in", dot: "bg-primary" },
+  implied: { label: "Implied consent from a paid visit", dot: "bg-terra" },
   implied_expired: { label: "Implied consent expired", dot: "bg-slate" },
-  withdrawn: { label: "Opted out of promotions", dot: "bg-rose-500" },
+  withdrawn: { label: "Opted out of promotions", dot: "bg-alert" },
   declined: { label: "Declined when asked", dot: "bg-slate" },
-  help: { label: "Texted HELP", dot: "bg-sky-500" },
-  txn_opted_out: { label: "Opted out of appointment texts", dot: "bg-rose-500" },
-  txn_resubscribed: { label: "Appointment texts back on", dot: "bg-emerald-600" },
+  help: { label: "Texted HELP", dot: "bg-lilac" },
+  txn_opted_out: { label: "Opted out of appointment texts", dot: "bg-alert" },
+  txn_resubscribed: { label: "Appointment texts back on", dot: "bg-primary" },
 };
 
 const ACTOR: Record<string, string> = { customer: "by the client", owner: "by the owner", agent: "by the phone assistant", system: "automatically" };
@@ -103,7 +103,7 @@ export default async function ClientPage(props: PageProps<"/admin/customers/[id]
             </div>
             <p className="mt-4 leading-relaxed text-ink-soft">{statusLine}</p>
             {consent.wording && consent.status !== "implied" && (
-              <figure className="mt-4 rounded-xl border-l-2 border-ink bg-tile px-4 py-3">
+              <figure className="mt-4 rounded-xl border-l-2 border-primary bg-tile px-4 py-3">
                 <figcaption className="text-sm text-mute">
                   {consent.status === "withdrawn" ? "What they sent or said" : "Wording they agreed to"}
                   {consent.language ? ` · ${consent.language}` : ""}
@@ -158,7 +158,7 @@ export default async function ClientPage(props: PageProps<"/admin/customers/[id]
             <div className="flex items-center justify-between gap-3">
               <p className="font-medium">Appointment texts</p>
               <span
-                className={`rounded-md px-2.5 py-0.5 text-xs ring-1 ${txnOff ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-emerald-50 text-emerald-800 ring-emerald-200"}`}
+                className={`rounded-md px-2.5 py-0.5 text-xs ring-1 ${txnOff ? "bg-alert-wash text-alert ring-alert-line" : "bg-primary-wash text-primary ring-primary-line"}`}
               >
                 {txnOff ? "Opted out" : "On"}
               </span>

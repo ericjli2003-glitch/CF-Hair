@@ -184,7 +184,7 @@ export function NewBookingForm({
       onClick={() => setSource(v)}
       aria-pressed={source === v}
       className={`inline-flex min-h-11 flex-1 items-center justify-center rounded-md px-4 text-[0.95rem] transition-colors ${
-        source === v ? "bg-ink font-medium text-paper" : "text-ink-soft hover:bg-paper hover:text-ink"
+        source === v ? "bg-primary font-medium text-paper" : "text-ink-soft hover:bg-paper hover:text-ink"
       }`}
     >
       {label}
@@ -224,9 +224,9 @@ export function NewBookingForm({
           />
           {errText("n-phone-err", errors.phone)}
           {found && (
-            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-primary-wash px-3 py-2 text-sm text-primary">
               Returning client: <strong>{found.name}</strong> · {found.visitCount} visit{found.visitCount === 1 ? "" : "s"}
-              <span className="rounded-md bg-white px-2 py-0.5 text-xs ring-1 ring-emerald-200">
+              <span className="rounded-md bg-paper px-2 py-0.5 text-xs ring-1 ring-primary-line">
                 {LANGUAGE_LABELS[found.preferredLanguage]?.native}
               </span>
             </div>
@@ -295,7 +295,7 @@ export function NewBookingForm({
                 onClick={() => setStaffId(s.id)}
                 aria-pressed={staffId === s.id}
                 className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-[0.95rem] ring-1 ${
-                  staffId === s.id ? "bg-ink font-medium text-paper ring-ink" : "ring-line hover:ring-ink"
+                  staffId === s.id ? "bg-primary font-medium text-paper ring-primary" : "ring-line hover:ring-primary"
                 }`}
               >
                 {s.name}
@@ -342,7 +342,7 @@ export function NewBookingForm({
                     if (errors.time) setErrors((x) => ({ ...x, time: undefined }));
                   }}
                   aria-pressed={start === s.start}
-                  className={`min-h-11 rounded-md px-1 text-sm tabular-nums ring-1 ${start === s.start ? "bg-ink font-medium text-paper ring-ink" : "ring-line hover:ring-ink"}`}
+                  className={`min-h-11 rounded-md px-1 text-sm tabular-nums ring-1 ${start === s.start ? "bg-primary font-medium text-paper ring-primary" : "ring-line hover:ring-primary"}`}
                 >
                   {time12(s.start).replace(" ", "")}
                 </button>
@@ -351,7 +351,7 @@ export function NewBookingForm({
           )}
         </div>
         {errors.form && (
-          <p role="alert" className="rounded-md border-2 border-alert bg-white px-3 py-2 text-sm font-medium text-alert">
+          <p role="alert" className="rounded-md border-2 border-alert bg-paper px-3 py-2 text-sm font-medium text-alert">
             {errors.form}
           </p>
         )}

@@ -37,7 +37,7 @@ export function TeamRows({
             key={s.id}
             className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-x-4 gap-y-4 border-b border-rule py-6 sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:gap-x-6"
           >
-            <PhotoSlot slot={s.id} label={t.common.photoSlot} alt={s.name} className="aspect-[4/5] w-full" />
+            <PhotoSlot slot={s.id} label={t.common.photoSlot} alt={s.name} frame="moon" className="w-full self-start" />
             <div className="min-w-0">
               <H className="font-cond text-[1.6rem] font-semibold leading-none">{s.name}</H>
               <p className="mt-1.5 text-[0.95rem] text-slate">{roleName(t, s.role)}</p>

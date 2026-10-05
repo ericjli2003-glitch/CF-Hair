@@ -31,7 +31,7 @@ export function ContactForm() {
   }
 
   return (
-    <section aria-labelledby="ask" className="rounded-xl bg-white p-5 sm:p-7">
+    <section aria-labelledby="ask" className="rounded-xl bg-board p-5 sm:p-7">
       <h2 id="ask" className="display text-[1.75rem]">
         {t.contact.formTitle}
       </h2>

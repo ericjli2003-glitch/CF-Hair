@@ -58,13 +58,13 @@ export function StatusButtons({
   };
   const actions: { s: string; label: string; style: string }[] = [];
   if (status === "confirmed") {
-    actions.push({ s: "completed", label: "Mark completed", style: "bg-ink font-medium text-paper ring-ink hover:bg-ink-hover" });
-    actions.push({ s: "no-show", label: "No-show", style: "bg-paper text-rose-800 ring-rose-300 hover:bg-rose-50" });
+    actions.push({ s: "completed", label: "Mark completed", style: "bg-primary font-medium text-paper ring-primary hover:bg-primary-hover" });
+    actions.push({ s: "no-show", label: "No-show", style: "bg-paper text-alert ring-alert-line hover:bg-alert-wash" });
     // Destructive, so it sits apart from the others.
-    actions.push({ s: "cancelled", label: "Cancel booking", style: "ml-auto bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink" });
+    actions.push({ s: "cancelled", label: "Cancel booking", style: "ml-auto bg-paper text-ink-soft ring-line hover:text-ink hover:ring-primary" });
   } else {
-    actions.push({ s: "confirmed", label: status === "cancelled" ? "Reinstate" : "Undo", style: "bg-paper text-ink ring-line hover:ring-ink" });
-    if (status !== "completed" && isPast) actions.push({ s: "completed", label: "Mark completed", style: "bg-ink font-medium text-paper ring-ink hover:bg-ink-hover" });
+    actions.push({ s: "confirmed", label: status === "cancelled" ? "Reinstate" : "Undo", style: "bg-paper text-ink ring-line hover:ring-primary" });
+    if (status !== "completed" && isPast) actions.push({ s: "completed", label: "Mark completed", style: "bg-primary font-medium text-paper ring-primary hover:bg-primary-hover" });
   }
   return (
     <div>

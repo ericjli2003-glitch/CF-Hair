@@ -23,7 +23,7 @@ export function LangToggle({ wide = false }: { wide?: boolean }) {
       role="group"
       aria-label="Language"
       aria-busy={pending || undefined}
-      className={`${wide ? "grid w-full grid-cols-4" : "inline-flex"} rounded-md border-[1.5px] border-black bg-white p-0.5 ${
+      className={`${wide ? "grid w-full grid-cols-4" : "inline-flex"} rounded-md border-[1.5px] border-primary bg-board p-0.5 ${
         pending ? "opacity-70" : ""
       }`}
     >
@@ -41,7 +41,7 @@ export function LangToggle({ wide = false }: { wide?: boolean }) {
             title={name}
             lang={HTML_LANG[l]}
             className={`min-h-11 min-w-11 whitespace-nowrap rounded-[4px] px-2.5 text-[0.92rem] font-medium leading-none transition-colors ${
-              on ? "bg-black text-white" : "text-black hover:bg-tile"
+              on ? "bg-primary text-white" : "text-ink hover:bg-tile"
             }`}
           >
             {LANG_LABELS[l]}

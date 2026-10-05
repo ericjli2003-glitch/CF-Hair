@@ -58,7 +58,7 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
                 : c.status}
           </p>
           {c.status === "scheduled" && c.requestedAt && c.scheduledAt && c.requestedAt !== c.scheduledAt && (
-            <p className="mt-1 text-sm text-sky-900">Requested for {dateTime(c.requestedAt)}, moved out of quiet hours.</p>
+            <p className="mt-1 text-sm text-lilac-deep">Requested for {dateTime(c.requestedAt)}, moved out of quiet hours.</p>
           )}
         </div>
         <CampaignActions id={id} status={c.status} canEdit={c.status === "scheduled"} />
@@ -74,17 +74,17 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
           <Tile label="Text cost" value={money(stats.costUSD)} sub={`${stats.segments} segments, USD`} />
         </div>
       ) : (
-        <div className="mt-6 rounded-xl bg-sky-50 px-5 py-4 text-sm text-sky-900 ring-1 ring-sky-200">
+        <div className="mt-6 rounded-xl bg-lilac-wash px-5 py-4 text-sm text-lilac-deep ring-1 ring-lilac-line">
           {c.status === "scheduled"
             ? "The audience is checked again when it goes out: anyone who opts out before then is left out, and consent and the frequency cap are re-checked for every text."
             : "This campaign was not sent."}
         </div>
       )}
 
-      <section className="mt-6 rounded-xl bg-ink p-6 text-paper">
+      <section className="mt-6 rounded-xl bg-primary p-6 text-paper">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-sm text-white">What clients received</p>
-          <p className="text-xs text-paper/60">Each client gets the version for their preferred language, or English.</p>
+          <p className="text-xs text-on-primary-soft">Each client gets the version for their preferred language, or English.</p>
         </div>
         <div className={`mt-4 grid gap-4 sm:grid-cols-2 ${langs.length > 2 ? "xl:grid-cols-4" : ""}`}>
           {langs.map((l) => {
@@ -93,7 +93,7 @@ export default async function CampaignPage(props: PageProps<"/admin/promotions/[
             const n = real.filter((r) => r.language === l.code && (r.status === "sent" || r.status === "delivered" || r.status === "failed")).length;
             return (
               <div key={l.code} className="flex flex-col">
-                <p className="mb-1.5 flex justify-between gap-2 text-xs text-paper/70">
+                <p className="mb-1.5 flex justify-between gap-2 text-xs text-on-primary-soft">
                   <span>{l.code === "en-US" ? "English" : `${l.script} · ${l.label}`}</span>
                   <span className="whitespace-nowrap">
                     {info.segments} seg · {info.encoding}

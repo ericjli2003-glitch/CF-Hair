@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow, Barlow_Condensed, Barlow_Semi_Condensed } from "next/font/google";
+import { Barlow, Barlow_Condensed, Barlow_Semi_Condensed, Jost } from "next/font/google";
 import { HTML_LANG } from "@/lib/i18n/dictionary";
 import { getLang } from "@/lib/i18n/server";
 import { clean, fullAddress, salon } from "@/lib/salon";
@@ -21,16 +21,20 @@ const barlowCond = Barlow_Condensed({
   display: "swap",
 });
 
+// "Hair Salon" in the logo, recreated from the storefront sign. Used only there
+// (components/art/Logo.tsx); the logo's "CF" is a vector path, not a font.
+const logoSans = Jost({ variable: "--font-jost", subsets: ["latin"], weight: ["500"], display: "block" });
+
 export const metadata: Metadata = {
   title: { default: `${salon.name} | Coquitlam`, template: `%s | ${salon.name}` },
   description: `${clean(salon.tagline)}. ${fullAddress()}. Book online any time.`,
 };
 
-export const viewport: Viewport = { themeColor: "#E8EDEA", viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#EEF2EF", viewportFit: "cover" };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const lang = await getLang();
-  const fonts = [barlow, barlowSemi, barlowCond].map((f) => f.variable).join(" ");
+  const fonts = [barlow, barlowSemi, barlowCond, logoSans].map((f) => f.variable).join(" ");
   return (
     <html lang={HTML_LANG[lang]} className={`${fonts} h-full antialiased`}>
       <body className="min-h-full">{children}</body>

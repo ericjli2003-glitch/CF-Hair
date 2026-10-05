@@ -16,7 +16,7 @@ import {
   serviceDesc,
   serviceName,
 } from "@/lib/i18n/localize";
-import { rodColour } from "@/lib/rods";
+import { rodColour, rodText, rodTint } from "@/lib/rods";
 import { formatPhoneDisplay, fullAddress, salon, type Hours } from "@/lib/salon";
 import { addDays, weekdayOf } from "@/lib/time";
 import { useI18n } from "../LangProvider";
@@ -315,12 +315,12 @@ export function BookingFlow(props: {
                 aria-current={active ? "step" : undefined}
                 aria-label={`${fill(t.book.stepOf, { n: i + 1, total })}: ${label}`}
                 className={`flex min-h-11 w-full min-w-0 items-center gap-2 rounded-t-md border-b-[3px] py-2 text-left text-[0.95rem] ${
-                  active ? "border-black font-semibold" : done ? "border-black/40 hover:border-black" : "border-rule text-slate"
+                  active ? "border-primary font-semibold" : done ? "border-primary/40 hover:border-primary" : "border-rule text-slate"
                 } disabled:cursor-default`}
               >
                 <span
                   className={`nums grid h-6 w-6 shrink-0 place-items-center rounded-full text-[0.85rem] font-semibold ${
-                    active ? "bg-black text-white" : done ? "border-[1.5px] border-black" : "border-[1.5px] border-edge"
+                    active ? "bg-primary text-white" : done ? "border-[1.5px] border-primary" : "border-[1.5px] border-edge"
                   }`}
                 >
                   {i + 1}
@@ -335,7 +335,7 @@ export function BookingFlow(props: {
       </ol>
 
       {banner && (
-        <div role="alert" className="mt-6 rounded-md border-2 border-alert bg-white px-4 py-3 font-medium text-alert">
+        <div role="alert" className="mt-6 rounded-md border-2 border-alert bg-board px-4 py-3 font-medium text-alert">
           {banner}
         </div>
       )}
@@ -345,10 +345,10 @@ export function BookingFlow(props: {
           {step === 0 && (
             <section>
               {stepHeading(t.book.serviceTitle)}
-              <div className="mt-6 overflow-hidden rounded-xl bg-white">
+              <div className="mt-6 overflow-hidden rounded-xl bg-board">
                 {categories.map((c) => (
                   <div key={c}>
-                    <h3 style={{ background: rodColour(c) }} className="px-4 py-2.5 font-cond text-[1.3rem] font-semibold leading-none sm:px-5">
+                    <h3 style={{ background: rodColour(c), color: rodText(c) }} className="px-4 py-2.5 font-cond text-[1.3rem] font-semibold leading-none sm:px-5">
                       {categoryName(t, c)}
                     </h3>
                     <ul>
@@ -360,9 +360,9 @@ export function BookingFlow(props: {
                               type="button"
                               onClick={() => pickService(s.id)}
                               aria-current={serviceId === s.id ? "true" : undefined}
-                              style={{ ["--rod" as string]: rodColour(c) }}
-                              className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-4 py-3 text-left hover:bg-[color-mix(in_srgb,var(--rod)_24%,white)] sm:grid-cols-[minmax(0,1fr)_6.5rem_4rem] sm:px-5 ${
-                                serviceId === s.id ? "bg-[color-mix(in_srgb,var(--rod)_40%,white)]" : ""
+                              style={{ ["--rod" as string]: rodTint(c) }}
+                              className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 px-4 py-3 text-left hover:bg-[color-mix(in_srgb,var(--rod)_60%,var(--color-board))] sm:grid-cols-[minmax(0,1fr)_6.5rem_4rem] sm:px-5 ${
+                                serviceId === s.id ? "bg-[var(--rod)]" : ""
                               }`}
                             >
                               <span className="min-w-0">
@@ -385,7 +385,7 @@ export function BookingFlow(props: {
           {step === 1 && service && (
             <section>
               {stepHeading(t.book.staffTitle)}
-              <ul className="mt-6 overflow-hidden rounded-xl bg-white">
+              <ul className="mt-6 overflow-hidden rounded-xl bg-board">
                 {[{ id: "any", name: t.book.noPref, sub: t.book.noPrefSub }, ...eligibleStaff.map((s) => ({ id: s.id, name: s.name, sub: roleName(t, s.role) }))].map(
                   (s) => (
                     <li key={s.id} className="border-b border-rule last:border-b-0">
@@ -393,7 +393,7 @@ export function BookingFlow(props: {
                         type="button"
                         onClick={() => pickStaff(s.id)}
                         aria-current={staffId === s.id ? "true" : undefined}
-                        className={`flex w-full min-h-16 flex-col justify-center px-4 py-3 text-left hover:bg-tile sm:px-5 ${staffId === s.id ? "bg-tile" : ""}`}
+                        className={`flex w-full min-h-16 flex-col justify-center px-4 py-3 text-left hover:bg-tile sm:px-5 ${staffId === s.id ? "bg-primary-wash" : ""}`}
                       >
                         <span className="text-[1.05rem] font-medium">{s.name}</span>
                         <span className="text-[0.92rem] text-slate">{s.sub}</span>
@@ -426,9 +426,9 @@ export function BookingFlow(props: {
                       aria-label={`${longDate(d)}${open ? "" : `, ${t.common.closed}`}`}
                       className={`flex w-[4.25rem] shrink-0 flex-col items-center rounded-md border-[1.5px] py-2.5 ${
                         sel
-                          ? "border-black bg-black text-white"
+                          ? "border-primary bg-primary text-white"
                           : open
-                            ? "border-transparent bg-white hover:border-black"
+                            ? "border-transparent bg-board hover:border-primary"
                             : "border-dashed border-edge text-slate"
                       }`}
                     >
@@ -486,7 +486,7 @@ export function BookingFlow(props: {
                                 }}
                                 aria-pressed={sel}
                                 className={`nums min-h-12 rounded-md border-[1.5px] px-2 text-[1rem] font-medium ${
-                                  sel ? "border-black bg-black text-white" : "border-transparent bg-white hover:border-black"
+                                  sel ? "border-primary bg-primary text-white" : "border-transparent bg-board hover:border-primary"
                                 }`}
                               >
                                 {timeOf(s.start)}
@@ -509,7 +509,7 @@ export function BookingFlow(props: {
           {step === 3 && service && slot && (
             <section>
               {stepHeading(t.book.detailsTitle)}
-              <form onSubmit={submit} noValidate className="mt-6 grid gap-5 rounded-xl bg-white p-4 sm:grid-cols-2 sm:p-6">
+              <form onSubmit={submit} noValidate className="mt-6 grid gap-5 rounded-xl bg-board p-4 sm:grid-cols-2 sm:p-6">
                 <div className="sm:col-span-2">
                   <label className="s-label" htmlFor="b-name">{t.book.name}</label>
                   <input
@@ -585,7 +585,7 @@ export function BookingFlow(props: {
                   <label
                     htmlFor="b-sms"
                     className={`flex cursor-pointer gap-3 rounded-md border-[1.5px] px-4 py-3.5 ${
-                      smsOptIn ? "border-black bg-tile" : "border-edge bg-white hover:border-black"
+                      smsOptIn ? "border-primary bg-primary-wash" : "border-edge bg-board hover:border-primary"
                     }`}
                   >
                     <input
@@ -594,7 +594,7 @@ export function BookingFlow(props: {
                       checked={smsOptIn}
                       onChange={(e) => setSmsOptIn(e.target.checked)}
                       aria-describedby="b-sms-fine"
-                      className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-black"
+                      className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-primary"
                     />
                     <span>
                       <span className="block leading-snug">{fill(t.book.smsOptIn, { salon: salon.name })}</span>
@@ -617,7 +617,7 @@ export function BookingFlow(props: {
         </div>
 
         <aside aria-labelledby="summary-title" className={`lg:pt-[3.25rem] ${service ? "" : "hidden"}`}>
-          <div className="rounded-xl bg-white p-5 lg:sticky lg:top-6">
+          <div className="rounded-xl bg-board p-5 lg:sticky lg:top-6">
             <h2 id="summary-title" className="font-cond text-[1.35rem] font-semibold leading-none">
               {t.book.summary}
             </h2>

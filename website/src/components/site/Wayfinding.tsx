@@ -6,12 +6,13 @@ type Kind = "station" | "mall" | "salon";
 function Marker({ kind }: { kind: Kind }) {
   return (
     <svg viewBox="0 0 28 28" className="h-7 w-7 shrink-0" aria-hidden="true" focusable="false">
-      {kind === "station" && <circle cx="14" cy="14" r="10.5" fill="#fff" stroke="#000" strokeWidth="3" />}
-      {kind === "mall" && <rect x="3.5" y="3.5" width="21" height="21" rx="3" fill="#fff" stroke="#000" strokeWidth="3" />}
+      {kind === "station" && <circle cx="14" cy="14" r="10.5" fill="var(--color-board)" stroke="var(--color-primary)" strokeWidth="3" />}
+      {kind === "mall" && <rect x="3.5" y="3.5" width="21" height="21" rx="3" fill="var(--color-board)" stroke="var(--color-primary)" strokeWidth="3" />}
+      {/* The destination: a terracotta marker with an ink ring and centre. */}
       {kind === "salon" && (
         <>
-          <circle cx="14" cy="14" r="12" fill="#000" />
-          <circle cx="14" cy="14" r="4.5" fill="#fff" />
+          <circle cx="14" cy="14" r="11.5" fill="var(--color-terra)" stroke="var(--color-ink)" strokeWidth="3" />
+          <circle cx="14" cy="14" r="4" fill="var(--color-ink)" />
         </>
       )}
     </svg>
@@ -48,7 +49,7 @@ export function Wayfinding({ t }: { t: Dict }) {
             {s.leg && (
               <>
                 <div className="flex justify-center py-1">
-                  <span className={`block min-h-12 w-0 border-l-[3px] border-black ${s.dashed ? "border-dotted" : ""}`} />
+                  <span className={`block min-h-12 w-0 border-l-[3px] border-primary ${s.dashed ? "border-dotted" : ""}`} />
                 </div>
                 <p className="self-center py-2 text-[0.92rem] text-slate">{s.leg}</p>
               </>
@@ -65,7 +66,7 @@ export function Wayfinding({ t }: { t: Dict }) {
               <Marker kind={s.kind} />
               {s.leg && (
                 <div className="relative mx-1 flex-1">
-                  <span className={`block h-0 border-t-[3px] border-black ${s.dashed ? "border-dotted" : ""}`} />
+                  <span className={`block h-0 border-t-[3px] border-primary ${s.dashed ? "border-dotted" : ""}`} />
                   <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-tile px-2 text-[0.92rem] text-slate">
                     {s.leg}
                   </span>

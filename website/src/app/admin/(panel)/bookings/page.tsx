@@ -44,7 +44,7 @@ export default async function BookingsPage(props: PageProps<"/admin/bookings">) 
                 href={`/admin/bookings?filter=${f.key}`}
                 aria-current={filter === f.key ? "page" : undefined}
                 className={`inline-flex min-h-11 items-center rounded-md px-4 text-[0.95rem] ring-1 ${
-                  filter === f.key ? "bg-ink font-medium text-paper ring-ink" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink"
+                  filter === f.key ? "bg-primary font-medium text-paper ring-primary" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-primary"
                 }`}
               >
                 {f.label}

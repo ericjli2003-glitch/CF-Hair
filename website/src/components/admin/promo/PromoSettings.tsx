@@ -43,7 +43,7 @@ export function PromoSettings(props: {
       <span>{label}</span>
       <span
         className={`rounded-md px-2.5 py-0.5 text-xs ring-1 ${
-          mode === "live" ? "bg-emerald-50 text-emerald-800 ring-emerald-200" : mode === "blocked" ? "bg-rose-50 text-rose-700 ring-rose-200" : "bg-tile text-slate ring-rule"
+          mode === "live" ? "bg-primary-wash text-primary ring-primary-line" : mode === "blocked" ? "bg-alert-wash text-alert ring-alert-line" : "bg-tile text-slate ring-rule"
         }`}
       >
         {mode === "live" ? "Twilio, live" : mode === "blocked" ? "Not set up" : on ? "Dry run" : "Outbox"}
@@ -75,11 +75,11 @@ export function PromoSettings(props: {
       <input id="owner-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="604 555 0123" className="field !py-2.5" />
 
       <div className="mt-4 flex items-center gap-3">
-        <button disabled={state === "saving"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
+        <button disabled={state === "saving"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm text-paper hover:bg-primary-hover disabled:opacity-50">
           {state === "saving" ? "Saving..." : "Save"}
         </button>
-        {state === "saved" && <span className="text-sm text-emerald-700">Saved</span>}
-        {state === "error" && <span className="text-sm text-rose-700">{error}</span>}
+        {state === "saved" && <span className="text-sm text-primary">Saved</span>}
+        {state === "error" && <span className="text-sm text-alert">{error}</span>}
       </div>
     </form>
   );

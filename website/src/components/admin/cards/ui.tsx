@@ -10,11 +10,11 @@ export const CARD_STATUS_LABEL: Record<string, string> = {
 };
 
 const CARD_STATUS_STYLE: Record<string, string> = {
-  pending: "bg-amber-50 text-amber-900 ring-amber-200",
-  approved: "bg-emerald-50 text-emerald-800 ring-emerald-200",
+  pending: "bg-terra-wash text-terra-deep ring-terra-line",
+  approved: "bg-primary-wash text-primary ring-primary-line",
   skipped: "bg-tile text-slate ring-rule",
-  sent: "bg-sky-50 text-sky-900 ring-sky-200",
-  failed: "bg-rose-50 text-rose-700 ring-rose-200",
+  sent: "bg-lilac-wash text-lilac-deep ring-lilac-line",
+  failed: "bg-alert-wash text-alert ring-alert-line",
 };
 
 export function CardStatusChip({ status }: { status: string }) {
@@ -54,7 +54,7 @@ export function MonthMeter(props: { label: string; used: number; cap: number; pr
         aria-valuenow={used}
         aria-label={`${used} of ${cap} cards this month`}
       >
-        <div className={`h-full rounded-full ${full ? "bg-alert" : "bg-ink"}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full ${full ? "bg-alert" : "bg-primary"}`} style={{ width: `${pct}%` }} />
       </div>
       <p className={`mt-2 text-sm ${full ? "font-medium text-alert" : "text-ink-soft"}`}>
         {full

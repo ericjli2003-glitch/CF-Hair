@@ -68,11 +68,11 @@ export function CardSettings(props: { monthlyCap: number; pricePerCardCAD: numbe
         <span>CAD, card, writing and stamp</span>
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <button disabled={state === "saving"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover disabled:opacity-50">
+        <button disabled={state === "saving"} className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm text-paper hover:bg-primary-hover disabled:opacity-50">
           {state === "saving" ? "Saving..." : "Save"}
         </button>
-        {state === "saved" && <span className="text-sm text-emerald-700">Saved</span>}
-        {state === "error" && <span className="text-sm text-rose-700">Use whole cards for the limit and a price like 8.50.</span>}
+        {state === "saved" && <span className="text-sm text-primary">Saved</span>}
+        {state === "error" && <span className="text-sm text-alert">Use whole cards for the limit and a price like 8.50.</span>}
       </div>
     </form>
   );

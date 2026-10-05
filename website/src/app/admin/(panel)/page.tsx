@@ -58,7 +58,7 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
                 key={v}
                 href={q(date, v)}
                 aria-current={view === v ? "page" : undefined}
-                className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-[0.95rem] capitalize ${view === v ? "bg-ink font-medium text-paper" : "text-ink-soft hover:bg-tile hover:text-ink"}`}
+                className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-[0.95rem] capitalize ${view === v ? "bg-primary font-medium text-paper" : "text-ink-soft hover:bg-tile hover:text-ink"}`}
               >
                 {v}
               </Link>
@@ -116,8 +116,8 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className={`rounded-xl p-4 ring-1 ${accent ? "bg-ink text-paper ring-ink" : "bg-paper ring-line"}`}>
-      <p className={`text-sm ${accent ? "text-paper/80" : "text-ink-soft"}`}>{label}</p>
+    <div className={`rounded-xl p-4 ring-1 ${accent ? "bg-primary text-paper ring-primary" : "bg-paper ring-line"}`}>
+      <p className={`text-sm ${accent ? "text-on-primary-soft" : "text-ink-soft"}`}>{label}</p>
       <p className="display mt-1 text-[2rem] leading-none">{value}</p>
     </div>
   );

@@ -14,14 +14,14 @@ export const OUTCOME_LABEL: Record<string, string> = {
 };
 
 const OUTCOME_STYLE: Record<string, string> = {
-  booked: "bg-emerald-50 text-emerald-800 ring-emerald-200",
-  rescheduled: "bg-sky-50 text-sky-900 ring-sky-200",
-  cancelled: "bg-rose-50 text-rose-700 ring-rose-200",
-  message: "bg-amber-50 text-amber-900 ring-amber-200",
-  transferred: "bg-violet-50 text-violet-800 ring-violet-200",
+  booked: "bg-primary-wash text-primary ring-primary-line",
+  rescheduled: "bg-lilac-wash text-lilac-deep ring-lilac-line",
+  cancelled: "bg-alert-wash text-alert ring-alert-line",
+  message: "bg-terra-wash text-terra-deep ring-terra-line",
+  transferred: "bg-paper text-primary ring-primary-line",
   info: "bg-tile text-slate ring-rule",
-  abandoned: "bg-white text-slate ring-rule",
-  spam: "bg-white text-slate ring-rule",
+  abandoned: "bg-paper text-slate ring-rule",
+  spam: "bg-paper text-slate ring-rule",
 };
 
 export function OutcomeChip({ outcome, size = "sm" }: { outcome: string; size?: "sm" | "md" }) {

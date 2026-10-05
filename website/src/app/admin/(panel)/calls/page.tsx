@@ -102,7 +102,7 @@ export default async function CallsPage(props: PageProps<"/admin/calls">) {
                   href={params({ outcome: o })}
                   aria-current={outcome === o ? "page" : undefined}
                   className={`inline-flex min-h-11 items-center rounded-md px-3.5 text-[0.95rem] ring-1 ${
-                    outcome === o ? "bg-ink font-medium text-paper ring-ink" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-ink"
+                    outcome === o ? "bg-primary font-medium text-paper ring-primary" : "bg-paper text-ink-soft ring-line hover:text-ink hover:ring-primary"
                   }`}
                 >
                   {o ? OUTCOME_LABEL[o] : "All"}
@@ -198,14 +198,14 @@ export default async function CallsPage(props: PageProps<"/admin/calls">) {
       {(cursor || list.nextCursor) && (
         <div className="mt-4 flex justify-between text-sm">
           {cursor ? (
-            <Link href={params({})} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 ring-1 ring-line hover:ring-ink">
+            <Link href={params({})} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 ring-1 ring-line hover:ring-primary">
               Newest calls
             </Link>
           ) : (
             <span />
           )}
           {list.nextCursor && (
-            <Link href={params({ cursor: list.nextCursor })} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 ring-1 ring-line hover:ring-ink">
+            <Link href={params({ cursor: list.nextCursor })} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 ring-1 ring-line hover:ring-primary">
               Older calls
             </Link>
           )}

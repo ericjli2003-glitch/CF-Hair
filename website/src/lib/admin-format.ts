@@ -1,8 +1,9 @@
 import { SALON_TZ } from "./salon";
 
-// Stylist markers: dark inks that keep 3:1 or more against white and the tile
-// background, distinct from the light rod colours that mean a service category.
-export const STAFF_COLORS = ["#1f4e79", "#2e6b4f", "#6a3d7a", "#8a4b12", "#3d4a45"];
+// Stylist markers: dark palette inks (tokens --color-staff-1 to 5 in globals.css)
+// that keep 3:1 or more against the surface and the tile background, distinct
+// from the lighter category fills.
+export const STAFF_COLORS = [1, 2, 3, 4, 5].map((n) => `var(--color-staff-${n})`);
 
 export function staffColor(index: number): string {
   return STAFF_COLORS[index % STAFF_COLORS.length];
@@ -40,10 +41,10 @@ export function phonePretty(e164: string): string {
 }
 
 export const STATUS_STYLES: Record<string, string> = {
-  confirmed: "bg-emerald-50 text-emerald-800 ring-emerald-200",
+  confirmed: "bg-primary-wash text-primary ring-primary-line",
   completed: "bg-tile text-slate ring-rule",
-  "no-show": "bg-rose-50 text-rose-800 ring-rose-200",
-  cancelled: "bg-white text-slate ring-rule line-through",
+  "no-show": "bg-alert-wash text-alert ring-alert-line",
+  cancelled: "bg-paper text-slate ring-rule line-through",
 };
 
 export const STATUS_LABEL: Record<string, string> = {

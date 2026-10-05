@@ -26,7 +26,7 @@ export default function BookLoading() {
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)] lg:gap-10">
           <div>
             <div className="h-9 w-56 animate-pulse rounded-md bg-white/70" />
-            <div className="mt-6 space-y-2 rounded-xl bg-white p-4">
+            <div className="mt-6 space-y-2 rounded-xl bg-board p-4">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-12 animate-pulse rounded-md bg-tile" />
               ))}

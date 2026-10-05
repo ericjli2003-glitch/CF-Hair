@@ -48,6 +48,7 @@ const en = {
     lead: "Cuts, colour and perms at Unit\u00a0{unit}, Henderson Place, Coquitlam.",
     speak: "We speak {langs}.",
     teamMore: "More about the team",
+    heroAlt: "Inside CF Hair Salon at Henderson Place: styling chairs, mirrors and the Cut & Color storefront",
   },
   board: {
     title: "Services and prices",
@@ -220,6 +221,7 @@ const zh: Dict = {
     lead: "剪发、染发、烫发，就在高贵林 Henderson Place {unit} 号铺。",
     speak: "可用{langs}沟通。",
     teamMore: "了解团队",
+    heroAlt: "Henderson Place 的 CF Hair Salon 店内：造型椅、镜子和 Cut & Color 店面招牌",
   },
   board: {
     title: "服务与价格",
@@ -409,6 +411,7 @@ const hk: Dict = {
     lead: "剪髮、染髮、電髮，就在高貴林 Henderson Place {unit} 號舖。",
     speak: "可以用{langs}溝通。",
     teamMore: "認識團隊",
+    heroAlt: "Henderson Place 的 CF Hair Salon 店內：髮型椅、鏡子和 Cut & Color 店面招牌",
   },
   board: {
     title: "服務及價錢",
@@ -595,6 +598,7 @@ const ko: Dict = {
     lead: "코퀴틀람 Henderson Place {unit}호에서 커트, 염색, 펌을 합니다.",
     speak: "{langs}로 상담할 수 있어요.",
     teamMore: "디자이너 더 보기",
+    heroAlt: "Henderson Place의 CF Hair Salon 내부: 스타일링 의자, 거울, Cut & Color 매장 간판",
   },
   board: {
     title: "서비스 및 가격",

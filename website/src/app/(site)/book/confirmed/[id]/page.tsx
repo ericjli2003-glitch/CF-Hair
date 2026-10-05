@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Seal } from "@/components/art/Seal";
 import { Rod } from "@/components/site/Rod";
 import { getBooking } from "@/lib/bookings";
 import { prisma } from "@/lib/db";
@@ -62,17 +63,22 @@ export default async function ConfirmedPage(props: PageProps<"/book/confirmed/[i
           ))}
         </p>
 
-        <dl className="mt-8 rounded-xl bg-white px-5 sm:px-6">
-          {rows.map((row) => (
-            <div key={row.k} className="grid gap-1 border-b border-rule py-4 last:border-b-0 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-4">
-              <dt className="text-slate">{row.k}</dt>
-              <dd>
-                <span className="block text-[1.05rem] font-medium">{row.v}</span>
-                {row.s && <span className="nums block text-slate">{row.s}</span>}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <div className="relative mt-8 rounded-xl bg-board px-5 sm:px-6">
+          <dl>
+            {rows.map((row, i) => (
+              <div key={row.k} className="grid gap-1 border-b border-rule py-4 last:min-h-[5.5rem] last:border-b-0 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-4">
+                <dt className="text-slate">{row.k}</dt>
+                <dd className={i === rows.length - 1 ? "pr-16" : undefined}>
+                  <span className="block text-[1.05rem] font-medium">{row.v}</span>
+                  {row.s && <span className="nums block text-slate">{row.s}</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          {/* The salon signs the booking with its seal, bottom right, as on a letter.
+              The last row keeps clear of it. */}
+          <Seal size={52} className="absolute bottom-4 right-4 -rotate-3 sm:right-6" />
+        </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
           <a href={`/api/bookings/${booking.id}/ics?lang=${lang}`} className="s-btn" download>

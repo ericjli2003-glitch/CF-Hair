@@ -1,0 +1,9712 @@
+[
+ {
+  "name": "/",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "en",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "en",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "en",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "en",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "en",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "en",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "en",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "en",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "en",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "en",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "en",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "en",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "zh",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "zh",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "zh",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "zh",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "zh",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "zh",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "zh",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "zh",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "zh",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "zh",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "zh",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "zh",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "hk",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "hk",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "hk",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "hk",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "hk",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "hk",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "hk",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "hk",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "hk",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "hk",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "hk",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "hk",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/",
+  "lang": "ko",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "ko",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "ko",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "ko",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "ko",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "ko",
+  "width": 768,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "ko",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/services",
+  "lang": "ko",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/team",
+  "lang": "ko",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/contact",
+  "lang": "ko",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/book",
+  "lang": "ko",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "ko",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "/",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/services",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/team",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/contact",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/book",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "/book?service=mens-cut",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "book:details",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": null
+ },
+ {
+  "name": "book:time",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "en",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:slot-taken",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "book:details",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": null
+ },
+ {
+  "name": "book:time",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "zh",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:slot-taken",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "book:details",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": null
+ },
+ {
+  "name": "book:time",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "hk",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:slot-taken",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "book:details",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": null
+ },
+ {
+  "name": "book:time",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "ko",
+  "width": 390,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:time",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:details",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:details-errors",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:slot-taken",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "en",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "en",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Skip to content",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "zh",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "zh",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要内容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hans",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "hk",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "hk",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "跳到主要內容",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "zh-Hant-HK",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "ko",
+  "width": 360,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "book:confirmed",
+  "lang": "ko",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "본문으로 건너뛰기",
+    "w": 32,
+    "h": 16,
+    "inline": false,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "(604) 475-7705",
+    "w": 110,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "ko",
+  "axe": []
+ },
+ {
+  "name": "cls",
+  "width": 390,
+  "load": 0,
+  "langSwitch": 0.0020144052984775638
+ },
+ {
+  "name": "cls",
+  "width": 1440,
+  "load": 0,
+  "langSwitch": 0.0024200569058641973
+ },
+ {
+  "name": "/admin/login",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/login",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 1",
+    "w": 227,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin?view=week",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "Wei Zhang, Men's Haircut, 3:30 pm to 4:0",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Wei Zhang, Men's Haircut, 3:00 pm to 3:3",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Raymond Fung, Senior Haircut (65+), 1:00",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Daniel Ho, Men's Haircut, 2:00 pm to 2:3",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 2",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Wash and Blow-dry, 5:30",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 1",
+    "w": 94,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/bookings",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/bookings?filter=all",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0128",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 81,
+    "h": 40,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0129",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0118",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0112",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0111",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0115",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0121",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0119",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0116",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0109",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0123",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0122",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/new",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/messages",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/calls",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/calls?call=cmut8gl5q00027dhjnm4nqsta",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 97,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/customers",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "All",
+    "w": 43,
+    "h": 44,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Arash Rahimi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Audit Test",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Chloe Yeung",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted out",
+    "w": 85,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Daniel Ho",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0118",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Emily Thompson",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ethan Chow",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0122",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 7, 2028",
+    "w": 149,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Grace Huang",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0119",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Hana Choi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0128",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Harjit Gill",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Hassan Ahmadi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Jasmine Liu",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ji-woo Park",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ka Yan Leung",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Kevin Wong",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Linh Nguyen",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 21, 2028",
+    "w": 155,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Lucas Martins",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0129",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Margaret Wilson",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Maria Santos",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Mei Lin Chen",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Min-jun Kim",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Olivia Kwan",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0123",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Paolo Reyes",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0111",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted out",
+    "w": 85,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Priya Sharma",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0112",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Sep 23, 2028",
+    "w": 158,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Raymond Fung",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ryan MacDonald",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0115",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Seo-yeon Lee",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 29, 2028",
+    "w": 154,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Shirin Moradi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0109",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 13, 2028",
+    "w": 150,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Sophie Tremblay",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0121",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Tony Lam",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 7, 2028",
+    "w": 149,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Wei Zhang",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Yuki Tanaka",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0116",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 16, 2028",
+    "w": 151,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/customers/cmut8ebib00087dgmovn4j747",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 96,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "Autumn colour week",
+    "w": 124,
+    "h": 17,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions/new",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions/cmut8ec3600707dgm3c0zu3ax",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/cards",
+  "width": 820,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/cards/cmut8enn100007dhjvl4xj9g8",
+  "width": 820,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Grace Huang",
+    "w": 99,
+    "h": 22,
+    "inline": true,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "Shirin Moradi",
+    "w": 99,
+    "h": 22,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "admin-nav",
+  "width": 820,
+  "nav": [
+   {
+    "text": "Schedule",
+    "right": 96,
+    "visible": true
+   },
+   {
+    "text": "Bookings",
+    "right": 179,
+    "visible": true
+   },
+   {
+    "text": "New booking",
+    "right": 284,
+    "visible": true
+   },
+   {
+    "text": "Messages4, 4 new",
+    "right": 405,
+    "visible": true
+   },
+   {
+    "text": "Calls",
+    "right": 458,
+    "visible": true
+   },
+   {
+    "text": "Clients",
+    "right": 526,
+    "visible": true
+   },
+   {
+    "text": "Promotions",
+    "right": 625,
+    "visible": true
+   },
+   {
+    "text": "Cards7, 7 waiting for approval",
+    "right": 721,
+    "visible": true
+   }
+  ]
+ },
+ {
+  "name": "/admin/login",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 1",
+    "w": 290,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin?view=week",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "Wei Zhang, Men's Haircut, 3:30 pm to 4:0",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Wei Zhang, Men's Haircut, 3:00 pm to 3:3",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Raymond Fung, Senior Haircut (65+), 1:00",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Daniel Ho, Men's Haircut, 2:00 pm to 2:3",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 2",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Wash and Blow-dry, 5:30",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 1",
+    "w": 121,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/bookings",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/bookings?filter=all",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0128",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0129",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0118",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0112",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0111",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0115",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0121",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0119",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0116",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0109",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0123",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0122",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/new",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/messages",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/calls",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/calls?call=cmut8gl5q00027dhjnm4nqsta",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 97,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/customers",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "All",
+    "w": 43,
+    "h": 44,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Arash Rahimi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Audit Test",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Chloe Yeung",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted out",
+    "w": 85,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Daniel Ho",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0118",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Emily Thompson",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ethan Chow",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0122",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 7, 2028",
+    "w": 149,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Grace Huang",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0119",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Hana Choi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0128",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Harjit Gill",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Hassan Ahmadi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Jasmine Liu",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ji-woo Park",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ka Yan Leung",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Kevin Wong",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Linh Nguyen",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 21, 2028",
+    "w": 155,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Lucas Martins",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0129",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Margaret Wilson",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Maria Santos",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Mei Lin Chen",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Min-jun Kim",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Olivia Kwan",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0123",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Paolo Reyes",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0111",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted out",
+    "w": 85,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Priya Sharma",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0112",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Sep 23, 2028",
+    "w": 158,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Raymond Fung",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ryan MacDonald",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0115",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Seo-yeon Lee",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 29, 2028",
+    "w": 154,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Shirin Moradi",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0109",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 13, 2028",
+    "w": 150,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Sophie Tremblay",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0121",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Tony Lam",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 7, 2028",
+    "w": 149,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Wei Zhang",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Yuki Tanaka",
+    "w": 176,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0116",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 16, 2028",
+    "w": 151,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/customers/cmut8ebib00087dgmovn4j747",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 96,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "Autumn colour week",
+    "w": 124,
+    "h": 17,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions/new",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions/cmut8ec3600707dgm3c0zu3ax",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/cards",
+  "width": 1024,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/cards/cmut8enn100007dhjvl4xj9g8",
+  "width": 1024,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Grace Huang",
+    "w": 99,
+    "h": 22,
+    "inline": true,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "Shirin Moradi",
+    "w": 99,
+    "h": 22,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "admin-nav",
+  "width": 1024,
+  "nav": [
+   {
+    "text": "Schedule",
+    "right": 104,
+    "visible": true
+   },
+   {
+    "text": "Bookings",
+    "right": 187,
+    "visible": true
+   },
+   {
+    "text": "New booking",
+    "right": 292,
+    "visible": true
+   },
+   {
+    "text": "Messages4, 4 new",
+    "right": 413,
+    "visible": true
+   },
+   {
+    "text": "Calls",
+    "right": 466,
+    "visible": true
+   },
+   {
+    "text": "Clients",
+    "right": 534,
+    "visible": true
+   },
+   {
+    "text": "Promotions",
+    "right": 633,
+    "visible": true
+   },
+   {
+    "text": "Cards7, 7 waiting for approval",
+    "right": 729,
+    "visible": true
+   }
+  ]
+ },
+ {
+  "name": "/admin/login",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 1",
+    "w": 415,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin?view=week",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "Wei Zhang, Men's Haircut, 3:30 pm to 4:0",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Wei Zhang, Men's Haircut, 3:00 pm to 3:3",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Raymond Fung, Senior Haircut (65+), 1:00",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Daniel Ho, Men's Haircut, 2:00 pm to 2:3",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 2",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Wash and Blow-dry, 5:30",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "button",
+    "text": "Margaret Wilson, Senior Haircut (65+), 1",
+    "w": 175,
+    "h": 41,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/bookings",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/bookings?filter=all",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0128",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0129",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0118",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0112",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0111",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0115",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0121",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0119",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0116",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0109",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0123",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0122",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/new",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/messages",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/calls",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/calls?call=cmut8gl5q00027dhjnm4nqsta",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 97,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/customers",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "button",
+    "text": "All",
+    "w": 43,
+    "h": 44,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Arash Rahimi",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Audit Test",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0199",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Chloe Yeung",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0125",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted out",
+    "w": 85,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Daniel Ho",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0118",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Emily Thompson",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0114",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ethan Chow",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0122",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 7, 2028",
+    "w": 149,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Grace Huang",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0119",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Hana Choi",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0128",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Harjit Gill",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0113",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Hassan Ahmadi",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0124",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Jasmine Liu",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0103",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ji-woo Park",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0105",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ka Yan Leung",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0104",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Kevin Wong",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0102",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Linh Nguyen",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0117",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 21, 2028",
+    "w": 155,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Lucas Martins",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0129",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Margaret Wilson",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0126",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 3, 2028",
+    "w": 148,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Maria Santos",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0110",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Mei Lin Chen",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0101",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Min-jun Kim",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0106",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Olivia Kwan",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0123",
+    "w": 93,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Paolo Reyes",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0111",
+    "w": 92,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted out",
+    "w": 85,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Priya Sharma",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0112",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Sep 23, 2028",
+    "w": 158,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Raymond Fung",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0127",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Oct 1, 2028",
+    "w": 146,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Ryan MacDonald",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0115",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "No consent",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Seo-yeon Lee",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0107",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 29, 2028",
+    "w": 154,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Shirin Moradi",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0109",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 13, 2028",
+    "w": 150,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Sophie Tremblay",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0121",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Tony Lam",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(778) 555-0120",
+    "w": 94,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jun 7, 2028",
+    "w": 149,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Wei Zhang",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0100",
+    "w": 96,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Opted in",
+    "w": 77,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Yuki Tanaka",
+    "w": 200,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "(604) 555-0116",
+    "w": 95,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "select",
+    "text": "English普通话 · Mandarin粵語 · Cantonese한국어 ·",
+    "w": 133,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "a",
+    "text": "Implied to Jul 16, 2028",
+    "w": 151,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   },
+   {
+    "tag": "input",
+    "text": "",
+    "w": 112,
+    "h": 32,
+    "inline": false,
+    "below24": false
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/customers/cmut8ebib00087dgmovn4j747",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "(778) 555-0108",
+    "w": 96,
+    "h": 19,
+    "inline": true,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "Autumn colour week",
+    "w": 124,
+    "h": 17,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions/new",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/promotions/cmut8ec3600707dgm3c0zu3ax",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/cards",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "/admin/cards/cmut8enn100007dhjvl4xj9g8",
+  "width": 1440,
+  "overflow": 0,
+  "small": [
+   {
+    "tag": "a",
+    "text": "Grace Huang",
+    "w": 99,
+    "h": 22,
+    "inline": true,
+    "below24": true
+   },
+   {
+    "tag": "a",
+    "text": "Shirin Moradi",
+    "w": 99,
+    "h": 22,
+    "inline": true,
+    "below24": true
+   }
+  ],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "admin-nav",
+  "width": 1440,
+  "nav": [
+   {
+    "text": "Schedule",
+    "right": 243,
+    "visible": true
+   },
+   {
+    "text": "Bookings",
+    "right": 330,
+    "visible": true
+   },
+   {
+    "text": "New booking",
+    "right": 439,
+    "visible": true
+   },
+   {
+    "text": "Messages4, 4 new",
+    "right": 564,
+    "visible": true
+   },
+   {
+    "text": "Calls",
+    "right": 621,
+    "visible": true
+   },
+   {
+    "text": "Clients",
+    "right": 693,
+    "visible": true
+   },
+   {
+    "text": "Promotions",
+    "right": 796,
+    "visible": true
+   },
+   {
+    "text": "Cards7, 7 waiting for approval",
+    "right": 896,
+    "visible": true
+   }
+  ]
+ },
+ {
+  "name": "/admin/login",
+  "width": 1440,
+  "overflow": 0,
+  "small": [],
+  "htmlLang": "en-CA",
+  "axe": []
+ },
+ {
+  "name": "modal:booking-drawer",
+  "focusStayedInside": true,
+  "backgroundInert": true,
+  "escapeClosed": true,
+  "focusReturned": true,
+  "inertLeftAfterClose": 0
+ },
+ {
+  "name": "modal:call-drawer",
+  "focusStayedInside": true,
+  "backgroundInert": true,
+  "escapeClosed": true,
+  "focusReturned": true,
+  "inertLeftAfterClose": 0
+ },
+ {
+  "name": "modal:phone-menu",
+  "focusStayedInside": true,
+  "backgroundInert": true,
+  "escapeClosed": true,
+  "focusReturned": true,
+  "inertLeftAfterClose": 0
+ }
+]

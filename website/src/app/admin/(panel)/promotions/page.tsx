@@ -49,7 +49,7 @@ export default async function PromotionsPage() {
       </div>
 
       {mode !== "live" && (
-        <div className={`mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl px-5 py-3.5 text-sm ring-1 ${mode === "outbox" ? "bg-tile text-ink-soft ring-line" : "bg-rose-50 text-rose-800 ring-rose-200"}`}>
+        <div className={`mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl px-5 py-3.5 text-sm ring-1 ${mode === "outbox" ? "bg-tile text-ink-soft ring-line" : "bg-alert-wash text-alert ring-alert-line"}`}>
           <span className="font-medium text-ink">{mode === "outbox" ? "Outbox mode" : "Promotions number missing"}</span>
           <span>
             {mode === "outbox"
@@ -86,7 +86,7 @@ export default async function PromotionsPage() {
                 const href = c.status === "draft" ? `/admin/promotions/${c.id}/edit` : `/admin/promotions/${c.id}`;
                 return (
                   <li key={c.id}>
-                    <Link href={href} className="group block rounded-xl bg-paper p-5 ring-1 ring-line transition hover:ring-ink/40 sm:p-6">
+                    <Link href={href} className="group block rounded-xl bg-paper p-5 ring-1 ring-line transition hover:ring-primary/40 sm:p-6">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
@@ -132,7 +132,7 @@ export default async function PromotionsPage() {
                         )}
                       </div>
                       {(c.status === "sent" || c.status === "sending") && s.bookings > 0 && (
-                        <p className="mt-3 text-xs text-emerald-800">
+                        <p className="mt-3 text-xs text-primary">
                           {money(s.bookedValueCAD, 0)} CAD booked within 14 days for {money(s.costUSD)} USD of texts
                         </p>
                       )}

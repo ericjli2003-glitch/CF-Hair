@@ -1,36 +1,66 @@
 @import "tailwindcss";
 
 @theme {
-  /* Public site (see docs/design-plan.md). */
-  --color-tile: #e8ede9;
-  --color-board: #ffffff;
-  --color-slate: #4a5450; /* secondary text: 6.6:1 on tile, 7.9:1 on white */
-  --color-rule: #c3ccc7; /* hairlines, never text */
-  --color-edge: #7d8a84; /* form borders: 3.6:1 on white */
-  --color-rod-pink: #f2a7b8;
-  --color-rod-lilac: #b7a6e0;
-  --color-rod-blue: #7fb2e0;
-  --color-rod-yellow: #f2d27a;
-  --color-rod-green: #a9c7b6;
-  --color-rod-peach: #f4b98a;
-  --color-alert: #a3122a; /* error text: 7.4:1 on white */
+  /* The owner's palette, chosen 2026-10-04 (see docs/design-plan.md):
+     deep green #3B5147, terracotta #DD7551, lilac #C892DE. Every colour on the
+     public site and in the owner admin comes from these tokens. */
 
-  /* Owner admin: the same tokens as the public site under the names the admin
-     already uses. Rod colours stay for category meaning; status tints are paired
-     with text everywhere. */
-  --color-paper: #ffffff; /* surfaces */
-  --color-sand: #dde4e0; /* pressed and hover fills on tile */
-  --color-line: #c3ccc7; /* hairlines */
-  --color-ink: #000000; /* text and primary buttons */
-  --color-ink-hover: #2b302e;
-  --color-ink-soft: #4a5450; /* secondary text: 6.6:1 on tile, 7.9:1 on white */
-  --color-mute: #5d6662; /* tertiary text: 4.9:1 on tile, 5.9:1 on white */
+  /* Neutrals, tinted toward the deep green. */
+  --color-tile: #eef2ef; /* page background */
+  --color-board: #fbfcfb; /* surfaces: price board, forms, cards */
+  --color-ink: #1c2622; /* text: 13.8:1 on tile, 15.1:1 on board */
+  --color-slate: #4b5a53; /* secondary text: 6.4:1 on tile, 7.1:1 on board */
+  --color-mute: #56655e; /* tertiary text: 5.4:1 on tile, 6.0:1 on board */
+  --color-rule: #c8d3cc; /* hairlines, never text */
+  --color-edge: #74857c; /* form borders: 3.8:1 on board, 3.5:1 on tile */
+  --color-sand: #dfe7e2; /* pressed and hover fills on tile */
+
+  /* Primary: deep green. Buttons, the active toggle and step, focus rings,
+     dark statement areas. White text on it (8.6:1). */
+  --color-primary: #3b5147;
+  --color-primary-hover: #2e4038;
+  --color-primary-wash: #e1eae4; /* selected and confirmed fills: green text 7.0:1 */
+  --color-primary-line: #a9beb1;
+  --color-on-primary-soft: #d6e0da; /* secondary text on green: 6.3:1 */
+
+  /* Accent 1: terracotta. Fills and markers only, always with dark text
+     (ink on terracotta 5.0:1; white on it fails at 3.1:1). */
+  --color-terra: #dd7551;
+  --color-terra-wash: #fbe6dd;
+  --color-terra-line: #edb49c;
+  --color-terra-deep: #8c3a1c; /* text on terra-wash: 6.4:1 */
+
+  /* Accent 2: lilac. Fills, chips and markers with dark text (ink 6.4:1). */
+  --color-lilac: #c892de;
+  --color-lilac-wash: #f4eaf8;
+  --color-lilac-line: #dabee7;
+  --color-lilac-deep: #61327a; /* text on lilac-wash: 8.0:1 */
+
+  /* The salon's logo red, from their storefront sign (deep brick). A brand
+     colour for the logo and the seal only: never buttons, links, UI or body
+     text. 7.0:1 on tile, 7.7:1 on board. On deep green it fails (1.1:1), so the
+     reversed logo is board white with a light terracotta square (5.2:1). */
+  --color-logo: #9b2226;
+  --color-logo-mark-dark: #f2bfa9;
+
+  /* Errors and destructive actions: a clear red, always with words. */
+  --color-alert: #a3122a; /* 7.6:1 on board, 6.8:1 on alert-wash; white on it 7.8:1 */
+  --color-alert-hover: #851022;
+  --color-alert-wash: #fbebee;
+  --color-alert-line: #ebb4bd;
+
+  /* Owner admin names for the same neutrals. */
+  --color-paper: #fbfcfb; /* surfaces */
+  --color-line: #c8d3cc; /* hairlines */
+  --color-ink-soft: #4b5a53; /* secondary text */
 
   /* Barlow for Latin text; Chinese and Korean use system fonts first. */
   --font-sans: var(--font-barlow), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Apple SD Gothic Neo", "Malgun Gothic",
     "Noto Sans SC", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-barlow-semi), var(--font-sans);
   --font-cond: var(--font-barlow-cond), var(--font-sans);
+  /* Logo only ("CF" is a path in Logo.tsx). */
+  --font-logo-sans: var(--font-jost), "Futura", "Century Gothic", ui-sans-serif, sans-serif;
 
   --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --animate-fade: fade 0.22s ease-out both;
@@ -44,6 +74,36 @@
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
   }
+}
+
+/* Read through var() from inline styles (lib/rods.ts, lib/admin-format.ts), not
+   from class names, so they are always emitted. */
+@theme static {
+  /* Service categories, like colour-coded perm rods. Each is a fill with ink
+     text (Extensions: white text); the -tint is for hover, selected rows and
+     schedule blocks. The category name is always written next to the colour. */
+  --color-cat-haircuts: #dd7551; /* terracotta, ink 5.0:1 */
+  --color-cat-haircuts-tint: #f3cdc0;
+  --color-cat-perm: #c892de; /* lilac, ink 6.4:1 */
+  --color-cat-perm-tint: #e8d1f1;
+  --color-cat-colour: #a9bfb2; /* green tint, ink 8.0:1 */
+  --color-cat-colour-tint: #d0dcd5;
+  --color-cat-styling: #f2bfa9; /* light terracotta, ink 9.5:1 */
+  --color-cat-styling-tint: #f7d9cb;
+  --color-cat-treatment: #e4cfee; /* light lilac, ink 10.7:1 */
+  --color-cat-treatment-tint: #ecddf3;
+  --color-cat-extensions: #3b5147; /* deep green, white 8.6:1 */
+  --color-cat-extensions-tint: #d4d9d7;
+  --color-cat-other: #d5dcd8;
+  --color-cat-other-tint: #e6ebe8;
+
+  /* Stylist markers in the schedule: dark, 3:1 or more on board and tile,
+     distinct from the lighter category fills. */
+  --color-staff-1: #3b5147; /* 6:1 or more on every category tint */
+  --color-staff-2: #7a3518; /* deep terracotta brown */
+  --color-staff-3: #5e3474; /* deep lilac */
+  --color-staff-4: #1c2622;
+  --color-staff-5: #5f6b2f;
 }
 
 :root {
@@ -63,7 +123,7 @@ html {
 
 body {
   background: var(--color-tile);
-  color: #000;
+  color: var(--color-ink);
   font-family: var(--font-sans);
   font-feature-settings: "kern", "liga";
 }
@@ -73,21 +133,26 @@ body {
 }
 
 ::selection {
-  background: #000;
+  background: var(--color-primary);
   color: #fff;
 }
 
-/* Visible keyboard focus everywhere: public site and owner admin. */
+/* Visible keyboard focus everywhere: public site and owner admin. A 2px deep
+   green ring with a gap (7.6:1 on tile, 8.3:1 on board). */
 :where(.site, .admin) :where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
-  outline: 2px solid #000;
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 :where(.site, .admin) :where(input[type="checkbox"]):focus-visible {
   outline-offset: 3px;
 }
-/* On black fills the ring sits outside in black, with a white gap so it reads. */
-:where(.site, .admin) :where(.bg-ink, .bg-black):focus-visible {
-  box-shadow: 0 0 0 2px #fff;
+/* On green fills the ring sits outside in green, with a light gap so it reads. */
+:where(.site, .admin) :where(.bg-primary):focus-visible {
+  box-shadow: 0 0 0 2px var(--color-board);
+}
+/* Inside a deep green area the ring turns light. */
+:where(.site, .admin) .on-primary :where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline-color: var(--color-board);
 }
 
 /* Keep the focused control clear of the sticky admin header. */
@@ -120,21 +185,25 @@ html:has(.admin) {
   font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Public buttons: black, no accent colour, never an arrow. */
+/* Public buttons: deep green with white text, or a green outline. Never an arrow. */
 @utility s-btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-black px-5 text-[0.98rem] font-medium text-white transition-colors hover:bg-[#2b302e] disabled:cursor-not-allowed disabled:bg-[#5d6662];
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-[0.98rem] font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-mute;
 }
 @utility s-btn-line {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border-[1.5px] border-black bg-white px-5 text-[0.98rem] font-medium text-black transition-colors hover:bg-tile;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border-[1.5px] border-primary bg-board px-5 text-[0.98rem] font-medium text-primary transition-colors hover:bg-primary-wash hover:text-primary-hover;
 }
 @utility s-link {
+  @apply underline decoration-1 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-2;
+}
+/* A link on a deep green area: stays light on hover. */
+@utility s-link-light {
   @apply underline decoration-1 underline-offset-[3px] hover:decoration-2;
 }
 @utility s-field {
-  @apply min-h-11 w-full rounded-md border border-edge bg-white px-3.5 py-2.5 text-base text-black placeholder:text-slate;
+  @apply min-h-11 w-full rounded-md border border-edge bg-board px-3.5 py-2.5 text-base text-ink placeholder:text-slate;
 }
 @utility s-label {
-  @apply mb-1.5 block text-[0.95rem] font-medium text-black;
+  @apply mb-1.5 block text-[0.95rem] font-medium text-ink;
 }
 
 /* Owner admin utilities: the public button and field look, sentence case. */
@@ -142,13 +211,13 @@ html:has(.admin) {
   @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 text-[0.98rem] font-medium transition-colors disabled:cursor-not-allowed;
 }
 @utility btn-primary {
-  @apply btn bg-ink text-white hover:bg-ink-hover disabled:bg-[#5d6662];
+  @apply btn bg-primary text-white hover:bg-primary-hover disabled:bg-mute;
 }
 @utility btn-ghost {
-  @apply btn border-[1.5px] border-ink bg-white text-ink hover:bg-tile;
+  @apply btn border-[1.5px] border-primary bg-paper text-primary hover:bg-primary-wash hover:text-primary-hover;
 }
 @utility field {
-  @apply min-h-11 w-full rounded-md border border-edge bg-white px-3.5 py-2.5 text-base text-ink transition-colors placeholder:text-slate;
+  @apply min-h-11 w-full rounded-md border border-edge bg-paper px-3.5 py-2.5 text-base text-ink transition-colors placeholder:text-slate;
 }
 @utility label {
   @apply mb-1.5 block text-[0.95rem] font-medium text-ink;
@@ -173,19 +242,6 @@ html:has(.admin) {
   .no-scrollbar.scroll-hint::-webkit-scrollbar-thumb {
     background: var(--color-edge);
     border-radius: 4px;
-  }
-}
-
-/* The price board scrolls inside itself on wide screens: a soft edge at the
-   bottom says there is more, and disappears at the end of the list. */
-@media (min-width: 1024px) {
-  .board-scroll {
-    background:
-      linear-gradient(#fff 30%, rgb(255 255 255 / 0)) center top / 100% 2.5rem no-repeat local,
-      linear-gradient(rgb(255 255 255 / 0), #fff 70%) center bottom / 100% 2.5rem no-repeat local,
-      linear-gradient(rgb(0 0 0 / 0.14), rgb(0 0 0 / 0)) center top / 100% 0.75rem no-repeat scroll,
-      linear-gradient(rgb(0 0 0 / 0), rgb(0 0 0 / 0.14)) center bottom / 100% 0.75rem no-repeat scroll;
-    background-color: #fff;
   }
 }
 

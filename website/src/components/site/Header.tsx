@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useModal } from "@/lib/use-modal";
-import { Logo } from "../art/Monogram";
+import { Logo } from "../art/Logo";
 import { useI18n } from "../LangProvider";
 import { LangToggle } from "./LangToggle";
 
@@ -36,8 +36,8 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
   return (
     <header className="relative z-40 bg-tile">
       <div className="frame flex min-h-16 items-center justify-between gap-3 md:min-h-[4.5rem]">
-        <Link href="/" className="shrink-0 py-2" onClick={() => setOpen(false)}>
-          <Logo />
+        <Link href="/" className="flex min-h-11 min-w-11 shrink-0 items-center py-2" onClick={() => setOpen(false)}>
+          <Logo variant="responsive" size={30} />
         </Link>
         <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
           {links.map((l) => (
@@ -45,8 +45,8 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
               key={l.href}
               href={l.href}
               aria-current={path === l.href ? "page" : undefined}
-              className={`rounded-md px-3 py-2 text-[1rem] font-medium hover:bg-white ${
-                path === l.href ? "underline decoration-2 underline-offset-[6px]" : ""
+              className={`rounded-md px-3 py-2 text-[1rem] font-medium hover:bg-board ${
+                path === l.href ? "underline decoration-primary decoration-2 underline-offset-[6px]" : ""
               }`}
             >
               {l.label}
@@ -65,7 +65,7 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
           <button
             ref={menuButton}
             type="button"
-            className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-black bg-white px-3.5 text-[0.95rem] font-medium md:hidden"
+            className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-primary bg-board px-3.5 text-[0.95rem] font-medium md:hidden"
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
             aria-controls="site-menu"
@@ -82,7 +82,7 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
         <div ref={menu} id="site-menu" role="dialog" aria-modal="true" aria-label={t.nav.menu} className="fixed inset-x-0 bottom-0 top-0 z-50 overflow-y-auto bg-tile md:hidden">
           <div className="frame flex min-h-16 items-center justify-between">
             <Link href="/" onClick={() => setOpen(false)} className="py-2">
-              <Logo />
+              <Logo size={28} />
             </Link>
             <button
               data-autofocus
@@ -90,7 +90,7 @@ export function Header({ phone, phoneDisplay }: { phone: string; phoneDisplay: s
               onClick={() => setOpen(false)}
               aria-expanded="true"
               aria-controls="site-menu"
-              className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-black bg-white px-3.5 text-[0.95rem] font-medium"
+              className="inline-flex min-h-11 items-center rounded-md border-[1.5px] border-primary bg-board px-3.5 text-[0.95rem] font-medium"
             >
               {t.nav.close}
             </button>

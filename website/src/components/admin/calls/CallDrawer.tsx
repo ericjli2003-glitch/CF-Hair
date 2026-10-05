@@ -33,12 +33,12 @@ export function CallDrawer({ call, closeHref }: { call: CallDetail | null; close
   const lang = call && isLanguageCode(call.language) ? LANGUAGE_LABELS[call.language] : null;
 
   return (
-    <div ref={overlay} className="fixed inset-0 z-50 flex justify-end bg-black/35" onClick={() => router.push(closeHref, { scroll: false })}>
+    <div ref={overlay} className="fixed inset-0 z-50 flex justify-end bg-ink/40" onClick={() => router.push(closeHref, { scroll: false })}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={call ? `Call from ${call.name ?? callerNumber(call.from)}` : "Call"}
-        className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-white shadow-2xl"
+        className="flex h-full w-full max-w-xl flex-col overflow-y-auto bg-paper shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4 px-6 pt-6 sm:px-7">
@@ -96,7 +96,7 @@ export function CallDrawer({ call, closeHref }: { call: CallDetail | null; close
                 {call.booking && (
                   <Link
                     href={`/admin?date=${call.booking.start.slice(0, 10)}&booking=${call.booking.id}`}
-                    className="flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3 ring-1 ring-line hover:ring-ink/40"
+                    className="flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3 ring-1 ring-line hover:ring-primary/40"
                   >
                     <span>
                       <span className="block text-xs text-mute">{call.booking.status === "cancelled" ? "Cancelled booking" : "Booking"}</span>
@@ -110,7 +110,7 @@ export function CallDrawer({ call, closeHref }: { call: CallDetail | null; close
                 )}
                 {call.bookingId && !call.booking && <p className="rounded-xl bg-paper px-4 py-3 text-sm text-mute ring-1 ring-line">The booking from this call was deleted.</p>}
                 {call.message && (
-                  <Link href={`/admin/messages#m-${call.message.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3 ring-1 ring-line hover:ring-ink/40">
+                  <Link href={`/admin/messages#m-${call.message.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3 ring-1 ring-line hover:ring-primary/40">
                     <span className="min-w-0">
                       <span className="block text-xs text-mute">Callback message, {call.message.status === "done" ? "done" : "waiting"}</span>
                       <span className="line-clamp-2 text-sm">{call.message.text}</span>
@@ -148,7 +148,7 @@ export function CallDrawer({ call, closeHref }: { call: CallDetail | null; close
                         <p
                           lang={l}
                           className={`max-w-[88%] whitespace-pre-wrap px-4 py-2.5 text-[0.95rem] leading-snug ${
-                            agent ? "rounded-[1.2rem] rounded-tl-md bg-tile text-ink" : "rounded-[1.2rem] rounded-tr-md bg-ink text-paper"
+                            agent ? "rounded-[1.2rem] rounded-tl-md bg-tile text-ink" : "rounded-[1.2rem] rounded-tr-md bg-primary text-paper"
                           }`}
                         >
                           {line.text}

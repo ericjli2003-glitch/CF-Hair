@@ -7,9 +7,9 @@ import { rodColour } from "@/lib/rods";
  */
 export function Rod({ category, className = "" }: { category: string; className?: string }) {
   return (
-    <svg viewBox="0 0 40 14" className={`h-3.5 w-10 shrink-0 ${className}`} aria-hidden="true" focusable="false">
-      <rect x="0.75" y="0.75" width="38.5" height="12.5" rx="6.25" fill={rodColour(category)} stroke="#000" strokeWidth="1.5" />
-      <path d="M29 1.5v11" stroke="#000" strokeWidth="1.5" />
+    <svg viewBox="0 0 40 14" className={`h-3.5 w-10 shrink-0 text-ink ${className}`} aria-hidden="true" focusable="false">
+      <rect x="0.75" y="0.75" width="38.5" height="12.5" rx="6.25" fill={rodColour(category)} stroke="currentColor" strokeWidth="1.5" />
+      <path d="M29 1.5v11" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }

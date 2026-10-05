@@ -21,7 +21,7 @@ export default async function ServicesPage() {
             <li key={c}>
               <a
                 href={`#${c.toLowerCase()}`}
-                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-white px-3 text-[0.95rem] font-medium hover:bg-[color-mix(in_srgb,#000_6%,white)]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-md bg-board px-3 text-[0.95rem] font-medium hover:bg-primary-wash"
               >
                 <Rod category={c} className="!h-3 !w-8" />
                 {categoryName(t, c)}

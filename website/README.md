@@ -42,11 +42,20 @@ Translations live in `src/lib/i18n/dictionary.ts`: one dictionary per language, 
 
 ### Photos
 
-Each stylist row on the home and team pages has a dashed frame labelled "Photo slot" where their portrait goes. To use real photos, put them in `public/photos/` and set the paths in `src/data/photos.ts` (one per stylist id). A stylist's languages are shown when `salon.json` lists them (`"languages": ["English", "Cantonese"]` on the staff entry).
+**Home page photo.** The home page opens on a photo of the salon. To add or change it:
+
+1. Save it as `public/images/hero.jpg` (JPEG, 4:3, ideally 2000 x 1500; at least 1600px wide). next/image serves it resized as WebP or AVIF, so no other copies are needed.
+2. Rebuild (`npm run build`) or restart `npm run dev`. `next.config.ts` checks whether the file exists when the app is built or the dev server starts, and `src/data/photos.ts` (`heroPhoto`) switches the hero from the placeholder to the photo.
+
+Until the file exists, the same 4:3 box shows a deep green panel with the logo's CF and a faint window lattice, so the page never looks broken. The photo sits on a thin paper mat, is shown at most 680px wide on desktop (full content width on phones), and is cropped from the right-hand side (`object-position: 75% 50%`) if a box is ever narrower than 4:3, so a storefront on the right stays in frame. Its alt text is `home.heroAlt` in `src/lib/i18n/dictionary.ts`, in all four languages; update it if the picture changes.
+
+The owner's first photo of the salon (chairs, mirrors and the "Cut & Color" storefront) is only 680 x 510, which is why the box stops at 680px. A higher-resolution photo from the owner (at least 1600px wide) should replace it; the box can then grow.
+
+**Stylist photos.** Each stylist row on the home and team pages has a dashed frame labelled "Photo slot" where their portrait goes. To use real photos, put them in `public/photos/` and set the paths in `src/data/photos.ts` (one per stylist id). A stylist's languages are shown when `salon.json` lists them (`"languages": ["English", "Cantonese"]` on the staff entry).
 
 ### Design
 
-The public pages follow `../docs/design-plan.md`: a cool tile background, white boards, black type in Barlow (three widths, Latin only; Chinese and Korean use the visitor's system fonts), and perm-rod colours that mark service categories (`src/lib/rods.ts`). The home page opens on the price board: every service, its duration and price in the visitor's language, and a Book link that opens `/book?service=<id>` at the stylist step (`src/lib/booking-params.ts` validates the id; unknown ids start at step 1). The mall is always written "Henderson Place", untranslated, in every language.
+The public pages follow `../docs/design-plan.md`: a cool tile background, white boards, black type in Barlow (three widths, Latin only; Chinese and Korean use the visitor's system fonts), and perm-rod colours that mark service categories (`src/lib/rods.ts`). The home page opens on a photo of the salon beside the name, opening status, phone and "Book a time"; the price board follows directly below: every service, its duration and price in the visitor's language, and a Book link that opens `/book?service=<id>` at the stylist step (`src/lib/booking-params.ts` validates the id; unknown ids start at step 1). The mall is always written "Henderson Place", untranslated, in every language. The logo is recreated from the salon's storefront sign (`src/components/art/Logo.tsx`; replace it with the owner's original file when they send one). Its red `#9B2226` is for the logo and the seal stamp only, never for buttons or text.
 
 ## Booking rules
 

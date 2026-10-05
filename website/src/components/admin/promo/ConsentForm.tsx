@@ -51,12 +51,12 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
     return (
       <div className="flex flex-wrap gap-2">
         {status !== "express" && (
-          <button onClick={() => setMode("yes")} className="inline-flex min-h-11 items-center justify-center rounded-md bg-ink px-4 text-sm text-paper hover:bg-ink-hover">
+          <button onClick={() => setMode("yes")} className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 text-sm text-paper hover:bg-primary-hover">
             Record a yes
           </button>
         )}
         {status !== "withdrawn" && (
-          <button onClick={() => setMode("no")} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50">
+          <button onClick={() => setMode("no")} className="inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-alert ring-1 ring-alert-line hover:bg-alert-wash">
             Record an opt-out
           </button>
         )}
@@ -68,7 +68,7 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
     <div className="rounded-xl bg-tile p-4">
       <p className="font-medium">{mode === "yes" ? "They said yes to promotional texts" : "They asked to stop promotional texts"}</p>
       <label className="label mt-3" htmlFor="cf-how">How</label>
-      <select id="cf-how" value={how} onChange={(e) => setHow(e.target.value)} className="field !bg-white !py-2.5">
+      <select id="cf-how" value={how} onChange={(e) => setHow(e.target.value)} className="field !bg-paper !py-2.5">
         {HOW.map((h) => (
           <option key={h.key} value={h.key}>
             {h.label}
@@ -86,7 +86,7 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
                 setLang(e.target.value);
                 setWording(SCRIPTS[e.target.value]);
               }}
-              className="rounded-lg border border-line bg-white px-2 py-1 text-xs"
+              className="rounded-lg border border-line bg-paper px-2 py-1 text-xs"
             >
               <option value="en-US">English</option>
               <option value="zh-CN">普通话</option>
@@ -94,16 +94,16 @@ export function ConsentForm({ phone, status, language }: { phone: string; status
               <option value="ko-KR">한국어</option>
             </select>
           </div>
-          <textarea id="cf-wording" rows={3} value={wording} onChange={(e) => setWording(e.target.value)} className="field !bg-white resize-none text-sm" />
+          <textarea id="cf-wording" rows={3} value={wording} onChange={(e) => setWording(e.target.value)} className="field !bg-paper resize-none text-sm" />
           <p className="mt-1.5 text-xs text-mute">Saved word for word as proof of consent. It should name the salon and say they can reply STOP.</p>
         </>
       )}
-      {err && <p className="mt-2 text-sm text-rose-700">{err}</p>}
+      {err && <p className="mt-2 text-sm text-alert">{err}</p>}
       <div className="mt-3 flex gap-2">
         <button
           disabled={busy || (mode === "yes" && !wording.trim())}
           onClick={() => submit(mode === "yes" ? "express" : "withdrawn")}
-          className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-paper disabled:opacity-50 ${mode === "yes" ? "bg-ink hover:bg-ink" : "bg-rose-700 hover:bg-rose-800"}`}
+          className={`inline-flex min-h-11 items-center justify-center rounded-md px-4 text-sm text-paper disabled:opacity-50 ${mode === "yes" ? "bg-primary hover:bg-primary" : "bg-alert hover:bg-alert-hover"}`}
         >
           {busy ? "Saving..." : mode === "yes" ? "Save consent" : "Save opt-out"}
         </button>
