@@ -48,6 +48,8 @@ export interface AppConfig {
   dataDir: string;
   callbackOnAbandon: boolean;
   endCallGraceMs: number;
+  /** On SIGTERM (a redeploy), how long live calls may continue before the process exits. */
+  drainTimeoutMs: number;
   welcomeGreeting: string;
   /** Detect the caller's language from transcripts and switch automatically. */
   autoDetectLanguage: boolean;
@@ -62,7 +64,8 @@ export interface AppConfig {
 export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
   const base: Omit<AppConfig, "autoDetectLanguage" | "askLanguageQuestion" | "startTranscriptionLanguage" | "startSpeechModel"> = {
     port: envInt("PORT", 8080),
-    publicBaseUrl: env("PUBLIC_BASE_URL").replace(/\/+$/, ""),
+    // Render sets RENDER_EXTERNAL_URL (https://<service>.onrender.com) on every web service.
+    publicBaseUrl: env("PUBLIC_BASE_URL", env("RENDER_EXTERNAL_URL")).replace(/\/+$/, ""),
     anthropicModel: env("ANTHROPIC_MODEL", "claude-sonnet-5-5"),
     anthropicEffort: env("ANTHROPIC_EFFORT", "low") as Effort,
     claudeFallbacks: env("CLAUDE_FALLBACKS", "auto") as AppConfig["claudeFallbacks"],
@@ -81,6 +84,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     dataDir: env("DATA_DIR", path.resolve(PROJECT_ROOT, "data")),
     callbackOnAbandon: envBool("CALLBACK_ON_ABANDON", true),
     endCallGraceMs: envInt("END_CALL_GRACE_MS", 1200),
+    drainTimeoutMs: envInt("DRAIN_TIMEOUT_MS", 280_000),
     welcomeGreeting: env(
       "WELCOME_GREETING",
       "Hi, this is CF Hair Salon's virtual assistant. We also speak Mandarin, Cantonese and Korean. How can I help?",

@@ -433,33 +433,65 @@ docker build -f voice-agent/Dockerfile -t cf-hair-voice-agent .
 docker run -p 8080:8080 --env-file voice-agent/.env cf-hair-voice-agent
 ```
 
-### Fly.io
+### Render (recommended): one Blueprint, about 15 minutes
+
+`render.yaml` at the repository root describes the whole service, so there is nothing to fill in
+by hand except the secrets.
+
+1. **Have these ready:** the Anthropic API key, the Twilio Account SID and Auth Token (Twilio
+   console home page), and an agent key shared with the website. The website's `AGENT_API_KEY` is
+   stored in Vercel as a sensitive value, which cannot be viewed again, so make a fresh one with
+   `openssl rand -hex 32`, replace `AGENT_API_KEY` in Vercel (Settings > Environment Variables),
+   redeploy the website, and use the same value in Render.
+2. **Render dashboard > New > Blueprint**, connect GitHub, pick this repository. Render reads
+   `render.yaml` and shows one web service, `cf-hair-voice` (Docker, Starter plan, Oregon).
+3. **Fill in the secrets it asks for:** `ANTHROPIC_API_KEY`, `TWILIO_ACCOUNT_SID`,
+   `TWILIO_AUTH_TOKEN`, `AGENT_API_KEY`, and `SALON_FORWARD_NUMBER` (the owner's mobile in E.164,
+   never the salon's main number; leave it empty to keep transfers off). Click **Apply**.
+4. **Wait for the first deploy** (3 to 5 minutes), then open
+   `https://cf-hair-voice.onrender.com/health`. It should show `"ok":true` and the website as
+   `bookingApi`. The service URL comes from Render's `RENDER_EXTERNAL_URL`, so `PUBLIC_BASE_URL` is
+   not needed unless you add a custom domain.
+5. **Point a Twilio number at it:** Twilio console > Phone Numbers > the number > Voice > "A call
+   comes in": Webhook, `https://cf-hair-voice.onrender.com/twiml`, HTTP POST. Save, then call it.
+   Use a new Twilio number for testing first; the salon's number is ported or forwarded later.
+6. **Check the logs** in Render (Logs tab): each call prints one line when it ends, and the call
+   appears in the website's admin Calls tab.
+
+What the Blueprint sets up, and why:
+
+- **Starter plan, always on** (about $7 USD a month). The free plan sleeps after 15 idle minutes,
+  and a sleeping server cannot answer a call in time.
+- **Oregon region**, the closest to Coquitlam, which keeps the voice delay low.
+- **Deploys never cut off a call.** Render starts the new server, sends new calls to it, then
+  sends the old one SIGTERM. The old one stops taking calls, lets calls in progress finish (up to
+  `DRAIN_TIMEOUT_MS`, 280 seconds), then exits. `maxShutdownDelaySeconds: 300` gives it that time.
+- **Only phone-agent changes redeploy it** (`buildFilter`): website, notes and proposal pushes do
+  not touch the running phone server.
+- **No persistent disk, on purpose.** On Render a disk turns off zero-downtime deploys, so every
+  deploy would drop live calls. Everything that matters lives in the website's database: caller
+  languages, bookings, messages and the Calls tab. What resets on a deploy is only the local
+  fallback copy of caller languages, the JSON call logs in `logs/` (Render keeps stdout), and any
+  Calls tab records still queued because the website was down at that moment.
+
+### Fly.io (alternative)
 
 From the repository root:
 
 ```bash
 fly launch --no-deploy --name cf-hair-voice --dockerfile voice-agent/Dockerfile --region sea
 fly secrets set ANTHROPIC_API_KEY=... TWILIO_AUTH_TOKEN=... TWILIO_ACCOUNT_SID=... \
-  AGENT_API_KEY=... BOOKING_API_URL=https://<website> SALON_FORWARD_NUMBER=+1604... \
+  AGENT_API_KEY=... BOOKING_API_URL=https://cf-hair-salon.vercel.app SALON_FORWARD_NUMBER=+1604... \
   PUBLIC_BASE_URL=https://cf-hair-voice.fly.dev
-fly volumes create voice_data --size 1 --region sea   # optional: keep logs and caller fallback store
 fly deploy
 ```
 
-In `fly.toml` set `internal_port = 8080`, `auto_stop_machines = "off"` and
-`min_machines_running = 1`, and if you created the volume, mount it at `/app/voice-agent/data`
-(set `LOG_DIR=/app/voice-agent/data/logs` to keep call logs there too). Seattle (`sea`) is the
-closest region to Coquitlam. A shared-cpu-1x 256 MB machine is enough for one salon.
+In `fly.toml` set `internal_port = 8080`, `auto_stop_machines = "off"`,
+`min_machines_running = 1` and `kill_timeout = 300` (so calls can finish during a deploy).
+Seattle (`sea`) is the closest region to Coquitlam. A shared-cpu-1x 256 MB machine is enough for
+one salon.
 
-### Render
-
-New > Web Service > from this repo. Runtime: Docker. Dockerfile path: `voice-agent/Dockerfile`.
-Docker build context: the repository root. Instance type: Starter or higher (the free tier sleeps,
-which would drop calls). Add the same environment variables, with `PUBLIC_BASE_URL` set to the
-`https://<service>.onrender.com` URL, and a persistent disk mounted at `/app/voice-agent/data` if you
-want call logs and the caller fallback store to survive deploys. Health check path: `/health`.
-
-After deploying, update the Twilio number's webhook to `https://<host>/twiml`.
+After deploying anywhere, update the Twilio number's webhook to `https://<host>/twiml`.
 
 ## Cost per call minute
 

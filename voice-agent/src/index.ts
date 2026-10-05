@@ -5,7 +5,7 @@ import { languageWarnings } from "./languages.js";
 
 const useMock = process.env.MOCK_API === "true" || process.argv.includes("--mock");
 const deps = buildDeps({ mock: useMock });
-const { server } = createServer(deps);
+const { server, wss } = createServer(deps);
 const cfg = deps.config;
 
 if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
@@ -38,10 +38,28 @@ server.listen(cfg.port, () => {
   else console.log(`  Transfers: to ${cfg.salonForwardNumber}`);
 });
 
+// A redeploy sends SIGTERM once the new instance is taking calls. Stop accepting new ones here,
+// let calls in progress finish (up to DRAIN_TIMEOUT_MS), then exit.
+let draining = false;
 for (const sig of ["SIGINT", "SIGTERM"] as const) {
   process.on(sig, () => {
-    console.log(`${sig} received, closing`);
-    server.close(() => process.exit(0));
-    setTimeout(() => process.exit(0), 5000).unref();
+    if (draining) process.exit(0); // second signal: stop now
+    draining = true;
+    server.close();
+    const deadline = Date.now() + cfg.drainTimeoutMs;
+    console.log(`${sig} received: no new calls; waiting for ${wss.clients.size} live call(s) to finish`);
+    const check = () => {
+      if (wss.clients.size === 0) {
+        // Give the last call's log and Calls tab report a moment to send.
+        setTimeout(() => process.exit(0), 2000).unref();
+        return;
+      }
+      if (Date.now() >= deadline) {
+        console.warn(`Drain timeout: ending ${wss.clients.size} live call(s)`);
+        process.exit(0);
+      }
+      setTimeout(check, 1000);
+    };
+    check();
   });
 }

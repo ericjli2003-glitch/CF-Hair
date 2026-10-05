@@ -1,0 +1,69 @@
+# Render Blueprint for the CF Hair phone receptionist (voice-agent/).
+# Render dashboard: New > Blueprint > pick this repository. Render reads this file, creates the
+# service, and asks for every value marked `sync: false` (the secrets). Full steps:
+# voice-agent/README.md, "Deploying".
+#
+# The website stays on Vercel. This service only answers phone calls.
+services:
+  - type: web
+    name: cf-hair-voice
+    runtime: docker
+    # Oregon is Render's closest region to Coquitlam, which keeps the voice delay low.
+    region: oregon
+    # Starter is always on. The free plan sleeps after 15 idle minutes, and a sleeping server
+    # cannot answer a phone call in time.
+    plan: starter
+    numInstances: 1
+    dockerfilePath: ./voice-agent/Dockerfile
+    # The build needs shared/salon.json, so the context is the repository root.
+    dockerContext: .
+    healthCheckPath: /health
+    # A redeploy starts the new server first; the old one then gets up to 5 minutes for calls in
+    # progress to finish (the app drains for DRAIN_TIMEOUT_MS, a little less than this).
+    maxShutdownDelaySeconds: 300
+    autoDeploy: true
+    # Only phone-agent changes redeploy it, so website pushes never interrupt a call.
+    buildFilter:
+      paths:
+        - voice-agent/**
+        - shared/**
+        - render.yaml
+      ignoredPaths:
+        - voice-agent/test/**
+        - voice-agent/**/*.md
+    # No persistent disk on purpose: a disk turns off zero-downtime deploys, so every deploy would
+    # drop live calls. Caller languages, bookings and call records live in the website's database.
+    envVars:
+      # Secrets: Render asks for these when the Blueprint is created.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      # Must equal AGENT_API_KEY in the website's Vercel settings.
+      - key: AGENT_API_KEY
+        sync: false
+      # The owner's mobile or a second line in E.164, never the salon's main number.
+      # Leave empty to turn live transfers off (callers can still leave a message).
+      - key: SALON_FORWARD_NUMBER
+        sync: false
+      # Settings
+      - key: BOOKING_API_URL
+        value: https://cf-hair-salon.vercel.app
+      - key: SALON_MAIN_NUMBER
+        value: "+16044757705"
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5-5
+      - key: ANTHROPIC_EFFORT
+        value: low
+      - key: TWILIO_VALIDATE_SIGNATURE
+        value: "true"
+      - key: MOCK_API
+        value: "false"
+      - key: CALL_SUMMARY
+        value: "on"
+      - key: DRAIN_TIMEOUT_MS
+        value: "280000"
+      # PUBLIC_BASE_URL is not needed: the app uses Render's RENDER_EXTERNAL_URL
+      # (https://cf-hair-voice.onrender.com). Set it only if you add a custom domain.
