@@ -10,6 +10,7 @@
  */
 import readline from "node:readline";
 import { buildDeps } from "./bootstrap.js";
+import { claudeCredentialSource } from "./config.js";
 import { CallSession } from "./agent/session.js";
 import { DEMO_PHONES } from "./api/mock.js";
 import { colors, opening, TerminalChannel } from "./terminal.js";
@@ -23,7 +24,7 @@ const mock = process.argv.includes("--mock");
 let from = arg("--from") ?? DEMO_PHONES.newCaller;
 const deps = buildDeps({ mock, config: { validateTwilioSignature: false } });
 
-if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
+if (claudeCredentialSource() === "none") {
   console.log(colors.sys("Note: ANTHROPIC_API_KEY is not set, so the agent cannot answer. Set it in .env first."));
 }
 console.log(colors.dim(`Model ${deps.config.anthropicModel} | booking API: ${mock ? "built-in mock" : deps.config.bookingApiUrl}`));

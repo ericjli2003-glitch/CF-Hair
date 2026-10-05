@@ -2,6 +2,24 @@ import "dotenv/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// The Anthropic SDK lets ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN win over workload identity
+// federation even when they are empty (for example a blank line copied from .env.example), so
+// drop empty ones before any client is created.
+for (const name of ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]) {
+  if (process.env[name] !== undefined && process.env[name]!.trim() === "") delete process.env[name];
+}
+
+/** How the Claude client will authenticate: an API key or token, workload identity federation, or nothing. */
+export function claudeCredentialSource(e: NodeJS.ProcessEnv = process.env): "api-key" | "federation" | "none" {
+  if (e.ANTHROPIC_API_KEY || e.ANTHROPIC_AUTH_TOKEN) return "api-key";
+  const federation =
+    e.ANTHROPIC_FEDERATION_RULE_ID &&
+    e.ANTHROPIC_ORGANIZATION_ID &&
+    e.ANTHROPIC_SERVICE_ACCOUNT_ID &&
+    e.ANTHROPIC_IDENTITY_TOKEN_FILE;
+  return federation ? "federation" : "none";
+}
+
 const here = path.dirname(fileURLToPath(import.meta.url));
 /** voice-agent/ (works from src/ under tsx and from dist/ after build). */
 export const PROJECT_ROOT = path.resolve(here, "..");

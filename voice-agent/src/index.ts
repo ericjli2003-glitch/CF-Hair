@@ -1,4 +1,5 @@
 import { buildDeps } from "./bootstrap.js";
+import { claudeCredentialSource } from "./config.js";
 import { transferBlockReason } from "./transfer-guard.js";
 import { createServer, RELAY_PATH } from "./server.js";
 import { languageWarnings } from "./languages.js";
@@ -8,8 +9,12 @@ const deps = buildDeps({ mock: useMock });
 const { server, wss } = createServer(deps);
 const cfg = deps.config;
 
-if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
-  console.warn("Warning: ANTHROPIC_API_KEY is not set. Calls will fail until it is.");
+const claudeAuth = claudeCredentialSource();
+if (claudeAuth === "none") {
+  console.warn(
+    "Warning: no Claude credentials. Set ANTHROPIC_API_KEY, or workload identity federation " +
+      "(ANTHROPIC_FEDERATION_RULE_ID, ANTHROPIC_ORGANIZATION_ID, ANTHROPIC_SERVICE_ACCOUNT_ID, ANTHROPIC_IDENTITY_TOKEN_FILE). Calls will fail until then.",
+  );
 }
 if (cfg.validateTwilioSignature && !cfg.twilioAuthToken) {
   console.warn("Warning: TWILIO_AUTH_TOKEN is not set, so webhooks will be refused. For local tests set TWILIO_VALIDATE_SIGNATURE=false.");
@@ -27,7 +32,7 @@ server.listen(cfg.port, () => {
   console.log(`CF Hair voice agent listening on port ${cfg.port}`);
   console.log(`  Voice webhook: POST ${cfg.publicBaseUrl || "https://<public-host>"}/twiml`);
   console.log(`  ConversationRelay socket: ${RELAY_PATH}`);
-  console.log(`  Model: ${cfg.anthropicModel} (effort ${cfg.anthropicEffort})`);
+  console.log(`  Model: ${cfg.anthropicModel} (effort ${cfg.anthropicEffort}), Claude auth: ${claudeAuth}`);
   console.log(
     `  Languages: start transcription ${cfg.startTranscriptionLanguage}, auto-detect ${cfg.autoDetectLanguage ? "on" : "off"}, voices ${Object.values(deps.languages).map((l) => `${l.code}=${l.ttsProvider}`).join(" ")}`,
   );

@@ -433,34 +433,61 @@ docker build -f voice-agent/Dockerfile -t cf-hair-voice-agent .
 docker run -p 8080:8080 --env-file voice-agent/.env cf-hair-voice-agent
 ```
 
-### Render (recommended): one Blueprint, about 15 minutes
+### Render (recommended): one Blueprint, about 30 minutes
 
 `render.yaml` at the repository root describes the whole service, so there is nothing to fill in
-by hand except the secrets.
+by hand except the secrets. Claude access uses **workload identity federation**: no Anthropic API
+key is stored anywhere. Render gives the service a short-lived identity token, the Anthropic SDK
+swaps it for a Claude access token and refreshes it on its own. This needs a Render **Pro**
+workspace; on the free Hobby workspace use an API key instead (step 3b).
 
-1. **Have these ready:** the Anthropic API key, the Twilio Account SID and Auth Token (Twilio
-   console home page), and an agent key shared with the website. The website's `AGENT_API_KEY` is
-   stored in Vercel as a sensitive value, which cannot be viewed again, so make a fresh one with
+1. **Render workspace:** sign in with GitHub, add a card, and switch the workspace to **Pro**
+   (Workspace settings > Billing). Note the workspace ID (starts with `tea-`, in Workspace settings).
+2. **Have these ready:** the Twilio Account SID and Auth Token (Twilio console home page), and an
+   agent key shared with the website. The website's `AGENT_API_KEY` is stored in Vercel as a
+   sensitive value, which cannot be viewed again, so make a fresh one with
    `openssl rand -hex 32`, replace `AGENT_API_KEY` in Vercel (Settings > Environment Variables),
    redeploy the website, and use the same value in Render.
-2. **Render dashboard > New > Blueprint**, connect GitHub, pick this repository. Render reads
-   `render.yaml` and shows one web service, `cf-hair-voice` (Docker, Starter plan, Oregon).
-3. **Fill in the secrets it asks for:** `ANTHROPIC_API_KEY`, `TWILIO_ACCOUNT_SID`,
-   `TWILIO_AUTH_TOKEN`, `AGENT_API_KEY`, and `SALON_FORWARD_NUMBER` (the owner's mobile in E.164,
-   never the salon's main number; leave it empty to keep transfers off). Click **Apply**.
-4. **Wait for the first deploy** (3 to 5 minutes), then open
-   `https://cf-hair-voice.onrender.com/health`. It should show `"ok":true` and the website as
+3. **Claude Console > Settings > Workload identity > Connect workload** (needs the admin or owner
+   role in your Anthropic organization):
+   - Provider: **Custom OIDC**.
+   - Issuer URL: `https://oidc.render.com/<your Render workspace ID>`. JWKS source: discovery.
+   - Match: subject prefix `workspace:<your Render workspace ID>:` followed by `*`, or, once the
+     service exists, its exact subject
+     `workspace:<workspace ID>:environment:<environment ID>:service:<service ID>` (tighter: only
+     this one service can act as the account).
+   - Service account name: `cf-hair-voice`. Scope: `workspace:developer`. Token lifetime: 600 s.
+   - Note the three IDs it shows: the rule (`fdrl_...`), the service account (`svac_...`) and your
+     organization ID (Settings > Organization).
+   - **3b, no Pro workspace:** skip this step and create a normal API key instead.
+4. **Render dashboard > New > Blueprint**, pick this repository. Render reads `render.yaml` and
+   shows one web service, `cf-hair-voice` (Docker, Starter plan, Oregon).
+5. **Fill in what it asks for:** `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID`,
+   `ANTHROPIC_SERVICE_ACCOUNT_ID`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `AGENT_API_KEY`, and
+   `SALON_FORWARD_NUMBER` (the owner's mobile in E.164, never the salon's main number; leave it
+   empty to keep transfers off). With 3b, leave the three `ANTHROPIC_*` IDs empty and add
+   `ANTHROPIC_API_KEY` under the service's Environment tab after Apply. Click **Apply**.
+6. **Wait for the first deploy** (3 to 5 minutes). The log line `Model: ... Claude auth: federation`
+   (or `api-key`) shows which credentials were found. Then open
+   `https://cf-hair-voice.onrender.com/health`: it should show `"ok":true` and the website as
    `bookingApi`. The service URL comes from Render's `RENDER_EXTERNAL_URL`, so `PUBLIC_BASE_URL` is
    not needed unless you add a custom domain.
-5. **Point a Twilio number at it:** Twilio console > Phone Numbers > the number > Voice > "A call
+7. **Point a Twilio number at it:** Twilio console > Phone Numbers > the number > Voice > "A call
    comes in": Webhook, `https://cf-hair-voice.onrender.com/twiml`, HTTP POST. Save, then call it.
-   Use a new Twilio number for testing first; the salon's number is ported or forwarded later.
-6. **Check the logs** in Render (Logs tab): each call prints one line when it ends, and the call
-   appears in the website's admin Calls tab.
+   The first call also completes the Console wizard's connection test. Use a new Twilio number for
+   testing first; the salon's number is ported or forwarded later.
+8. **Check the logs** in Render (Logs tab): each call prints one line when it ends, and the call
+   appears in the website's admin Calls tab. A federation problem shows as a 401 on the first call;
+   the Console's Workload identity > History tab says why (wrong subject, wrong issuer, a reused
+   token).
+
+Federation notes: never leave an `ANTHROPIC_API_KEY` set on the service alongside federation; the
+SDK prefers any API key it finds (the server drops an empty one at startup, but a real one wins).
+Render rotates the identity token file itself, and the SDK re-reads it before every refresh.
 
 What the Blueprint sets up, and why:
 
-- **Starter plan, always on** (about $7 USD a month). The free plan sleeps after 15 idle minutes,
+- **Starter plan, always on** (about $7 USD a month, plus $25 a month for the Pro workspace that federation needs). The free plan sleeps after 15 idle minutes,
   and a sleeping server cannot answer a call in time.
 - **Oregon region**, the closest to Coquitlam, which keeps the voice delay low.
 - **Deploys never cut off a call.** Render starts the new server, sends new calls to it, then

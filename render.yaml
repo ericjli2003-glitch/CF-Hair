@@ -34,9 +34,19 @@ services:
     # No persistent disk on purpose: a disk turns off zero-downtime deploys, so every deploy would
     # drop live calls. Caller languages, bookings and call records live in the website's database.
     envVars:
-      # Secrets: Render asks for these when the Blueprint is created.
-      - key: ANTHROPIC_API_KEY
+      # Claude: workload identity federation, no API key. Render's managed OIDC (Pro workspace)
+      # gives the service a short-lived token and sets ANTHROPIC_IDENTITY_TOKEN_FILE itself once
+      # ANTHROPIC_FEDERATION_RULE_ID is present; the SDK exchanges it and refreshes automatically.
+      # Values come from Claude Console > Settings > Workload identity (README, "Deploying").
+      # Without a Pro workspace: leave these three blank and add ANTHROPIC_API_KEY in the
+      # dashboard instead (never add an empty ANTHROPIC_API_KEY next to federation).
+      - key: ANTHROPIC_FEDERATION_RULE_ID
         sync: false
+      - key: ANTHROPIC_ORGANIZATION_ID
+        sync: false
+      - key: ANTHROPIC_SERVICE_ACCOUNT_ID
+        sync: false
+      # Other secrets: Render asks for these when the Blueprint is created.
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN

@@ -6,6 +6,7 @@
  *   npm run demo -- 2 4          only calls 2 and 4
  */
 import { buildDeps } from "./bootstrap.js";
+import { claudeCredentialSource } from "./config.js";
 import { CallSession } from "./agent/session.js";
 import { DEMO_PHONES } from "./api/mock.js";
 import { colors, opening, TerminalChannel } from "./terminal.js";
@@ -88,7 +89,7 @@ async function playCall(call: DemoCall, n: number, deps: ReturnType<typeof build
   );
 }
 
-if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) {
+if (claudeCredentialSource() === "none") {
   console.error("ANTHROPIC_API_KEY is not set. Put it in voice-agent/.env, then run npm run demo again.");
   process.exit(1);
 }
