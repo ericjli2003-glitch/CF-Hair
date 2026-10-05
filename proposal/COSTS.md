@@ -6,6 +6,8 @@ Prepared October 3, 2026 for the Friday, October 9, 2026 meeting. All figures CA
 
 **Update, October 3 (later): promotional texting added.** Section 1.9 adds the SMS promotions model. The same proxy blocked twilio.com, crtc.gc.ca, ised-isde.canada.ca, mobile-text-alerts.com and textbee.dev, so the SMS and CASL figures are also from search snippets. That research **corrected the per-segment SMS cost upward** (Canadian carrier fees are about $0.008 USD per message, not the $0.0037 estimated before), which changes every package's base cost. Sections 1.2, 1.6, 2, 3, 4 and 6 are updated; the October 3 language note in 1.8 is kept as written for history.
 
+**Update, October 5: optional add-ons and the returning-caller greeting.** Section 1.10 adds three optional add-ons (More lines, Smart pricing in two options, Pay online ahead of time) with costs, hours and margins. stripe.com and support.twilio.com were blocked by the proxy too, so those figures are also from search snippets. Section 1.8 gets a dated note: returning callers now hear the whole call in their saved language from the first word, so the extra second-language line (and its 4 seconds) is gone. Sections 3 and 4 were **not** rerun for either change; the effect of the greeting change is under $1 a month (see 1.8), and the add-ons are priced separately in 1.10.
+
 ---
 
 ## 1. Inputs
@@ -90,16 +92,23 @@ As more clients join, hosting is shared (one hosting account, many projects), so
 
 ### 1.8 Scope change (Oct 3): Korean added, and the line remembers each caller's language
 
-Scope now: phone receptionist in English, Mandarin, Cantonese and Korean; website in English / 简体中文 / 한국어; each caller's language stored against their phone number (never for calls with no caller ID), owner-editable in the dashboard. Every call opens with the English greeting; a remembered non-English caller then hears one short line in their language.
+Scope now: phone receptionist in English, Mandarin, Cantonese and Korean; website in English / 简体中文 / 한국어; each caller's language stored against their phone number (never for calls with no caller ID), owner-editable in the dashboard. Every call opens with the English greeting; a remembered non-English caller then hears one short line in their language. *(History, as written Oct 3. Superseded Oct 5, see the note below the table.)*
 
 | Question | Finding | Cost effect | Confidence |
 |---|---|---|---|
 | Does ConversationRelay charge more for Korean (or Chinese) speech? | No per-language pricing found. ConversationRelay is quoted as a flat $0.07/min, with Google, Amazon or ElevenLabs text-to-speech and Google or Deepgram speech-to-text selectable (https://www.twilio.com/docs/voice/twiml/connect/conversationrelay). Third-party sources mention ElevenLabs-based voices sometimes priced differently on other platforms (https://www.retellai.com/resources/inbound-vs-outbound-callers-pricing-comparison-2025), but nothing language-specific on Twilio. | **None modelled.** Re-check if we pick a premium voice for Korean or Cantonese. | Medium-low (snippets only; ko-KR support in ConversationRelay not confirmed) |
 | Claude tokens in Chinese and Korean | Non-Latin scripts typically use more tokens for the same meaning. Assumed 40% of AI calls are non-English and those use about 25% more tokens. System prompt grows by a few hundred tokens (Korean menu names, greeting lines), all in the cached prefix. | Claude per minute $0.035 to **$0.0385 USD** (+$0.0035). About +$3.40 CAD/month at Medium. | Low (estimate; measure real `usage` per language in the pilot) |
-| Remembered-language greeting | The extra second-language line adds about 4 seconds to calls from remembered non-English callers (assumed 35% of AI calls). | +0.023 min per call on average: about +$1.35 CAD/month at Medium. | Medium |
+| Remembered-language greeting (history; this line was removed Oct 5, see note below) | The extra second-language line adds about 4 seconds to calls from remembered non-English callers (assumed 35% of AI calls). | +0.023 min per call on average: about +$1.35 CAD/month at Medium. | Medium |
 | Language lookup and storage | One database read per call by caller number, one write when the language changes. | Nil (inside existing hosting). | High |
 | SMS confirmations in Chinese or Korean | Chinese and Korean texts use Unicode (UCS-2) encoding: 70 characters per segment instead of 160, so a confirmation that is 1 segment in English can be 2 to 3 segments in Chinese or Korean. Twilio bills per segment (https://www.twilio.com/en-us/sms/pricing/ca). | Assumed 35% of texts non-English at 2.5 segments, English at 1.2: average **1.655 segments** per text (was 1.0). SMS cost rises from $15.12 to **$25.02 CAD/month** at Medium (at the old $0.012 USD rate; **$34.41** at the corrected rate in 1.9). **This is the biggest cost change, and it hits Starter.** | Medium |
 | Website translation (Korean) | One more language to translate and review at setup and whenever the menu changes. | About +3 to 4 setup hours (absorbed in setup fee, see section 5); +0.25 h/month support not modelled. | Medium |
+
+**Update, Oct 5: returning callers open in their saved language.** A caller whose number has a saved language now hears the whole call in that language from the first word (greeting, voice and speech recognition are set before the call is answered). New and withheld numbers still open in English, with the short language question and keypad options when the caller sounds unsure. All replies are kept very short. Cost effect:
+- The extra second-language line is gone, so the "Remembered-language greeting" row above (+4 seconds on about 35% of AI calls) no longer applies. AI minutes fall by about 4 (Low), 8 (Medium) and 16 (High) a month: Low 304 to 300, Medium 708 to 700, High 1,556 to 1,540.
+- Saving: about **$0.67 (Low), $1.37 (Medium), $2.68 (High) CAD a month** at $0.1673/min.
+- Net effect on margin is under $1.50 either way: +$0.67 at Low (inside the 400 included minutes), but slightly negative at Medium (-$0.63) and High (-$1.32), because those scenarios bill overage at $0.25 and the 8 or 16 minutes saved were billable. Sections 3 and 4 still show the Oct 3 figures.
+- Very short replies should also trim output tokens and call length a little (fewer and shorter text-to-speech turns). Not modelled; measure in the pilot.
+- No new per-call cost: the saved-language lookup moves from "during the greeting" to "before answering", still one database read per call.
 
 **Mitigation:** keep Chinese and Korean SMS templates to one 70-character segment (date, time, service, short link). That brings the average back to about 1.2 segments and saves about $8 to $11 CAD/month at Medium. Do this in the website build.
 
@@ -170,6 +179,81 @@ Why $49 and not $39: at $39, Starter plus add-on is only $1 to $6 a month after 
 
 Who is the sender under CASL? The salon. We "cause or permit" the send, so the service agreement should say the owner is responsible for the content of promotions and for consent they record by hand, and we are responsible for the system enforcing STOP, quiet hours and caps. Add a line to the one-page agreement. Not legal advice; if the owner wants implied-consent mode, suggest a quick check with a lawyer.
 
+### 1.10 Optional add-ons (scope addition, Oct 5)
+
+Three add-ons on top of any package, priced in proposal section 6: **More lines** $39/month + $150 setup (Growth or Complete only); **Smart pricing** Option 1 "Quiet-hour savings" $59/month + $400 setup, Option 2 "Full smart pricing" $99/month + $600 setup; **Pay online ahead of time** $29/month + $400 setup. Labour at $75/h (1.7). stripe.com and support.twilio.com were blocked by the proxy on Oct 5; figures below are from search snippets.
+
+**Inputs**
+
+| Input | Value | Source | Confidence |
+|---|---|---|---|
+| Twilio port-in fee, Canadian local number | **$7.00 USD one time per number = $9.80 CAD** (porting US numbers is free; other countries carry a one-time fee) | Twilio support, "How much does it cost to port my number to Twilio" and "International Porting Charges": https://support.twilio.com/hc/en-us/articles/223131967-How-much-does-it-cost-to-port-my-number-to-Twilio ; https://support.twilio.com/hc/en-us/articles/115000781088 | **Low-medium** (search-engine summary of a blocked page). Small either way. |
+| Port time | Up to 4 weeks once paperwork is complete; the owner must approve within 90 minutes of the losing carrier's confirmation text or the port is rejected | Twilio Canada porting guidelines: https://www.twilio.com/en-us/guidelines/ca/porting | Medium. The proposal says "usually 1 to 2 weeks, up to 4"; the 1 to 2 weeks is our expectation, not a Twilio figure. |
+| Ported number, monthly | $1.15 USD = $1.61 CAD (same as a Twilio local number) | 1.2 | Medium-high |
+| Pass-through minutes if ported (staff-answered calls bridged from Twilio to the salon phone) | Inbound $0.0085 + outbound $0.0140 USD = $0.0225 USD = **$0.0315 CAD per minute** | 1.2 | Medium-high |
+| Concurrent AI calls | Each call is its own ConversationRelay session and its own Claude conversation; no per-concurrency fee found | Not specifically researched | Medium. Test 4 simultaneous calls at setup (Twilio account concurrency, Anthropic rate limits). |
+| Stripe, Canada | **2.9% + C$0.30** per successful domestic card payment; same rate for Apple Pay and Google Pay; +0.8% international cards; +2% currency conversion; no setup or monthly fee; processing fee not returned on refunds; C$15 per dispute (returned if won). Charged by Stripe to the salon's own account. | https://stripe.com/en-ca/pricing (snippet); https://support.stripe.com/questions/understanding-fees-for-refunded-payments ; https://www.venn.ca/resources/how-to-save-on-your-stripe-payments-for-canadian-businesses ; https://help.invoicesimple.com/en/articles/12758900-what-are-the-stripe-processing-fees | Medium-high (several snippets agree). |
+| Stripe cost to us | **$0.** Salon owns the Stripe account (Connect Standard, or the salon's own keys); we charge no application fee. | Assumption | Medium. Confirm Connect Standard carries no platform fee before building. |
+| Smart pricing compute | Nightly aggregation query on our Postgres (bookings, cancellations, no-shows, calls, visits by day and hour) plus a price lookup per slot; Claude summary of the monthly report about 10,000 input + 2,000 output tokens on Opus 5.5 = about $0.08 USD | Estimate | High; negligible (call it $0.15 CAD/month) |
+| Payment-link texts (phone deposits) | About 30 a month x 1.655 segments x $0.0231 = **about $1.15 CAD/month** | 1.9 rates | Medium (volume is a guess) |
+
+**More lines: answer several callers at once**
+
+Two ways to do it; pick per line at discovery:
+1. **Carrier path:** the carrier adds call-forward-busy plus a hunt or overflow group so extra calls also forward to our Twilio number. No marginal cost to us; any carrier fee (extra line, hunt group) is on the salon's own phone bill. Depends on line type: some single business lines can't do it.
+2. **Port path:** port (604) 475-7705 to Twilio. All calls hit Twilio first, which rings the salon phone (backup mode) and hands unanswered or extra calls to the receptionist, up to the cap (max 4), with overflow to a take-a-message flow. The salon's handset then needs its own line to ring (keep the carrier line on a new number, or a VoIP desk phone or app). **Every staff-answered call now passes through Twilio too.** At 12 calls a day with about 9 answered by staff, 2.5 minutes each: about 675 minutes a month x $0.0315 = **$21.26**, plus $1.61 for the ported number = **about $23 CAD a month**. Not in section 3.
+
+| Item | Carrier path | Port path |
+|---|---|---|
+| Setup hours | 2 to 3 h (line check, call with carrier, cap and overflow flow, test with 4 phones at once) | 2.5 to 3 h (same, plus Letter of Authorization, bill copy, port approval window) |
+| Setup effective rate at $150 | $50 to $75/h | $50 to $60/h |
+| One-time hard cost | $0 | $9.80 (port fee) |
+| Monthly marginal cost | $0 (extra AI minutes come from the 400-minute pool; overage billed at $0.25) | about $23 at 12 calls a day (scales with staff-answered minutes) |
+| Support time | 0.25 h = $18.75 | 0.25 h = $18.75 |
+| **Margin after time at $39** | **$20.25** | **about -$2.60** |
+
+**Read:** $39 works on the carrier path. On the port path it is break-even or slightly loss-making at 12 calls a day, and worse at busier salons. Prefer the carrier path whenever the carrier supports it. If a port is needed: either ring the salon over SIP (Twilio SIP pricing not researched; likely well under the $0.014 PSTN outbound leg) or quote **$49** for the ported version. Low-medium confidence on staff-answered minutes: ask call volume at discovery.
+
+**Smart pricing**
+
+| Item | Option 1: Quiet-hour savings | Option 2: Full smart pricing |
+|---|---|---|
+| Free data phase (4 to 6 weeks after launch): report plus proposed rules table | 2 to 3 h ($150 to $225). Sales cost: recovered by the setup fee if they buy, lost if not. | Same |
+| Per-client setup after the data phase | Review meeting 1 h, rules and caps 1 h, test website prices and phone quotes 1 to 1.5 h, client wording in 4 languages 0.5 h: 3.5 to 4 h | Option 1 plus peak rules, regulars exemptions and extra testing: 5 to 5.5 h |
+| Total per-client hours incl. data report | 5.5 to 7 h | 7 to 8.5 h |
+| Setup effective rate | $400: $57 to $73/h | $600: $71 to $86/h |
+| Monthly review time | 0.5 h = $37.50 | 0.75 h = $56.25 (two directions to watch, plus regulars' reactions) |
+| Monthly compute | about $0.15 | about $0.15 |
+| **Margin after time** | **$59 - $37.65 = $21.35 (36%)** | **$99 - $56.40 = $42.60 (43%)** |
+
+Review time is **low confidence**: the first two months will be heavier (likely 1 h each), roughly break-even on Option 1 in those months.
+
+**Pay online ahead of time**
+
+| Item | Value |
+|---|---|
+| Per-client setup hours | 4 to 5 h: owner creates the Stripe account and verification with us, deposit rules per service, no-show and refund policy wording in 4 languages, Apple Pay domain verification, test payments and refunds, phone payment-link test |
+| Setup effective rate at $400 | $80 to $100/h |
+| One-time hard cost | $0 (Stripe has no setup fee; test-mode payments are free) |
+| Monthly cost to us | Payment-link texts about $1.15 + support 0.25 h ($18.75) = **$19.90** |
+| **Margin after time at $29** | **$9.10** (about $17 once support settles to about 0.15 h) |
+| Cost to the salon, paid to Stripe | 2.9% + $0.30: $1.46 on a $40 deposit, $3.78 on a $120 colour paid in full. Fee kept by Stripe on refunds. |
+| Card data | Stripe-hosted payment fields (Payment Element or Checkout) and Stripe payment links: card numbers never reach our servers. Keeps us in the lightest PCI scope (SAQ A, from memory; not re-checked). |
+
+**First-build effort (one time, not per client).** Neither the website nor the voice agent has any pricing-rule or payment code yet. Estimated one-time build: smart pricing engine (rules by day, hour and service, caps, exemptions, price lock at booking, all-in price shown on the site and passed to the voice agent, owner approval screen) **12 to 18 h**; payments (Stripe checkout with Apple Pay and Google Pay, deposits, webhooks, dashboard refunds, no-show handling, payment-link text from the voice agent) **14 to 20 h**. That is $1,950 to $2,850 of time, **not covered by one client's setup fee**; it is product investment reused for later clients. **Do not build either before a client signs for it.** More lines needs no new product code beyond the concurrency cap and overflow flow (about 2 h, one time). Low confidence on all build estimates.
+
+**Summary**
+
+| Add-on | Setup | Monthly | Monthly cost to us incl. support time | Margin after time | Suggested floor (monthly) |
+|---|---|---|---|---|---|
+| More lines (carrier path) | $150 | $39 | $18.75 | $20.25 | $29 ($10.25 after time) |
+| More lines (port path) | $150 | $39 | about $41.60 at 12 calls/day | about -$2.60 | $39; quote $49 if busy |
+| Quiet-hour savings | $400 | $59 | $37.65 | $21.35 | $39 (about $1 after time) |
+| Full smart pricing | $600 | $99 | $56.40 | $42.60 | $79 ($22.60 after time) |
+| Pay online ahead of time | $400 | $29 | $19.90 | $9.10 | $19 (-$0.90 after time at 0.25 h; only if support stays light) |
+
+Legal notes for smart pricing and payments (not legal advice): the Competition Act deems a price unattainable because of fixed mandatory fees to be misleading (s. 74.01(1.1), s. 52(1.3), since June 2022; the 2024 amendments limit the exception to taxes imposed on the buyer by law), and the Cineplex penalty (about $38.9 million, upheld by the Federal Court of Appeal in January 2026) shows the Bureau enforces it. BC's BPCPA s. 4 treats failing to give the total price prominence, or a price benefit that does not exist, as deceptive. So: one all-in price per time slot, never "regular price + peak fee"; any "save X%" measured against the real everyday menu price; no card surcharge added at checkout; deposit and no-show policy shown before booking. Sources in proposal [21] to [25]. The Bureau's algorithmic pricing consultation (What We Heard, January 2026) is a watch item, not a rule yet.
+
 ---
 
 ## 2. Unit prices charged to the client
@@ -180,6 +264,7 @@ Who is the sender under CASL? The salon. We "cause or permit" the send, so the s
 | Handwritten card, all in | $8.50 | $7.21 to $7.91 | $0.59 to $1.29 |
 | Extra promo SMS segment (beyond 500 included) | $0.05 | $0.0231 | $0.027 (54%) |
 | Starter promotions add-on (500 segments) | $49/month + $150 setup | $14.56 at full use (segments + number) + drafting | See 1.9 |
+| Optional add-ons: More lines, Smart pricing (2 options), Pay online | $39 / $59 or $99 / $29 a month; $150 / $400 or $600 / $400 setup | See 1.10 | See 1.10 |
 
 Included minutes (400 per month in Growth and Complete) cost us about **$67** at full use. Included promo segments (500) cost about **$11.55** at full use, plus $3.01 for the promo number.
 
@@ -189,7 +274,7 @@ Included minutes (400 per month in Growth and Complete) cost us about **$67** at
 
 AI-answered calls depend heavily on the answering mode. Low and Medium assume backup plus after-hours mode (only missed and after-hours calls reach the AI). High assumes "every call" mode at a busy salon.
 
-| Scenario | AI-answered calls | Avg minutes per call | AI minutes (incl. language greeting) | Bookings (all channels) | SMS sent (2 per booking, avg 1.655 segments) | Promo texts (avg 1.85 segments) | Cards mailed |
+| Scenario | AI-answered calls | Avg minutes per call | AI minutes (incl. the Oct 3 language greeting line, removed Oct 5: about 4 / 8 / 16 fewer, see 1.8) | Bookings (all channels) | SMS sent (2 per booking, avg 1.655 segments) | Promo texts (avg 1.85 segments) | Cards mailed |
 |---|---|---|---|---|---|---|---|
 | Low | 150 | 2.0 | 304 | 250 | 500 | 150 (278 segments) | 15 |
 | Medium | 350 | 2.0 | 708 | 450 | 900 | 600 (1,110 segments) | 40 |
@@ -252,7 +337,7 @@ Revenue includes overage minutes, promo segments and cards. Example, Growth Medi
 | Package | Setup fee | Estimated hours | Effective rate | One-time hard costs |
 |---|---|---|---|---|
 | Starter | $1,200 | 19 to 24 h (adapt demo to real menu and photos, Chinese and Korean translation review, deploy, Google Business Profile and Yelp claim, onboarding, training) | $50 to $63/h | Domain about $20 |
-| Growth | $2,200 | Starter + 13 to 17 h (prompt tuning in 4 languages, remembered-language greeting tests, call forwarding with the carrier, test calls, 2 weeks of transcript review) | $57 to $69/h | Test calls about $15 |
+| Growth | $2,200 | Starter + 13 to 17 h (prompt tuning in 4 languages, saved-language opening tests, call forwarding with the carrier, test calls, 2 weeks of transcript review) | $57 to $69/h | Test calls about $15 |
 | Complete | $2,700 | Growth + 6 to 8 h (card templates EN/ZH, approval flow, consent capture, first batch) | $59 to $70/h | 3 to 5 sample cards about $40 |
 | Promotions (inside Growth and Complete setup) | no change | + 3 to 4 h (two toll-free verifications, consent wording in 4 languages, front-desk training, first campaign with the owner) | Growth falls to $49 to $63/h; Complete to $51 to $66/h | None (verification is free) |
 | Starter promo add-on | $150 | about 2 h | about $75/h | None |
@@ -347,3 +432,8 @@ No independent salon-specific study of SMS promotion results was found. No salon
 8. That the booking link in promos lands on a page showing the salon's mailing address and phone number (CASL identification by link), and that consent records store channel, time, staff member or call ID, and the wording shown.
 9. How a phone-booking "yes" is recorded, given call recordings are deleted after 30 days.
 10. Add to the one-page agreement: the owner is responsible for promo content and hand-recorded consent; we are responsible for STOP, quiet hours and caps working; promo segment price may change on 30 days' notice if carrier fees change.
+11. More lines: the owner's carrier and line type, and whether it supports call-forward-busy plus a hunt or overflow group (carrier path, no cost to us). If a port is needed, confirm the Twilio Canada port fee ($7 USD per number, from a snippet), plan for up to 4 weeks, and price the staff-answered pass-through minutes (or a SIP desk phone) before quoting $39.
+12. Four simultaneous AI calls on one Twilio account and one Anthropic key work without hitting concurrency or rate limits (test at setup).
+13. Stripe: the live Canada rate (2.9% + C$0.30, from snippets), that Connect Standard (or the salon's own keys) carries no platform fee for us, and Apple Pay domain verification on the salon's domain.
+14. Smart pricing: that the website shows one all-in price per slot and the voice agent quotes the same number; no "peak fee" line at checkout. If the owner wants surge pricing (Option 2), suggest a quick check with a lawyer; not legal advice.
+15. The new returning-caller behaviour (Oct 5): that ConversationRelay accepts the opening language, voice and transcription per call from the saved language for yue-HK, cmn-CN and ko-KR, and that the English-to-other switch for new callers still works mid-call.

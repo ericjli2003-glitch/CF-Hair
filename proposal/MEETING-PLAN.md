@@ -17,7 +17,8 @@
 - [ ] Load the demo with `shared/salon.json` data but rename stylists to neutral names if the placeholder "Stylist A/B/C" looks odd on screen. Make sure no PLACEHOLDER text is visible on the website demo.
 - [ ] Record a 60-second screen capture of each demo as a backup (mall Wi-Fi may be poor). Bring a phone hotspot.
 - [ ] If a live phone number is configured for `npm run demo`, test calling it from a mobile in English, Mandarin, Cantonese and Korean. If Cantonese or Korean quality is shaky, demo the strongest languages live and say the others will be tuned with them.
-- [ ] Prepare the returning-caller demo (section 2.3, step 7): make sure your demo phone number is already saved with language = Cantonese in the demo database (call once in Cantonese beforehand, or set it in the dashboard). Check `voice-agent/README.md` for how `npm run simulate` sets the caller's number.
+- [ ] Prepare the returning-caller demo (section 2.3, step 7): make sure your demo phone number is already saved with language = Cantonese in the demo database (call once in Cantonese beforehand, or set it in the dashboard). Check `voice-agent/README.md` for how `npm run simulate` sets the caller's number. Rehearse it after pulling the latest `voice-agent/`: the call should now open in Cantonese from the first word, with no English greeting before it.
+- [ ] During the test calls to (604) 475-7705, once, call from two phones at the same moment and note whether the second caller hears a busy signal, rings, or goes to voicemail. That is the evidence for the "More lines" add-on.
 - [ ] Prepare the promotions demo (section 2.4): seed the demo database with about 20 clients across English, Simplified Chinese, Traditional Chinese (Cantonese) and Korean, a mix of opted-in, not opted-in and one already opted out, a few with last visit 4+ months ago, and one with a birthday this month. Add your own mobile as an opted-in client so "send test to yourself" and the STOP reply work live. Check `website/README.md` for the Promotions route (expected under `/admin`) and whether texts actually send in the demo or are simulated. Have a Chinese or Korean speaker sanity-check the drafted translations once.
 - [ ] Print: 2 x PROPOSAL.md, 1 x notes proof sheet (colour), 1-page agreement (scope, fees, payment terms, 30-day pilot, data ownership, card price change clause on 30 days' notice, and the texting responsibilities line from `COSTS.md` section 9, item 10).
 - [ ] If possible, order one physical sample card from the handwriting provider now (Oct 3) addressed to yourself. It may not arrive by Friday (mailed from the US), but if it does, it is the single best prop.
@@ -34,7 +35,7 @@
 | 0:00 to 0:04 | Hello and purpose | Thank them for the time. "I build websites and booking tools for local businesses. I looked CF Hair up online and saw some easy wins, and I built a working demo with your salon in mind. I'd love to ask a few questions first, then show you." |
 | 0:04 to 0:14 | Discovery | Ask the priority questions in section 3 (aim for the top 8, including the texting question). Listen more than talk. Write numbers down; you'll use them in the ROI. |
 | 0:14 to 0:31 | Live demo | Website and booking (4 min), dashboard (2 min), phone receptionist (6 min), text promotions (3 min), handwritten cards (2 min). Script in section 2. Tie each demo back to something they said in discovery. |
-| 0:31 to 0:38 | Proposal and pricing | Walk through section 6 of the proposal. Rebuild the ROI table with THEIR numbers (calls per day, miss rate, average ticket). Recommend Growth. |
+| 0:31 to 0:38 | Proposal and pricing | Walk through section 6 of the proposal. Rebuild the ROI table with THEIR numbers (calls per day, miss rate, average ticket). Recommend Growth. Show the add-ons slide only briefly, and lead with the one discovery pointed to (two callers at once: More lines; empty weekday mornings: Quiet-hour savings; no-shows: Pay online). Never let add-ons crowd out the Growth decision. |
 | 0:38 to 0:43 | Questions and concerns | Handle objections (section 4). |
 | 0:43 to 0:45 | Close | Ask for the decision. Book the onboarding slot. If not ready, book a follow-up date and leave the printed proposal. |
 
@@ -78,7 +79,7 @@ Run 4 or 5 of these, in this order (always finish with step 7, it is the wow mom
 5. **Reschedule.** "I need to move my Saturday appointment to Sunday."
 6. **Ask for a person.** "Can I talk to someone?" Show it offers a transfer or takes a message.
    - Optional **Korean** line: "안녕하세요, 토요일 오후에 커트 예약하고 싶어요. 얼마예요?" (Hello, I'd like to book a cut Saturday afternoon. How much is it?)
-7. **Returning Cantonese caller.** Call again from the number that used Cantonese earlier (or that is saved as Cantonese). The call opens with the normal English greeting, then immediately adds a short Cantonese line, for example "你好，歡迎返嚟！我哋可以用廣東話傾。" (Hi, welcome back! We can talk in Cantonese.), and carries on in Cantonese. Say: "Every call starts in English, but she spoke Cantonese last time, so it greets her in Cantonese and keeps going. Your regulars never have to ask twice." Then say "Can we speak English?" to show it switches back, and that the new choice is remembered.
+7. **Returning Cantonese caller.** Call again from the number that used Cantonese earlier (or that is saved as Cantonese). This time there is no English at all: the very first words are the Cantonese greeting, for example "你好，CF Hair Salon 語音助理。有咩幫到你？" (Hi, this is CF Hair Salon's virtual assistant. How can I help?), in a Cantonese voice, already listening for Cantonese. Say: "She spoke Cantonese last time, so the salon answers her in Cantonese from the first word. New callers still hear English first, and if they sound unsure it asks one short question, with keypad options. Your regulars never have to ask twice." Then say "Can we speak English?" to show it switches back, and that the new choice is remembered. Point out how short the replies are: "It talks like a receptionist, not a speech."
    - Then in `/admin`, open that client and show the **Language** field, and change it. Say: "You can always see and change it. Private or blocked numbers are never remembered."
 
 Then go back to `/admin`: show the new booking and the message from the call. Say: "Your phone rang, nobody had to stop cutting hair, and the booking is already in your calendar."
@@ -169,10 +170,22 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 22f. **Languages:** For Chinese-speaking clients, which script do they read: simplified or traditional? Do Cantonese clients expect traditional characters? Who on the team can check a Korean or Chinese message before it goes out?
 22g. **Who writes and approves:** Will you write the offers yourself, or should a manager do it?
 
+### Optional add-ons (ask only what fits; several overlap with 8, 9 and 14)
+
+23. **Phone line type and carrier:** "Is the salon number a landline, an internet (VoIP) line or a mobile? Which company, and is it one line or several?" (Carrier path for More lines needs call-forward-busy plus a hunt or overflow group; some single lines can't do it. If not, porting to Twilio is the fallback; see `COSTS.md` 1.10 for why the port path costs us more.)
+24. **Two callers at once:** "How often do two people call at the same time, say Saturday mornings or right after you open? What does the second caller hear today?" (Compare with your own two-phone test from the checklist.)
+25. **Slow hours:** "Which hours are usually quiet? Weekday mornings, mid-afternoon? Do stylists ever sit waiting for clients?" (Note the days and hours; it is the starting point for the Quiet-hour savings rules table.)
+26. **Peak prices:** "On Saturday afternoons when you're full anyway, how would you feel about charging a little more? Would your regulars mind?" (If they hesitate at all, it's Option 1 only. Don't push.)
+27. **Discounts today:** "Do you already have any weekday, seniors' or students' prices?" (Smart pricing must not stack confusingly with these; we would fold them into the rules table.)
+28. **No-shows:** "In a normal week, how many no-shows or last-minute cancellations? Which services hurt most when someone doesn't come: colour, perms, extensions?"
+29. **Deposits and card payments:** "Would you want a deposit for long services, or full payment online? How much, and what should happen if someone cancels late?" "How do clients pay today (cash, card terminal such as Square, Moneris or Clover, e-transfer)? Do you have a Stripe account?" (Online payments run on the salon's own Stripe account; the in-salon terminal stays as it is.)
+
+Explaining the data month, if they ask why smart pricing doesn't start straight away: "One quiet Tuesday morning could be bad luck. Five quiet Tuesday mornings is a pattern. We watch for four to six weeks after the website goes live, for free, then show you the report and a simple table you approve." Timing: website live in Week 2 (Oct 19 to 23) means the report lands in late November or early December. December is a holiday rush and not typical, so expect to approve the first table in early December and check it again in January.
+
 ### Decision
 
-23. "Is there anyone else who'd be part of this decision?" (partner, family, landlord rules about signage)
-24. "If this looks right, is there anything that would stop you from starting next week?"
+30. "Is there anyone else who'd be part of this decision?" (partner, family, landlord rules about signage)
+31. "If this looks right, is there anything that would stop you from starting next week?"
 
 ---
 
@@ -190,9 +203,13 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 | **"What about privacy?"** | "We follow BC's privacy law (PIPA): we only collect what's needed, birthdays and addresses are optional and with permission, there's a privacy policy on the site, and clients can ask to see or delete their info. You own all the data." |
 | **"Will clients find texts annoying?" / "I don't want to spam my clients."** | "Good instinct, and the system is built around it. Only clients who said yes get promotions; the website box starts unticked. Nobody gets more than 4 a month (most salons send 1 or 2), nothing goes out before 9 am or after 8 pm, every text has the salon name and 'Reply STOP', and STOP works instantly. After every campaign you see how many people opted out, so if an offer annoys people, you'll know the same day. The trick is to send fewer, better texts: a real offer, in their language, for a quiet weekday. Industry figures put opt-outs around 1 to 2% per send; if yours run higher, we send less." |
 | **"Is texting even legal? I heard about anti-spam fines."** | "Yes, with consent, and that's why consent is built in. Canada's anti-spam law (CASL) needs three things: permission, the salon's name and contact details, and an easy opt-out. The system records every 'yes' with the date and how it was given, and every STOP. The big fines go to people texting strangers without permission; we only text people who said yes, or, if you choose, recent paying clients, which the law allows for two years." (Do not give legal advice; if they want implied-consent mode or have an old list, suggest a quick check with a lawyer.) |
-| **"Isn't it creepy that it remembers people?"** | "It only remembers one thing: which language they used last time, so it can say hello in that language. It still opens in English every time, callers can switch back with one sentence, you can edit it in the dashboard, and private numbers are never remembered. It's what a good receptionist does anyway." |
+| **"Isn't it creepy that it remembers people?"** | "It only remembers one thing: which language they used last time, so it can answer in that language. New callers and private numbers always hear English first, regulars can switch back to English with one sentence, you can edit it in the dashboard, and private numbers are never remembered. It's what a good receptionist does anyway: 'Oh, hi, it's you.'" |
 | **"You're one person. What if you disappear?"** | "Fair question. The domain is registered in your name, your data can be exported any time, and everything is built on standard, widely used tools any developer can maintain. It's month to month, so you're never locked in." |
 | **"Let me think about it."** | "Of course. What's the main thing you'd want to think through?" Address it. Then: "The founding-client offer runs until October 23. Can we pencil in the onboarding for next week and you can cancel it by Monday if you decide not to?" |
+| **"Higher prices on Saturdays will annoy my regulars."** (Full smart pricing) | "You're right that it can, and that's why I'd start with quiet-hour savings only: prices only ever go down, in hours that are empty anyway. Nobody complains about 15% off a Tuesday morning. If you ever want peak prices later, you set the cap (I'd suggest no more than 15%), you can exempt your regulars or certain services, and the price is always shown in full before they book and locked once booked. No surprise fees at checkout; that's the law in Canada now anyway." (If they ask about the law: Canada's Competition Act bans adding mandatory fees on top of the advertised price, and Cineplex was fined about $39 million for a $1.50 booking fee. Not legal advice.) |
+| **"Is changing prices like that even allowed?"** | "Yes, as long as the price is clear. Shops have happy-hour and weekday prices all the time. The rules are about honesty: show the full price before booking, don't add fees at checkout, and if you say 'save 20%', it must be 20% off your real everyday price. The system is built that way." |
+| **"My clients won't want to pay a deposit." / "Deposits feel unfriendly."** | "Totally your call, service by service. Most salons only ask for long bookings like colour, perms or extensions, where a no-show costs you two or three hours of a stylist's time. Clients see the policy before they book, they can pay with Apple Pay in a few seconds, and you decide on refunds. Regulars can be exempt. If it costs you even one booking a week, try it on new clients only." Also: "The money goes straight to your own Stripe account; Stripe's fee is 2.9% plus 30 cents, about $1.46 on a $40 deposit. We never touch the money or the card numbers." |
+| **"$39 a month just so two people can call at once?"** (More lines) | "Only if it happens to you. Today the second caller probably hears a busy signal, and that's the caller most likely to try the salon down the hall. If one of those calls a week becomes a $60 booking, it's paid for itself several times over. If it rarely happens, skip it." |
 | **"Can you do it cheaper?"** | Trade, don't cut: see section 5. |
 
 ---
@@ -206,6 +223,15 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 | Starter | $1,200 | $99 | Website, booking, dashboard, booking SMS, Google/Yelp setup. Promotions add-on: $49/month incl. 500 segments, $150 setup |
 | Growth | $2,200 | $279 | + AI phone, 400 min ($0.25/min after) + promotions, 500 segments ($0.05/segment after) |
 | Complete | $2,700 | $349 | + cards at $8.50 each |
+
+**Optional add-ons (from proposal section 6; none of them are built or demoable yet, so show the slide, not a demo):**
+
+| Add-on | Setup | Monthly | Available with | Notes |
+|---|---|---|---|---|
+| More lines (up to 4 callers at once) | $150 | $39 | Growth or Complete | Minutes still from the plan's pool. Port takes 1 to 2 weeks, up to 4; number never goes dark. |
+| Smart pricing, Option 1: Quiet-hour savings | $400 | $59 | Any package | Prices only go down. Recommend this one. Free 4 to 6 week data phase first. |
+| Smart pricing, Option 2: Full smart pricing | $600 | $99 | Any package | Adds peak increases (cap suggested 15%). Only if the owner raises it or is clearly keen. |
+| Pay online ahead of time | $400 | $29 | Any package | Salon's own Stripe account; Stripe's 2.9% + $0.30 is paid by the salon to Stripe. |
 
 **Recommend Growth.** It is the best value for them and the best margin for you (about $56 to $176/month after time, see `COSTS.md` section 4). Promotions make the jump from Starter easier to justify: Starter + promotions is $148, Growth is $279 and adds the phone receptionist.
 
@@ -222,6 +248,10 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 | Complete | $1,900 | $299 | |
 | Overage minutes | $0.20 | | Our cost is about $0.17 at FX 1.45. Never below $0.20. |
 | Cards | $8.00 | | Our cost is $7.21 to $7.91; never below $8.00. |
+| More lines | $100 | $29 | Carrier path only (about $10 after time). If the number has to be ported, staff-answered calls pass through Twilio and cost us about $23 a month at 12 calls a day: floor is then $39, and quote $49 for a busy salon. See COSTS.md 1.10. |
+| Quiet-hour savings | $300 | $39 | About $1 a month after time at the floor. The free data phase costs us 2 to 3 h; don't also waive setup. |
+| Full smart pricing | $450 | $79 | About $23 a month after time at the floor. |
+| Pay online ahead of time | $300 | $19 | Roughly break-even after time at the floor; only go there if support stays light. |
 
 **Concessions to trade, in this order (before cutting price):**
 1. Split setup into 3 payments (signing, website live, phone live).
@@ -231,7 +261,9 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 5. Prepay 6 months: one month free.
 6. Only then, move toward the floor.
 
-**What not to concede:** owner approval on cards (protects both of you), call disclosure, the texting safeguards (unticked opt-in box, STOP, 9 am to 8 pm window, salon name in every promo; express consent by default), the right to adjust card and segment prices on 30 days' notice if the provider, carrier fees or exchange rate change.
+**What not to concede:** owner approval on cards (protects both of you), call disclosure, the texting safeguards (unticked opt-in box, STOP, 9 am to 8 pm window, salon name in every promo; express consent by default), the right to adjust card and segment prices on 30 days' notice if the provider, carrier fees or exchange rate change. For smart pricing: owner approval of the rules table, the caps, one all-in price per time slot with no "peak fee" added at checkout, and the price locked once booked. For payments: we never handle card numbers, and no card surcharge added at checkout.
+
+**Add-on concessions, if needed (before touching floors):** the smart pricing data phase is already free; offer the first month of the add-on at the floor price after the report, or bundle Quiet-hour savings and Pay online at $79 a month together (saves them $9). Add-on setup fees can be split across two months.
 
 **Payment terms:** 50% setup at signing, 50% at website go-live. Monthly fees start per product at go-live. Month to month after the 30-day pilot, 30 days' notice.
 
@@ -243,6 +275,7 @@ Many facts in `shared/salon.json` are placeholders. Write the answers straight i
 - Update `shared/salon.json` with confirmed facts (and set `verified.*.status` to "owner-confirmed" with the date).
 - Rebuild the ROI section of the proposal with their real numbers before the onboarding session.
 - If signed: register the domain in the owner's name, start Google Business Profile verification (it can take days), and ask their phone provider about conditional call forwarding. Buy the two toll-free texting numbers (booking texts, promotions) and submit Twilio toll-free verification the same week (free, about 3 to 5 business days), so the opt-in box can go live with the website in Week 2.
+- If they want an add-on: for More lines, call the carrier with the owner about call-forward-busy and an overflow group (or start the port paperwork, which needs a recent phone bill and the account holder's signature; port can take up to 4 weeks). For Pay online, have the owner create their Stripe account (it needs their business and bank details, so they do it, not us). For Smart pricing, nothing to do: the data phase starts when the website goes live; put a reminder in the calendar for the report about 5 weeks later.
 - If they have an existing opt-in list, get a copy with how and when each person agreed; import only those with a record, and mark the consent source as "imported, [date], [method]".
 - Draft their first two campaigns from the discovery answers (for example a weekday special and a Lunar New Year offer) for the Week 3 session.
 - Order a few sample cards (English, Chinese and Korean) to show at onboarding, and confirm the provider's Chinese and Korean handwriting support.
