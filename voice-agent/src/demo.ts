@@ -8,7 +8,7 @@
 import { buildDeps } from "./bootstrap.js";
 import { CallSession } from "./agent/session.js";
 import { DEMO_PHONES } from "./api/mock.js";
-import { colors, TerminalChannel } from "./terminal.js";
+import { colors, opening, TerminalChannel } from "./terminal.js";
 
 interface DemoCall {
   title: string;
@@ -49,7 +49,7 @@ const CALLS: DemoCall[] = [
     lines: ["안녕하세요, 남자 커트 가격이 얼마예요?", "토요일에도 문 열어요? 몇 시까지 해요?", "네, 감사합니다. 안녕히 계세요."],
   },
   {
-    title: "Returning caller with a saved Cantonese preference",
+    title: "Returning caller with a saved Cantonese preference (the call opens in Cantonese)",
     from: DEMO_PHONES.returningCantonese,
     lines: ["你好，我想問下聽日下晝有冇位剪女士頭髮？", "唔使喇，我遲啲再打嚟。唔該晒，拜拜。"],
   },
@@ -63,8 +63,9 @@ const CALLS: DemoCall[] = [
 async function playCall(call: DemoCall, n: number, deps: ReturnType<typeof buildDeps>) {
   console.log(colors.sys(`\n=== Call ${n}: ${call.title} (from ${call.from}) ===`));
   const channel = new TerminalChannel();
-  const session = new CallSession(deps, { callSid: `DEMO${n}${Date.now()}`, from: call.from, to: deps.salon.phone }, channel);
-  channel.greet(deps.config.welcomeGreeting);
+  const open = await opening(deps, call.from);
+  const session = new CallSession(deps, { callSid: `DEMO${n}${Date.now()}`, from: call.from, to: deps.salon.phone, ...open }, channel);
+  channel.greet(open.greeting, open.startLanguage);
   await session.start();
   for (const line of call.lines) {
     if (session.ended) break;

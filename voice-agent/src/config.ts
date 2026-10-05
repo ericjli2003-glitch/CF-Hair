@@ -36,6 +36,8 @@ export interface AppConfig {
   agentApiKey: string;
   apiTimeoutMs: number;
   callerLookupTimeoutMs: number;
+  /** How long the incoming-call webhook waits for the caller's saved language before opening in English. */
+  openingLookupTimeoutMs: number;
   twilioAuthToken: string;
   validateTwilioSignature: boolean;
   salonForwardNumber: string;
@@ -69,6 +71,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     agentApiKey: env("AGENT_API_KEY"),
     apiTimeoutMs: envInt("BOOKING_API_TIMEOUT_MS", 5000),
     callerLookupTimeoutMs: envInt("CALLER_LOOKUP_TIMEOUT_MS", 1500),
+    openingLookupTimeoutMs: envInt("OPENING_LOOKUP_TIMEOUT_MS", 1000),
     twilioAuthToken: env("TWILIO_AUTH_TOKEN"),
     validateTwilioSignature: envBool("TWILIO_VALIDATE_SIGNATURE", true),
     salonForwardNumber: env("SALON_FORWARD_NUMBER"),
@@ -80,7 +83,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     endCallGraceMs: envInt("END_CALL_GRACE_MS", 1200),
     welcomeGreeting: env(
       "WELCOME_GREETING",
-      "Hi, thanks for calling CF Hair Salon at Henderson Place Mall. I'm the salon's virtual assistant. We can also help you in Mandarin, Cantonese, or Korean. How can I help you today?",
+      "Hi, this is CF Hair Salon's virtual assistant. We also speak Mandarin, Cantonese and Korean. How can I help?",
     ),
   };
   const start = env("CR_START_TRANSCRIPTION_LANGUAGE", "en-US").toLowerCase() === "multi" ? "multi" : "en-US";

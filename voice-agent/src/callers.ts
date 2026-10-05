@@ -132,6 +132,28 @@ export class CallerMemory {
     }
   }
 
+  /**
+   * The saved language for this number, read before the call is answered so the greeting, voice
+   * and speech recognition can start in it. Does not count the call (beginCall does). Never throws:
+   * withheld numbers, unknown numbers and a slow or unreachable API all give English.
+   */
+  async openingLanguage(rawPhone: string | null | undefined, timeoutMs: number): Promise<{ language: LanguageCode; known: boolean }> {
+    const english = { language: DEFAULT_LANGUAGE, known: false };
+    if (isAnonymousCaller(rawPhone)) return english;
+    const phone = toE164(rawPhone);
+    if (!phone) return english;
+    const localRec = this.local.get(phone);
+    // A preference saved while the API was down has not reached the website yet, so it wins.
+    if (localRec?.pendingSync) return { language: localRec.preferredLanguage, known: true };
+    try {
+      const p = await withTimeout(this.api.getCaller(phone), timeoutMs);
+      const language = normalizeLanguage(String(p.preferredLanguage ?? "")) ?? DEFAULT_LANGUAGE;
+      return { language, known: (p.callCount ?? 0) > 0 || language !== DEFAULT_LANGUAGE };
+    } catch {
+      return localRec ? { language: localRec.preferredLanguage, known: true } : english;
+    }
+  }
+
   /** Save the caller's language. Returns where it was saved, or "skipped" for anonymous callers. */
   async saveLanguage(phone: string | null, language: LanguageCode): Promise<"api" | "local" | "skipped"> {
     if (!phone || isAnonymousCaller(phone)) return "skipped";

@@ -32,7 +32,7 @@ async function startServer(script: ScriptedStep[] | ((p: StreamParams, i: number
   return { deps, llm, port };
 }
 
-async function call(port: number, from: string, callSid = `CA${Math.random().toString(36).slice(2)}`, token?: string) {
+async function call(port: number, from: string, callSid = `CA${Math.random().toString(36).slice(2)}`, token?: string, params: Record<string, string> = {}) {
   const ws = new WebSocket(`ws://127.0.0.1:${port}/relay`);
   const frames: Frame[] = [];
   let closeCode: number | null = null;
@@ -50,7 +50,7 @@ async function call(port: number, from: string, callSid = `CA${Math.random().toS
       callType: "PSTN",
       callStatus: "RINGING",
       accountSid: "AC1",
-      customParameters: { token: token ?? relayToken(AUTH, callSid) },
+      customParameters: { token: token ?? relayToken(AUTH, callSid), ...params },
     }),
   );
   const send = (m: Frame) => ws.send(JSON.stringify(m));
@@ -85,11 +85,34 @@ describe("Twilio webhooks", () => {
     expect(xml).toContain("<Connect action=\"http://127.0.0.1:");
     expect(xml).toContain("<ConversationRelay");
     expect(xml).toContain(`url="ws://127.0.0.1:${port}/relay"`);
-    expect(xml).toMatch(/welcomeGreeting="Hi, thanks for calling CF Hair Salon/);
+    expect(xml).toMatch(/welcomeGreeting="Hi, this is CF Hair Salon(&apos;|')s virtual assistant. We also speak/);
     expect(xml).toContain('language="en-US"');
+    expect(xml).toContain('<Parameter name="startLanguage" value="en-US"/>');
+    expect(xml).toContain('<Parameter name="opening" value="welcome"/>');
     expect(xml).toContain('interruptible="any"');
     for (const code of ["en-US", "zh-CN", "zh-HK", "ko-KR"]) expect(xml).toContain(`<Language code="${code}"`);
     expect(xml).toContain(`<Parameter name="token" value="${relayToken(AUTH, "CA1")}"/>`);
+  });
+
+  it("opens a returning Cantonese caller's call in Cantonese: greeting, voice and speech recognition", async () => {
+    const { port, deps } = await startServer([]);
+    const xml = await (await signedPost(port, "/twiml", { CallSid: "CA4", From: DEMO_PHONES.returningCantonese })).text();
+    const zh = deps.languages["zh-HK"];
+    expect(xml).toContain(`welcomeGreeting="${zh.greeting}"`);
+    expect(xml).toMatch(/<ConversationRelay[^>]* language="zh-HK"/);
+    expect(xml).toMatch(new RegExp(`<ConversationRelay[^>]* voice="${zh.voice}"`));
+    expect(xml).toContain('<Parameter name="startLanguage" value="zh-HK"/>');
+    expect(xml).toContain('<Parameter name="opening" value="returning"/>');
+    // Looking up the caller does not count the call; the session does that once.
+    expect(deps.mockApi!.callers.get(DEMO_PHONES.returningCantonese)?.callCount).toBe(3);
+  });
+
+  it("opens in English when the website is down", async () => {
+    const { port, deps } = await startServer([]);
+    deps.mockApi!.offline = true;
+    const xml = await (await signedPost(port, "/twiml", { CallSid: "CA5", From: DEMO_PHONES.returningCantonese })).text();
+    expect(xml).toMatch(/<ConversationRelay[^>]* language="en-US"/);
+    expect(xml).toContain('<Parameter name="opening" value="welcome"/>');
   });
 
   it("passes Twilio's ForwardedFrom through to the session for the transfer loop guard", async () => {
@@ -110,6 +133,18 @@ describe("Twilio webhooks", () => {
     const noAnswer = await (await signedPost(port, "/twiml/dial-status", { CallSid: "CA1", DialCallStatus: "no-answer" })).text();
     expect(noAnswer).toContain("<ConversationRelay");
     expect(noAnswer).toContain('<Parameter name="resume" value="transfer_failed"/>');
+    expect(noAnswer).toMatch(/<ConversationRelay[^>]* language="en-US"/);
+  });
+
+  it("brings a missed transfer back in the caller's language", async () => {
+    const { port, deps } = await startServer([], "+16045559999");
+    const handoff = JSON.stringify({ reasonCode: "live-agent-handoff", summary: "wants owner", language: "zh-HK" });
+    const xml = await (await signedPost(port, "/twiml/action", { CallSid: "CA1", HandoffData: handoff })).text();
+    expect(xml).toMatch(/<Dial[^>]*action="http:\/\/127\.0\.0\.1:\d+\/twiml\/dial-status\?lang=zh-HK"/);
+    const back = await (await signedPost(port, "/twiml/dial-status?lang=zh-HK", { CallSid: "CA1", DialCallStatus: "busy" })).text();
+    expect(back).toMatch(/<ConversationRelay[^>]* language="zh-HK"/);
+    expect(back).toContain(`welcomeGreeting="${deps.languages["zh-HK"].transferFailed}"`);
+    expect(back).toContain('<Parameter name="opening" value="transfer_failed"/>');
   });
 });
 
@@ -174,21 +209,19 @@ describe("ConversationRelay WebSocket protocol", () => {
     await waitFor(() => deps.mockApi!.callers.get("+16045550177")?.preferredLanguage === "zh-HK");
   });
 
-  it("greets a returning Cantonese caller in English, then adds one Cantonese line and switches", async () => {
+  it("continues a call that opened in Cantonese without an extra line, and switches back on request", async () => {
     const { port, llm } = await startServer([
       { text: "好呀，聽日下晝有位。" },
       { tools: [{ name: "set_language", input: { language: "en-US" } }] },
-      { text: "Sure, let's continue in English." },
+      { text: "Sure, English." },
     ]);
-    // The English welcome greeting is spoken by Twilio from the TwiML (checked above). Then:
-    const c = await call(port, DEMO_PHONES.returningCantonese);
-    await waitFor(() => c.frames.length >= 2);
-    expect(c.frames[0]).toMatchObject({ type: "text", lang: "zh-HK", last: true });
-    expect(c.frames[0].token).toMatch(/廣東話/);
-    expect(c.frames[1]).toEqual({ type: "language", ttsLanguage: "zh-HK", transcriptionLanguage: "zh-HK" });
+    // Twilio already played the Cantonese greeting from the TwiML (checked above).
+    const c = await call(port, DEMO_PHONES.returningCantonese, undefined, undefined, { startLanguage: "zh-HK", opening: "returning" });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(c.frames).toEqual([]);
 
     c.prompt("我想約聽日剪頭髮");
-    await waitFor(() => c.lastCount() === 2);
+    await waitFor(() => c.lastCount() === 1);
     expect(c.texts().at(-1)!.lang).toBe("zh-HK");
     const ctx = (llm.requests[0].system as { text: string }[])[1].text;
     expect(ctx).toContain("Current call language: zh-HK");
@@ -196,9 +229,29 @@ describe("ConversationRelay WebSocket protocol", () => {
 
     // Caller answers in English: the model switches back.
     c.prompt("Sorry, can we speak English?");
-    await waitFor(() => c.lastCount() === 3);
+    await waitFor(() => c.lastCount() === 2);
     expect(c.frames.filter((f) => f.type === "language").at(-1)).toEqual({ type: "language", ttsLanguage: "en-US", transcriptionLanguage: "en-US" });
     expect(c.texts().at(-1)!.lang).toBe("en-US");
+  });
+
+  it("answers several callers at once, each in their own session and language", async () => {
+    const { port } = await startServer((p) => {
+      const last = JSON.stringify(p.messages.at(-1));
+      return { text: /剪/.test(last) ? "好呀，有位。" : "Sure, we have room.", wordDelayMs: 10 };
+    });
+    const [a, b, d] = await Promise.all([
+      call(port, "+16045550401"),
+      call(port, DEMO_PHONES.returningCantonese, undefined, undefined, { startLanguage: "zh-HK", opening: "returning" }),
+      call(port, "+16045550403"),
+    ]);
+    a.prompt("Do you have room for a cut today?");
+    b.prompt("今日有冇位剪頭髮？");
+    d.prompt("Any room this afternoon?");
+    await waitFor(() => a.lastCount() === 1 && b.lastCount() === 1 && d.lastCount() === 1);
+    expect(a.texts().every((t) => t.lang === "en-US")).toBe(true);
+    expect(b.texts().every((t) => t.lang === "zh-HK")).toBe(true);
+    expect(b.texts().map((t) => t.token).join("")).toContain("有位");
+    expect(d.texts().map((t) => t.token).join("")).toContain("Sure");
   });
 
   it("hands off to a human with the end message, after the line is spoken", async () => {

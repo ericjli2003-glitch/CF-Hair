@@ -1,5 +1,7 @@
 import type { CallChannel } from "./agent/session.js";
 import type { LanguageCode } from "./languages.js";
+import type { SessionDeps } from "./agent/session.js";
+import { openingGreeting } from "./relay/twiml.js";
 
 const c = {
   dim: (s: string) => `\x1b[2m${s}\x1b[0m`,
@@ -47,8 +49,17 @@ export class TerminalChannel implements CallChannel {
     this.onEnd?.();
   }
 
-  /** Print the English welcome greeting that Twilio would play. */
-  greet(text: string) {
-    this.out(c.agent(`Agent: ${text}\n`));
+  /** Print the opening line that Twilio would play. */
+  greet(text: string, lang: LanguageCode = "en-US") {
+    this.out(c.agent(`Agent${lang === "en-US" ? "" : ` [${lang}]`}: ${text}\n`));
   }
+}
+
+/** What the /twiml webhook does before answering: pick the opening language and line for this caller. */
+export async function opening(deps: SessionDeps, from: string) {
+  const { language, known } = await deps.callers.openingLanguage(from, deps.config.openingLookupTimeoutMs);
+  return {
+    startLanguage: language,
+    greeting: openingGreeting(known ? "returning" : "welcome", language, deps.config.welcomeGreeting, deps.languages),
+  };
 }

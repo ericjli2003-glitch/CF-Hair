@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { CallSession, type CallChannel } from "../src/agent/session.js";
 import { DEMO_PHONES } from "../src/api/mock.js";
 import type { LanguageCode } from "../src/languages.js";
+import { opening } from "../src/terminal.js";
 import { FakeLlm, testDeps, type ScriptedStep } from "./helpers.js";
 
 type Event = { kind: "text"; token: string; last: boolean; lang: LanguageCode } | { kind: "language"; code: LanguageCode } | { kind: "end"; data: unknown };
@@ -18,8 +19,8 @@ function recorder() {
   return { events, channel };
 }
 
-function session(deps: ReturnType<typeof testDeps>, from: string | null, ch: CallChannel) {
-  return new CallSession(deps, { callSid: `CA${Math.random().toString(36).slice(2)}`, from, to: "+16044757705" }, ch);
+function session(deps: ReturnType<typeof testDeps>, from: string | null, ch: CallChannel, open: { startLanguage?: LanguageCode; greeting?: string } = {}) {
+  return new CallSession(deps, { callSid: `CA${Math.random().toString(36).slice(2)}`, from, to: "+16044757705", ...open }, ch);
 }
 
 const switchTo = (language: LanguageCode, reply: string): ScriptedStep[] => [
@@ -28,17 +29,35 @@ const switchTo = (language: LanguageCode, reply: string): ScriptedStep[] => [
 ];
 
 describe("languages and caller memory", () => {
-  it("a returning Cantonese caller gets the English greeting, then one Cantonese line, then Cantonese", async () => {
+  it("a returning Cantonese caller hears the whole call in Cantonese from the first word", async () => {
     const llm = new FakeLlm([{ text: "冇問題，聽日下晝三點有位。" }]);
     const deps = testDeps({ llm });
     const { events, channel } = recorder();
-    const s = session(deps, DEMO_PHONES.returningCantonese, channel);
+    const open = await opening(deps, DEMO_PHONES.returningCantonese);
+    expect(open).toEqual({ startLanguage: "zh-HK", greeting: deps.languages["zh-HK"].greeting });
+    const s = session(deps, DEMO_PHONES.returningCantonese, channel, open);
     await s.start();
 
-    // First thing on the call: the English welcome greeting (played by Twilio from the TwiML).
-    expect(s.log.record.transcript[0]).toMatchObject({ role: "agent", lang: "en-US" });
-    expect(s.log.record.transcript[0].text).toBe(deps.config.welcomeGreeting);
-    // Then one short Cantonese sentence, and the switch of voice plus transcription.
+    // Twilio played the Cantonese greeting; nothing extra is said and no switch is needed.
+    expect(s.log.record.transcript[0]).toMatchObject({ role: "agent", lang: "zh-HK", text: deps.languages["zh-HK"].greeting });
+    expect(events).toEqual([]);
+    expect(s.language).toBe("zh-HK");
+    expect(s.languageSource).toBe("saved");
+
+    await s.handlePrompt("我想約聽日剪頭髮");
+    expect(events.every((e) => e.kind === "text" && e.lang === "zh-HK")).toBe(true);
+    const ctx = (llm.requests[0].system as { text: string }[])[1].text;
+    expect(ctx).toContain("the call opened in Cantonese");
+    await s.close();
+  });
+
+  it("falls back to one short line and a switch when the opening lookup was too slow", async () => {
+    const llm = new FakeLlm([{ text: "冇問題，聽日下晝三點有位。" }]);
+    const deps = testDeps({ llm });
+    const { events, channel } = recorder();
+    const s = session(deps, DEMO_PHONES.returningCantonese, channel); // opened in English
+    await s.start();
+    expect(s.log.record.transcript[0]).toMatchObject({ role: "agent", lang: "en-US", text: deps.config.welcomeGreeting });
     expect(events[0]).toMatchObject({ kind: "text", lang: "zh-HK", last: true });
     expect(events[0].kind === "text" && events[0].token).toBe(deps.languages["zh-HK"].continueOffer);
     expect(events[1]).toEqual({ kind: "language", code: "zh-HK" });
@@ -48,6 +67,31 @@ describe("languages and caller memory", () => {
     const texts = events.filter((e): e is Extract<Event, { kind: "text" }> => e.kind === "text");
     expect(texts.at(-1)).toMatchObject({ lang: "zh-HK", last: true });
     await s.close();
+  });
+
+  it("opens in English for new, withheld and unreachable lookups", async () => {
+    const deps = testDeps();
+    const welcome = { startLanguage: "en-US", greeting: deps.config.welcomeGreeting };
+    expect(await opening(deps, "+16045550101")).toEqual(welcome);
+    expect(await opening(deps, "anonymous")).toEqual(welcome);
+    deps.mockApi!.offline = true;
+    expect(await opening(deps, "+16045550101")).toEqual(welcome);
+  });
+
+  it("uses the agent's own copy of the language when the website is down", async () => {
+    const deps = testDeps();
+    await deps.callers.beginCall(DEMO_PHONES.returningCantonese); // stores zh-HK locally
+    deps.mockApi!.offline = true;
+    expect((await opening(deps, DEMO_PHONES.returningCantonese)).startLanguage).toBe("zh-HK");
+  });
+
+  it("gives up on a slow lookup and opens in English", async () => {
+    const deps = testDeps();
+    const api = deps.mockApi!;
+    const real = api.getCaller.bind(api);
+    api.getCaller = (p) => new Promise((r) => setTimeout(() => r(real(p)), 200));
+    deps.config.openingLookupTimeoutMs = 20;
+    expect((await opening(deps, DEMO_PHONES.returningCantonese)).startLanguage).toBe("en-US");
   });
 
   it("new and English-preference callers stay in the normal English flow", async () => {
@@ -73,10 +117,12 @@ describe("languages and caller memory", () => {
     await s1.close();
 
     const b = recorder();
-    const s2 = session(deps, phone, b.channel);
+    const open = await opening(deps, phone);
+    expect(open.startLanguage).toBe("ko-KR");
+    const s2 = session(deps, phone, b.channel, open);
     await s2.start();
-    expect(b.events[0]).toMatchObject({ kind: "text", lang: "ko-KR" });
-    expect(b.events[1]).toEqual({ kind: "language", code: "ko-KR" });
+    expect(s2.log.record.transcript[0]).toMatchObject({ lang: "ko-KR", text: deps.languages["ko-KR"].greeting });
+    expect(b.events).toEqual([]);
     await s2.close();
   });
 

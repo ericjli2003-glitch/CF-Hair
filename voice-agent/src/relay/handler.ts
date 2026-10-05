@@ -1,7 +1,7 @@
 import type { WebSocket } from "ws";
 import { CallSession, type CallChannel, type SessionDeps } from "../agent/session.js";
-import type { LanguageCode } from "../languages.js";
-import { verifyRelayToken } from "./twiml.js";
+import { DEFAULT_LANGUAGE, isLanguageCode, type LanguageCode, type RelayLanguage } from "../languages.js";
+import { openingGreeting, verifyRelayToken, type OpeningKind } from "./twiml.js";
 
 /**
  * ConversationRelay WebSocket protocol.
@@ -32,7 +32,9 @@ export type IncomingMessage =
 export interface RelayOptions {
   /** Secret used for the per-call token. Empty disables the check. */
   tokenSecret: string;
+  /** The general English welcome; the opening actually played is rebuilt from the setup parameters. */
   greeting: string;
+  languages: Record<LanguageCode, RelayLanguage>;
   onSessionClosed?: (session: CallSession, logFile: string | null) => void;
 }
 
@@ -65,6 +67,10 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
           ws.close(1008, "unauthorized");
           return;
         }
+        const params = msg.customParameters ?? {};
+        const startLanguage = isLanguageCode(params.startLanguage) ? params.startLanguage : DEFAULT_LANGUAGE;
+        const opening: OpeningKind =
+          params.opening === "returning" || params.opening === "transfer_failed" ? params.opening : "welcome";
         session = new CallSession(
           deps,
           {
@@ -73,11 +79,12 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
             to: msg.to ?? null,
             resumeReason: msg.customParameters?.resume ?? null,
             forwardedFrom: msg.customParameters?.forwardedFrom ?? msg.forwardedFrom ?? null,
-            greeting: opts.greeting,
+            startLanguage,
+            greeting: openingGreeting(opening, startLanguage, opts.greeting, opts.languages),
           },
           channel,
         );
-        // Caller lookup runs while Twilio plays the welcome greeting.
+        // The full caller lookup (name, call count, consent) runs while Twilio plays the greeting.
         void session.start().catch((e) => console.error(`[relay] start failed: ${(e as Error).message}`));
         break;
       }

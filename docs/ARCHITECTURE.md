@@ -77,8 +77,9 @@ Webhook authentication: with `TWILIO_AUTH_TOKEN` set, the two Twilio webhooks re
 ### Languages
 
 Supported codes: `en-US` (English), `zh-CN` (Mandarin), `zh-HK` (Cantonese), `ko-KR` (Korean).
-`preferredLanguage` defaults to `en-US`. The phone agent always greets in English, then uses
-the remembered language for that number (see `voice-agent/README.md`). The website and notes
+`preferredLanguage` defaults to `en-US`. The phone agent reads `preferredLanguage` before it
+answers, so a returning caller's call opens in that language (greeting, voice and speech
+recognition); new and withheld numbers open in English (see `voice-agent/README.md`). The website and notes
 pipeline may also use `preferredLanguage` (e.g. Chinese or Korean card text).
 
 ### Calls (phone receptionist log)

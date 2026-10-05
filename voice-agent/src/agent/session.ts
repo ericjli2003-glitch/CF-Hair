@@ -61,7 +61,9 @@ export interface SessionInit {
   resumeReason?: string | null;
   /** Twilio ForwardedFrom: the number that forwarded this call here, when known. */
   forwardedFrom?: string | null;
-  /** The English welcome greeting that ConversationRelay already played. */
+  /** Language the call opened in (the TwiML start language): the saved one for a returning caller. */
+  startLanguage?: LanguageCode;
+  /** The opening line ConversationRelay already played, in startLanguage. */
   greeting?: string;
 }
 
@@ -159,7 +161,13 @@ export class CallSession {
       anonymous,
       model: deps.config.anthropicModel,
     });
-    this.log.say("agent", this.greeting, { lang: "en-US" });
+    if (init.startLanguage && init.startLanguage !== DEFAULT_LANGUAGE) {
+      // Twilio already opened the call in this language (greeting, voice, speech recognition).
+      this.language = init.startLanguage;
+      this.languageSource = "saved";
+      this.log.record.languages.push({ at: new Date().toISOString(), language: this.language, reason: "saved preference (call opened in it)" });
+    }
+    this.log.say("agent", this.greeting, { lang: this.language });
     this.executor = new ToolExecutor(deps.api, deps.salon, this.hooks());
     this.detector = new LanguageDetector({ askEnabled: deps.config.askLanguageQuestion, maxAsks: 2 });
   }
@@ -174,8 +182,9 @@ export class CallSession {
     void this.deps.reporter?.flush(); // retry any Calls records queued while the website was down
     this.caller = await this.deps.callers.beginCall(this.init.from);
     const pref = this.caller.preferredLanguage;
-    if (pref !== DEFAULT_LANGUAGE && !this.ended) {
-      // English greeting already played; add one short line in the saved language and switch.
+    if (pref !== DEFAULT_LANGUAGE && pref !== this.language && this.languageSource === "default" && !this.ended) {
+      // Fallback: the opening lookup was too slow, so the call opened in English. Add one short
+      // line in the saved language and switch.
       const lang = this.deps.languages[pref];
       this.spokenAfterGreeting = lang.continueOffer;
       this.channel.sendText(lang.continueOffer, true, pref);
@@ -193,6 +202,7 @@ export class CallSession {
       preferredLanguage: pref,
       currentLanguage: this.deps.languages[this.language],
       greeting: this.greeting,
+      openedInSavedLanguage: this.languageSource === "saved" && !this.spokenAfterGreeting,
       spokenAfterGreeting: this.spokenAfterGreeting,
       transferAvailable: this.transferAvailable(),
       resumeReason: this.init.resumeReason,

@@ -4,6 +4,7 @@ import { CallSession, type CallChannel } from "../src/agent/session.js";
 import { languageWarnings, relayLanguages, type LanguageCode } from "../src/languages.js";
 import { conversationRelayTwiml } from "../src/relay/twiml.js";
 import { FakeLlm, testDeps } from "./helpers.js";
+import { opening } from "../src/terminal.js";
 
 type Ev = { kind: "text"; token: string; last: boolean; lang: LanguageCode } | { kind: "language"; code: LanguageCode } | { kind: "end" };
 
@@ -17,8 +18,8 @@ function rec() {
   return { events, channel, langs: () => events.filter((e) => e.kind === "language").map((e) => (e as { code: string }).code) };
 }
 
-const newSession = (deps: ReturnType<typeof testDeps>, from: string | null, ch: CallChannel) =>
-  new CallSession(deps, { callSid: `CA${Math.random().toString(36).slice(2)}`, from, to: "+16044757705" }, ch);
+const newSession = (deps: ReturnType<typeof testDeps>, from: string | null, ch: CallChannel, open: { startLanguage?: LanguageCode; greeting?: string } = {}) =>
+  new CallSession(deps, { callSid: `CA${Math.random().toString(36).slice(2)}`, from, to: "+16044757705", ...open }, ch);
 
 describe("Mandarin vs Cantonese from text cues", () => {
   const cases: [string, "zh-CN" | "zh-HK"][] = [
@@ -129,13 +130,15 @@ describe("first-time callers are switched automatically", () => {
       expect(s.log.record.transcript.find((t) => t.role === "caller")?.lang).toBe(code);
       await s.close();
 
-      // Next call from that number: English greeting first, then straight into the language.
+      // Next call from that number opens in the language: greeting, voice and speech recognition.
       const r2 = rec();
-      const s2 = newSession(deps, phone, r2.channel);
+      const open = await opening(deps, phone);
+      expect(open.startLanguage).toBe(code);
+      const s2 = newSession(deps, phone, r2.channel, open);
       await s2.start();
-      expect(s2.log.record.transcript[0]).toMatchObject({ role: "agent", lang: "en-US", text: deps.config.welcomeGreeting });
-      expect(r2.events[0]).toMatchObject({ kind: "text", lang: code });
-      expect(r2.events[1]).toEqual({ kind: "language", code });
+      expect(s2.log.record.transcript[0]).toMatchObject({ role: "agent", lang: code, text: deps.languages[code].greeting });
+      expect(r2.events).toEqual([]);
+      expect(s2.language).toBe(code);
       expect(s2.languageSource).toBe("saved");
       await s2.close();
     });
@@ -234,6 +237,23 @@ describe("configuration", () => {
     expect(xml).toContain('ttsLanguage="en-US"');
     expect(xml).toContain('transcriptionProvider="Deepgram"');
     expect(xml).not.toMatch(/ConversationRelay[^>]* language="/);
+  });
+
+  it("ignores multi mode when the call opens in a saved Chinese or Korean language", () => {
+    const languages = relayLanguages({});
+    const xml = conversationRelayTwiml({
+      wsUrl: "wss://x/relay",
+      actionUrl: "https://x/twiml/action",
+      greeting: languages["ko-KR"].greeting,
+      languages,
+      token: "t",
+      startLanguage: "ko-KR",
+      opening: "returning",
+      startTranscription: "multi",
+    });
+    expect(xml).toMatch(/<ConversationRelay[^>]* language="ko-KR"/);
+    expect(xml).not.toContain('transcriptionLanguage="multi"');
+    expect(xml).toMatch(/<ConversationRelay[^>]* voice="ko-KR-Chirp3-HD-Aoede"/);
   });
 
   it("ElevenLabs voices apply to the languages its relay models cover, not Cantonese", () => {

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import twilio from "twilio";
-import { LANGUAGE_CODES, type LanguageCode, type RelayLanguage } from "../languages.js";
+import { DEFAULT_LANGUAGE, LANGUAGE_CODES, isLanguageCode, type LanguageCode, type RelayLanguage } from "../languages.js";
 
 const { VoiceResponse } = twilio.twiml;
 
@@ -36,6 +36,21 @@ export function verifyRelayToken(secret: string, callSid: string, token: string 
   return expected.length === given.length && crypto.timingSafeEqual(expected, given);
 }
 
+/** Which opening line Twilio plays: the general welcome, a returning caller's, or after a failed transfer. */
+export type OpeningKind = "welcome" | "returning" | "transfer_failed";
+
+/** The first words of the call, in the language the call starts in. */
+export function openingGreeting(
+  kind: OpeningKind,
+  language: LanguageCode,
+  welcomeGreeting: string,
+  languages: Record<LanguageCode, RelayLanguage>,
+): string {
+  if (kind === "transfer_failed") return languages[language].transferFailed;
+  if (kind === "returning") return languages[language].greeting;
+  return welcomeGreeting;
+}
+
 export interface RelayTwimlOptions {
   wsUrl: string;
   actionUrl: string;
@@ -43,6 +58,9 @@ export interface RelayTwimlOptions {
   languages: Record<LanguageCode, RelayLanguage>;
   token: string;
   resume?: string;
+  /** Language the call opens in: the caller's saved language when known, otherwise English. */
+  startLanguage?: LanguageCode;
+  opening?: OpeningKind;
   /** Twilio ForwardedFrom on the inbound call, passed through to the session for the transfer guard. */
   forwardedFrom?: string;
   /** "multi" starts transcription in Deepgram automatic language detection mode. */
@@ -52,15 +70,15 @@ export interface RelayTwimlOptions {
 
 /**
  * <Connect action=...><ConversationRelay ...> with a <Language> entry for every language we may
- * switch to. The call always starts in English (en-US).
+ * switch to. The call starts in `startLanguage`: greeting, voice and speech recognition.
  */
 export function conversationRelayTwiml(o: RelayTwimlOptions): string {
   const vr = new VoiceResponse();
   const connect = vr.connect({ action: o.actionUrl, method: "POST" });
-  const en = o.languages["en-US"];
-  const multi = o.startTranscription === "multi";
-  // The greeting and voice are always English. Transcription starts in English, or in Deepgram's
-  // "multi" mode, which tags each prompt with the detected language (see README for coverage).
+  const start = o.startLanguage ?? DEFAULT_LANGUAGE;
+  const sl = o.languages[start];
+  // Deepgram's "multi" mode covers none of Chinese or Korean, so it only applies to English starts.
+  const multi = o.startTranscription === "multi" && start === "en-US";
   const languageAttrs = multi
     ? {
         ttsLanguage: "en-US",
@@ -68,15 +86,15 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
         transcriptionProvider: "Deepgram",
         speechModel: o.startSpeechModel || "nova-3-general",
       }
-    : { language: "en-US", transcriptionProvider: en.transcriptionProvider, speechModel: en.speechModel };
+    : { language: start, transcriptionProvider: sl.transcriptionProvider, speechModel: sl.speechModel };
   const cr = connect.conversationRelay({
     url: o.wsUrl,
     welcomeGreeting: o.greeting,
     welcomeGreetingInterruptible: "any",
     interruptible: "any",
     ...languageAttrs,
-    ttsProvider: en.ttsProvider,
-    voice: en.voice,
+    ttsProvider: sl.ttsProvider,
+    voice: sl.voice,
     dtmfDetection: true,
     hints: SPEECH_HINTS,
   });
@@ -91,6 +109,8 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
     });
   }
   cr.parameter({ name: "token", value: o.token });
+  cr.parameter({ name: "startLanguage", value: start });
+  cr.parameter({ name: "opening", value: o.opening ?? "welcome" });
   if (o.resume) cr.parameter({ name: "resume", value: o.resume });
   if (o.forwardedFrom) cr.parameter({ name: "forwardedFrom", value: o.forwardedFrom });
   return vr.toString();
@@ -99,14 +119,16 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
 /** Response to the <Connect> action callback after the agent sends `end`. */
 export function actionTwiml(o: { handoffData: string | undefined; forwardNumber: string; dialStatusUrl: string }): string {
   const vr = new VoiceResponse();
-  let data: { reasonCode?: string } = {};
+  let data: { reasonCode?: string; language?: string } = {};
   try {
     data = o.handoffData ? JSON.parse(o.handoffData) : {};
   } catch {
     data = {};
   }
   if (data.reasonCode === "live-agent-handoff" && o.forwardNumber) {
-    const dial = vr.dial({ timeout: 20, action: o.dialStatusUrl, method: "POST" });
+    // Carry the call's language so a missed transfer comes back to the agent in that language.
+    const action = isLanguageCode(data.language) ? `${o.dialStatusUrl}?lang=${data.language}` : o.dialStatusUrl;
+    const dial = vr.dial({ timeout: 20, action, method: "POST" });
     dial.number(o.forwardNumber);
     return vr.toString();
   }
@@ -121,17 +143,21 @@ export function actionTwiml(o: { handoffData: string | undefined; forwardNumber:
 /** After a transfer attempt: hang up if it connected, otherwise come back to the agent to take a message. */
 export function dialStatusTwiml(o: {
   dialCallStatus: string | undefined;
-  relay: Omit<RelayTwimlOptions, "greeting" | "resume">;
+  /** The call's language before the transfer (from the ?lang= on the dial action URL). */
+  language?: LanguageCode;
+  relay: Omit<RelayTwimlOptions, "greeting" | "resume" | "startLanguage" | "opening">;
 }): string {
   if (o.dialCallStatus === "completed" || o.dialCallStatus === "answered") {
     const vr = new VoiceResponse();
     vr.hangup();
     return vr.toString();
   }
+  const language = o.language ?? DEFAULT_LANGUAGE;
   return conversationRelayTwiml({
     ...o.relay,
-    greeting:
-      "Sorry, no one from the team could pick up just now. I can take a message and have someone call you back. What would you like me to pass on?",
+    greeting: o.relay.languages[language].transferFailed,
+    startLanguage: language,
+    opening: "transfer_failed",
     resume: "transfer_failed",
   });
 }

@@ -5,7 +5,8 @@ import { WebSocketServer } from "ws";
 import type { AppConfig } from "./config.js";
 import type { SessionDeps } from "./agent/session.js";
 import { handleRelaySocket } from "./relay/handler.js";
-import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, relayToken } from "./relay/twiml.js";
+import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, relayToken } from "./relay/twiml.js";
+import { normalizeLanguage } from "./languages.js";
 
 export const RELAY_PATH = "/relay";
 
@@ -64,9 +65,19 @@ export function createServer(deps: SessionDeps) {
 
   const verify = twilioSignatureMiddleware(cfg);
 
-  // Voice webhook for the salon's Twilio number ("A call comes in").
-  app.post("/twiml", verify, (req, res) => {
-    res.type("text/xml").send(conversationRelayTwiml({ ...relayOpts(req), greeting: cfg.welcomeGreeting }));
+  // Voice webhook for the salon's Twilio number ("A call comes in"). A returning caller's saved
+  // language is looked up first (briefly), so the call opens in it; anyone else hears English.
+  app.post("/twiml", verify, async (req, res) => {
+    const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
+    const opening = known ? "returning" : "welcome";
+    res.type("text/xml").send(
+      conversationRelayTwiml({
+        ...relayOpts(req),
+        startLanguage: language,
+        opening,
+        greeting: openingGreeting(opening, language, cfg.welcomeGreeting, deps.languages),
+      }),
+    );
   });
 
   // <Connect action>: called when the ConversationRelay session ends.
@@ -84,7 +95,8 @@ export function createServer(deps: SessionDeps) {
   app.post("/twiml/dial-status", verify, (req, res) => {
     // Calls tab: post the call again with how the transfer went.
     if (req.body?.CallSid) void deps.reporter?.transferResult(String(req.body.CallSid), req.body?.DialCallStatus);
-    res.type("text/xml").send(dialStatusTwiml({ dialCallStatus: req.body?.DialCallStatus, relay: relayOpts(req) }));
+    const language = normalizeLanguage(typeof req.query.lang === "string" ? req.query.lang : null) ?? undefined;
+    res.type("text/xml").send(dialStatusTwiml({ dialCallStatus: req.body?.DialCallStatus, language, relay: relayOpts(req) }));
   });
 
   const server = http.createServer(app);
@@ -99,6 +111,7 @@ export function createServer(deps: SessionDeps) {
       handleRelaySocket(ws, deps, {
         tokenSecret,
         greeting: cfg.welcomeGreeting,
+        languages: deps.languages,
         onSessionClosed: (s, file) =>
           console.log(`[call ${s.init.callSid}] ended: ${s.log.record.outcome}${file ? ` (log ${file})` : ""}`),
       });

@@ -6,7 +6,8 @@ import { normalizeLanguage, type LanguageCode } from "../languages.js";
  * Why this exists: Twilio ConversationRelay's only built-in automatic language detection is
  * Deepgram `transcriptionLanguage="multi"`, and that model covers English, Spanish, French,
  * German, Hindi, Russian, Portuguese, Japanese, Italian and Dutch, not Mandarin, Cantonese or
- * Korean (checked 2026-10-04, see README). So the call starts in English and this module looks at
+ * Korean (checked 2026-10-04, see README). So a new caller's call starts in English (a returning
+ * caller's starts in their saved language) and this module looks at
  * every final transcript for:
  *   1. an explicit request for a language, in that language or romanized ("廣東話", "hangugeo")
  *   2. the script: Hangul means Korean, Han characters mean Chinese

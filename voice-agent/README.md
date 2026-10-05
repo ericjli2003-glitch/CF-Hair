@@ -43,7 +43,7 @@ language was chosen, the token usage, and the one-line summary posted to the web
 2. A first-time Mandarin speaker asks about prices (detected and switched automatically).
 3. An existing client reschedules an appointment.
 4. A first-time Korean speaker asks about a men's cut and Saturday hours (detected automatically).
-5. A returning caller whose saved language is Cantonese: English greeting, then Cantonese.
+5. A returning caller whose saved language is Cantonese: the whole call is in Cantonese from the first word.
 6. A first-time Cantonese caller who just starts speaking: detected, switched, and remembered.
 
 Run a subset with `npm run demo -- 1 5`.
@@ -148,24 +148,32 @@ Cantonese `zh-HK`, Korean `ko-KR`. All four are declared as `<Language>` entries
 with its own voice and speech recognition settings (`src/languages.ts`), because Twilio rejects a
 switch to a language that was not declared.
 
-**Every call starts in English.** The welcome greeting is always English and is played by Twilio
-the moment the call connects. It ends with "We can also help you in Mandarin, Cantonese, or Korean."
+**Returning callers open in their saved language.** When a call comes in, the `/twiml` webhook
+reads the caller's saved language (`GET /api/callers/{phone}`, waiting at most
+`OPENING_LOOKUP_TIMEOUT_MS`, default 1 s) before it answers. The TwiML then starts ConversationRelay
+in that language: the greeting, the voice and speech recognition are all Cantonese (or Mandarin, or
+Korean) from the first word. There is no English line first and no extra "we can continue in" line.
+Greetings are short (`greeting` in `src/languages.ts`), for example 你好，CF Hair Salon 語音助理。有咩幫到你？
+If the caller answers in English or asks for English, the agent switches back and saves English.
 
-**Returning callers.** The ConversationRelay `setup` message carries the caller's number. The agent
-looks the caller up right then (`GET /api/callers/{phone}`), while the greeting is still playing, so
-the lookup adds no delay. Then:
+**Everyone else opens in English.** New numbers, withheld numbers, and calls where the lookup is
+slow or the website is down hear the English welcome, which ends with "We also speak Mandarin,
+Cantonese and Korean." A returning English caller hears a shorter English greeting without that line.
+The lookup in the webhook only reads; the session counts the call and loads the name and consent
+state while the greeting plays. If the webhook gave up on a slow lookup but the session then finds a
+saved language, it falls back to the old behaviour: one short line in that language, then a switch.
 
-- Saved language is English, or the number is new: nothing changes. The call stays in English and
-  only switches if the caller speaks another language.
-- Saved language is Mandarin, Cantonese or Korean: right after the English greeting the agent says
-  one short sentence in that language (for example, in Cantonese, "Hello, we can continue in
-  Cantonese. How can I help?"), switches text-to-speech and transcription to it, and carries on in
-  it. If the caller answers in English or asks for English, it switches back and saves English.
+**Short replies.** The prompt holds Claude to one sentence per reply (two at most), one question at a
+time, at most two time options, no filler or restating, and a few words to confirm a booking.
+
+**Missed transfers come back in the same language.** The handoff carries the call's language, the
+`<Dial>` action URL keeps it (`/twiml/dial-status?lang=zh-HK`), and the agent picks the call back up
+in that language with a short "nobody could pick up, I can take a message" line.
 
 **Switching during a call.** Three routes, all of which end the same way: ConversationRelay gets a
 `language` message (both `ttsLanguage` and `transcriptionLanguage`), and the preference is saved with
-`PUT /api/callers/{phone}` (never for withheld numbers). The next call from that number starts with
-the English greeting and goes straight into the saved language.
+`PUT /api/callers/{phone}` (never for withheld numbers). The next call from that number opens in
+the saved language.
 
 1. **Automatic (the phone system, `src/agent/langdetect.ts`).** Every final transcript is checked
    before Claude sees it:
@@ -236,8 +244,8 @@ a little English accuracy.
 
 ### Reliability, honestly, per language
 
-- **Returning callers (any language):** reliable. English greeting, one line in their language,
-  then the call runs in it with the right transcriber.
+- **Returning callers (any language):** reliable. The call opens in their language with the right
+  voice and transcriber from the first word.
 - **Korean, first call:** the first sentence is heard by the English transcriber and usually comes
   back as garbled English or romanized syllables, not Hangul. If it contains "annyeong" or similar,
   the four-language question is asked; if it is nonsense, Claude asks it. One keypad press (4) or
@@ -512,9 +520,12 @@ Vitest suites, all offline (Claude is replaced by a scripted fake that streams w
   tools end to end.
 - `test/relay.test.ts`: real HTTP server and WebSocket client. Signature validation, TwiML contents,
   per-call token, sentence streaming with the `last` flag, barge-in (`interrupt`) aborting the
-  stream and trimming history, keypad language switch, returning Cantonese caller, transfer with
-  handoff data, call log and abandoned-call callback.
-- `test/languages.test.ts`: returning Cantonese caller hears English then Cantonese, a switch is
+  stream and trimming history, keypad language switch, a returning Cantonese caller's TwiML opening
+  in Cantonese (and in English when the website is down), several callers at once in separate
+  sessions and languages, transfer with handoff data, a missed transfer coming back in the caller's
+  language, call log and abandoned-call callback.
+- `test/languages.test.ts`: returning Cantonese caller hears the whole call in Cantonese, new, withheld
+  and slow lookups open in English, the late-lookup fallback adds one line and switches, a switch is
   persisted and used next call, switching back saves English, anonymous callers are never saved, and
   the API being down falls back to the local store and syncs later.
 - `test/sms-consent.test.ts`: the promotional text question is offered once after a booking only
@@ -523,7 +534,7 @@ Vitest suites, all offline (Claude is replaced by a scripted fake that streams w
   localised questions for all four languages, and the consent endpoint over HTTP with the agent key.
 - `test/langdetect.test.ts`: first-time callers whose first sentence is Mandarin, Cantonese or
   Korean are switched (voice and transcription), Claude is told, and the preference is saved and used
-  on the next call (English greeting first); Mandarin vs Cantonese from text cues; short English words
+  on the next call (which opens in that language); Mandarin vs Cantonese from text cues; short English words
   never flip a Korean caller back, even when Claude tries; anonymous callers are switched but never
   saved; romanized greetings get the four-language question without a model call; Claude's
   `ask_caller_language`; `multi` start mode TwiML; ElevenLabs voice configuration.

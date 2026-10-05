@@ -25,8 +25,12 @@ export interface RelayLanguage {
   voice: string;
   transcriptionProvider: string;
   speechModel: string;
-  /** Short sentence said right after the English greeting for a returning caller. */
+  /** Opening line for a returning caller whose number saved this language. Twilio plays it first. */
+  greeting: string;
+  /** Fallback only: said when the call opened in English but the caller lookup finished late. */
   continueOffer: string;
+  /** Said when a live transfer was not answered and the call comes back to the agent. */
+  transferFailed: string;
   /** Said when the caller picks this language by keypad. */
   switchedConfirmation: string;
   /** This language's part of the four-language "which language?" question. */
@@ -44,9 +48,11 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     voice: "en-US-Chirp3-HD-Aoede",
     transcriptionProvider: "Deepgram",
     speechModel: "nova-3-general",
-    continueOffer: "We can continue in English. How can I help you today?",
-    switchedConfirmation: "Sure, let's continue in English. How can I help you today?",
-    questionPart: "Sorry, which language would you like? For English, press 1.",
+    greeting: "Hi, this is CF Hair Salon's virtual assistant. How can I help?",
+    continueOffer: "We can continue in English. How can I help?",
+    transferFailed: "Sorry, no one could pick up. I can take a message. What should I pass on?",
+    switchedConfirmation: "Sure, English. How can I help?",
+    questionPart: "Which language? For English, press 1.",
     msPerChar: 65,
   },
   "zh-CN": {
@@ -57,8 +63,10 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     voice: "cmn-CN-Chirp3-HD-Aoede",
     transcriptionProvider: "Deepgram",
     speechModel: "nova-3-general",
-    continueOffer: "您好，我们可以继续用普通话为您服务。请问有什么可以帮您？",
-    switchedConfirmation: "好的，我们用普通话交流。请问有什么可以帮您？",
+    greeting: "您好，CF Hair Salon 语音助手。有什么可以帮您？",
+    continueOffer: "我们可以用普通话。有什么可以帮您？",
+    transferFailed: "抱歉，同事暂时接不了。我帮您留言，要转达什么？",
+    switchedConfirmation: "好的，普通话。有什么可以帮您？",
     questionPart: "普通话请按2。",
     msPerChar: 230,
   },
@@ -70,8 +78,10 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     voice: "yue-HK-Chirp3-HD-Aoede",
     transcriptionProvider: "Deepgram",
     speechModel: "nova-3-general",
-    continueOffer: "你好，我哋可以繼續用廣東話同你傾。有咩可以幫到你？",
-    switchedConfirmation: "好呀，我哋用廣東話傾。有咩可以幫到你？",
+    greeting: "你好，CF Hair Salon 語音助理。有咩幫到你？",
+    continueOffer: "我哋可以講廣東話。有咩幫到你？",
+    transferFailed: "唔好意思，同事暫時聽唔到。我幫你留言，想講咩？",
+    switchedConfirmation: "好呀，廣東話。有咩幫到你？",
     questionPart: "廣東話請按3。",
     msPerChar: 230,
   },
@@ -83,8 +93,10 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     voice: "ko-KR-Chirp3-HD-Aoede",
     transcriptionProvider: "Google",
     speechModel: "telephony",
-    continueOffer: "안녕하세요, 한국어로 계속 도와드릴게요. 무엇을 도와드릴까요?",
-    switchedConfirmation: "네, 한국어로 도와드릴게요. 무엇을 도와드릴까요?",
+    greeting: "안녕하세요, CF Hair Salon 음성 비서예요. 무엇을 도와드릴까요?",
+    continueOffer: "한국어로 도와드릴게요. 무엇을 도와드릴까요?",
+    transferFailed: "죄송해요, 지금 받을 수 있는 직원이 없어요. 메시지 남겨 드릴게요. 뭐라고 전할까요?",
+    switchedConfirmation: "네, 한국어로 할게요. 무엇을 도와드릴까요?",
     questionPart: "한국어는 4번을 눌러 주세요.",
     msPerChar: 200,
   },

@@ -12,7 +12,7 @@ import readline from "node:readline";
 import { buildDeps } from "./bootstrap.js";
 import { CallSession } from "./agent/session.js";
 import { DEMO_PHONES } from "./api/mock.js";
-import { colors, TerminalChannel } from "./terminal.js";
+import { colors, opening, TerminalChannel } from "./terminal.js";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -45,9 +45,10 @@ async function newCall(phone: string) {
   channel.onEnd = () => {
     void hangup().then(() => console.log(colors.dim("Call ended by the agent. Type /new to start another call, or Ctrl+C to quit.")));
   };
-  session = new CallSession(deps, { callSid: `SIM${Date.now()}${callNo}`, from: phone, to: deps.salon.phone }, channel);
+  const open = await opening(deps, phone);
+  session = new CallSession(deps, { callSid: `SIM${Date.now()}${callNo}`, from: phone, to: deps.salon.phone, ...open }, channel);
   console.log(colors.sys(`--- Incoming call from ${phone} ---`));
-  channel.greet(deps.config.welcomeGreeting);
+  channel.greet(open.greeting, open.startLanguage);
   await session.start();
 }
 
