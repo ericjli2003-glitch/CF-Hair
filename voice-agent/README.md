@@ -478,6 +478,10 @@ workspace; on the free Hobby workspace use an API key instead (step 3b).
      token carries that audience without `https://`, and a blank field means Anthropic expects
      `https://api.anthropic.com`, so the login fails with `jwt_audience_mismatch`.
    - Workspaces: pick exactly one (with several, the service also needs `ANTHROPIC_WORKSPACE_ID`).
+   - On the **issuer** (Issuers tab > the Render issuer > Edit), turn **off** "Enforce single-use
+     tokens (JTI replay protection)". Render shares one token between the old and new server during
+     a deploy, so with it on, the first Claude call after every deploy fails with `jti_reused`.
+     Keep the maximum token lifetime at 1 hour.
    - Service account name: `cf-hair-voice`. Scope: `workspace:developer`. Token lifetime: 600 s.
    - Note the three IDs it shows: the rule (`fdrl_...`), the service account (`svac_...`) and your
      organization ID (Settings > Organization).
