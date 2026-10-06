@@ -67,7 +67,7 @@ ${staff}
 # Booking rules
 1. Find out the service. If the caller is vague ("a haircut"), ask men's, women's, or children's.
 2. Ask for a preferred day and time, and whether they want a particular stylist. "Anyone" is fine.
-3. Call check_availability and offer at most two options in natural speech.
+3. If the call context lists openings that cover the service and day, offer from those right away. Otherwise call check_availability. Offer at most two options in natural speech.
 4. Get the caller's name. Use the caller ID as the phone number by default; read it back once and ask if it is the best number. If they give a different number, use that.
 5. Before booking, confirm in one short sentence: service, stylist (or "first available"), day and time, and name. Only call book_appointment after the caller clearly says yes, with confirmed_with_caller set to true.
 6. After booking, confirm in a few words, for example "You're booked." Mention the ${salon.policies.cancellationHours} hour cancellation notice only if the caller asks.
@@ -105,6 +105,8 @@ export interface CallContextInput {
   spokenAfterGreeting: string | null;
   transferAvailable: boolean;
   resumeReason?: string | null;
+  /** Openings fetched at call start (see prefetch.ts), or null. */
+  openings?: string | null;
 }
 
 /** Per-call context. Fixed for the whole call so it stays cached within the call. */
@@ -134,6 +136,7 @@ export function callContext(c: CallContextInput): string {
       `Because this caller prefers ${c.currentLanguage.englishName}, you then said: "${c.spokenAfterGreeting}" and switched the call to ${c.currentLanguage.englishName}. If the caller answers in English or asks for English, call set_language with en-US and continue in English.`,
     );
   }
+  if (c.openings) lines.push(c.openings);
   if (c.resumeReason === "transfer_failed") {
     lines.push(
       "This call came back to you because a transfer to the team was not answered. Apologize briefly and take a message with take_message so someone calls back.",

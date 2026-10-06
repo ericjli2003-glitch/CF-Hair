@@ -166,6 +166,16 @@ saved language, it falls back to the old behaviour: one short line in that langu
 **Short replies.** The prompt holds Claude to one sentence per reply (two at most), one question at a
 time, at most two time options, no filler or restating, and a few words to confirm a booking.
 
+**Openings are ready before the caller asks.** While the greeting plays, the server fetches the
+next two open days of times for the most requested services (`PREFETCH_SERVICES`, default men's,
+women's and children's cuts) and adds them to the call context, one entry per start time with its
+exact `start` and stylist id. "Do you have a men's cut tomorrow at three?" is then answered and
+booked without a `check_availability` call, which saves a tool round trip and a second model
+request. Other services, other days and stylist-specific requests still use the tool. If the API is
+slow (over 2.5 s) or down, the call continues without the list. The log shows
+`openings loaded in ...ms` per call, and every reply logs `first words after ...s` with its model
+calls and tool timings.
+
 **Missed transfers come back in the same language.** The handoff carries the call's language, the
 `<Dial>` action URL keeps it (`/twiml/dial-status?lang=zh-HK`), and the agent picks the call back up
 in that language with a short "nobody could pick up, I can take a message" line.

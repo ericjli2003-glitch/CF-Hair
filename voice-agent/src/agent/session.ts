@@ -26,6 +26,7 @@ import { TOOL_DEFINITIONS, ToolExecutor, type Outcome, type ToolHooks } from "./
 import { smsOptInWording } from "./sms-optin.js";
 import { LanguageDetector, analyzeUtterance, languageEvidence } from "./langdetect.js";
 import type { CallReporter } from "../calls.js";
+import { DEFAULT_PREFETCH, prefetchOpenings } from "./prefetch.js";
 
 /** How the call's current language was chosen. */
 export type LanguageSource = "default" | "saved" | "detected" | "keypad" | "asked";
@@ -180,7 +181,19 @@ export class CallSession {
 
   private async doStart() {
     void this.deps.reporter?.flush(); // retry any Calls records queued while the website was down
-    this.caller = await this.deps.callers.beginCall(this.init.from);
+    // Caller lookup and today's openings load together while the greeting plays.
+    const serviceIds = this.deps.config.prefetchServiceIds;
+    const t0 = Date.now();
+    const [caller, openings] = await Promise.all([
+      this.deps.callers.beginCall(this.init.from),
+      serviceIds.length
+        ? prefetchOpenings(this.deps.api, this.deps.salon, this.now(), { ...DEFAULT_PREFETCH, serviceIds }).catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    this.caller = caller;
+    if (serviceIds.length) {
+      console.log(`[call ${this.init.callSid}] openings ${openings ? "loaded" : "not loaded (check_availability will be used)"} in ${Date.now() - t0}ms`);
+    }
     const pref = this.caller.preferredLanguage;
     if (pref !== DEFAULT_LANGUAGE && pref !== this.language && this.languageSource === "default" && !this.ended) {
       // Fallback: the opening lookup was too slow, so the call opened in English. Add one short
@@ -206,6 +219,7 @@ export class CallSession {
       spokenAfterGreeting: this.spokenAfterGreeting,
       transferAvailable: this.transferAvailable(),
       resumeReason: this.init.resumeReason,
+      openings,
     });
   }
 
