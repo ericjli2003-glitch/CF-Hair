@@ -85,7 +85,7 @@ describe("Twilio webhooks", () => {
     expect(xml).toContain("<Connect action=\"http://127.0.0.1:");
     expect(xml).toContain("<ConversationRelay");
     expect(xml).toContain(`url="ws://127.0.0.1:${port}/relay"`);
-    expect(xml).toContain(`welcomeGreeting="Hi, CF Hair Salon. I'm the virtual assistant."`);
+    expect(xml).toContain(`welcomeGreeting="Hi, CF Hair Salon."`);
     expect(xml).toContain('language="en-US"');
     expect(xml).toContain('<Parameter name="startLanguage" value="en-US"/>');
     expect(xml).toContain('<Parameter name="opening" value="welcome"/>');

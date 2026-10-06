@@ -117,7 +117,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
       .filter((s) => s && s !== "off"),
     welcomeGreeting: env(
       "WELCOME_GREETING",
-      "Hi, CF Hair Salon. I'm the virtual assistant.",
+      "Hi, CF Hair Salon.",
     ),
   };
   const start = env("CR_START_TRANSCRIPTION_LANGUAGE", "en-US").toLowerCase() === "multi" ? "multi" : "en-US";

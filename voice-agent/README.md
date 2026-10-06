@@ -157,9 +157,10 @@ Greetings are short (`greeting` in `src/languages.ts`), for example 你好，CF 
 If the caller answers in English or asks for English, the agent switches back and saves English.
 
 **Everyone else opens in English.** New numbers, withheld numbers, and calls where the lookup is
-slow or the website is down hear "Hi, CF Hair Salon. I'm the virtual assistant." A returning
-English caller hears just "Hi, CF Hair Salon." Callers who answer in Mandarin, Cantonese or Korean
-are switched automatically, so the greeting does not list the languages.
+slow or the website is down hear "Hi, CF Hair Salon.", the same words the owner uses. Callers who
+answer in Mandarin, Cantonese or Korean are switched automatically, so the greeting does not list
+the languages. If a caller asks whether they are talking to a person, the agent says honestly that
+it is the salon's virtual assistant.
 The lookup in the webhook only reads; the session counts the call and loads the name and consent
 state while the greeting plays. If the webhook gave up on a slow lookup but the session then finds a
 saved language, it falls back to the old behaviour: one short line in that language, then a switch.
