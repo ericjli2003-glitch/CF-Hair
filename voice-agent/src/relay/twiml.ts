@@ -6,6 +6,14 @@ const { VoiceResponse } = twilio.twiml;
 
 /** Words that help speech recognition with salon vocabulary. */
 export const SPEECH_HINTS = [
+  "men's",
+  "women's",
+  "men's haircut",
+  "women's haircut",
+  "kids haircut",
+  "haircut",
+  "appointment",
+  "tomorrow",
   "CF Hair",
   "Henderson Place",
   "Coquitlam",
