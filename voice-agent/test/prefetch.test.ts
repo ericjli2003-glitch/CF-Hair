@@ -67,6 +67,7 @@ describe("openings prefetched at call start", () => {
     const s = new CallSession(deps, { callSid: "CAoff", from: "+16045550123", to: "+16044757705" }, silent);
     await s.handlePrompt("Hello");
     expect(contextOf(llm.requests[0])).not.toContain("Openings already checked");
+    expect(contextOf(llm.requests[0])).toContain("Online booking website, say it exactly like this: C F dash hair dash salon dot vercel dot app.");
     await s.close();
   });
 });

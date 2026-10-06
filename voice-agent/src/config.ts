@@ -9,6 +9,23 @@ for (const name of ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]) {
   if (process.env[name] !== undefined && process.env[name]!.trim() === "") delete process.env[name];
 }
 
+/**
+ * A web address as it should be read aloud: "cf-hair-salon.vercel.app" becomes
+ * "C F dash hair dash salon dot vercel dot app". Two-letter parts are spelled out.
+ */
+export function spokenWebAddress(url: string): string {
+  const host = url.replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/+$/, "");
+  return host
+    .split(".")
+    .map((part) =>
+      part
+        .split("-")
+        .map((w) => (w.length <= 2 ? w.toUpperCase().split("").join(" ") : w))
+        .join(" dash "),
+    )
+    .join(" dot ");
+}
+
 /** How the Claude client will authenticate: an API key or token, workload identity federation, or nothing. */
 export function claudeCredentialSource(e: NodeJS.ProcessEnv = process.env): "api-key" | "federation" | "none" {
   if (e.ANTHROPIC_API_KEY || e.ANTHROPIC_AUTH_TOKEN) return "api-key";
@@ -68,6 +85,9 @@ export interface AppConfig {
   dataDir: string;
   callbackOnAbandon: boolean;
   endCallGraceMs: number;
+  /** The online booking site the agent can point callers to, and how to say it on the phone. */
+  bookingWebsite: string;
+  bookingWebsiteSpoken: string;
   /** Ask the one promotional-text question after a phone booking. Off by default: it lengthens every call. */
   phoneSmsOptIn: boolean;
   /** Services whose openings are fetched at call start (empty turns the prefetch off). */
@@ -111,6 +131,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     endCallGraceMs: envInt("END_CALL_GRACE_MS", 1200),
     drainTimeoutMs: envInt("DRAIN_TIMEOUT_MS", 280_000),
     phoneSmsOptIn: envBool("PHONE_SMS_OPTIN", false),
+    bookingWebsite: env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"),
+    bookingWebsiteSpoken: env("BOOKING_WEBSITE_SPOKEN", spokenWebAddress(env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"))),
     prefetchServiceIds: env("PREFETCH_SERVICES", "mens-cut,womens-cut,kids-cut")
       .split(",")
       .map((s) => s.trim())

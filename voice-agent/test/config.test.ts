@@ -39,3 +39,11 @@ describe("thinking setting", () => {
     expect(modelOptions({ ...base, anthropicModel: "claude-opus-5-5" }).betweenTools).toBe(false);
   });
 });
+
+describe("booking website on the phone", () => {
+  it("reads web addresses aloud with dots and dashes, spelling two-letter parts", async () => {
+    const { spokenWebAddress } = await import("../src/config.js");
+    expect(spokenWebAddress("https://cf-hair-salon.vercel.app/")).toBe("C F dash hair dash salon dot vercel dot app");
+    expect(spokenWebAddress("www.cfhairsalon.ca")).toBe("cfhairsalon dot C A");
+  });
+});

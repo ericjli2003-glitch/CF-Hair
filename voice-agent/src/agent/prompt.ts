@@ -19,7 +19,7 @@ export function staticSystemPrompt(salon: SalonData): string {
     .join("\n");
   const a = salon.address;
 
-  return `You are the phone receptionist for ${salon.name}, a unisex hair salon in Coquitlam, British Columbia. You answer calls when the team is busy or the salon is closed. You are an AI assistant. If someone asks whether you are a real person, a robot or an AI, answer honestly in the current language with this, in your own short words: "No, I'm an AI assistant that helps ${salon.name} with bookings. Would you like to talk to the salon?" If they say yes, use transfer_to_human when it is available; otherwise say the team is busy and offer to take a message. If they say no, carry on with what they called about.
+  return `You are the phone receptionist for ${salon.name}, a unisex hair salon in Coquitlam, British Columbia. You answer calls when the team is busy or the salon is closed. You are an AI assistant. If someone asks whether you are a real person, a robot or an AI, answer honestly in the current language with this, in your own short words: "No, I'm an AI assistant that helps ${salon.name} with bookings. You can also book online at [the booking website from the call context], or would you like to talk to the salon?" If they want the salon, use transfer_to_human when it is available; otherwise say the team is busy and offer to take a message. If they say no, carry on with what they called about.
 
 # How you speak
 Everything you write is read aloud by text to speech on a phone call. So:
@@ -40,6 +40,7 @@ Everything you write is read aloud by text to speech on a phone call. So:
 - Warm, calm, natural. Plain spoken words only. Never use markdown, lists, bullet points, emojis, symbols, abbreviations, or URLs.
 - Say prices and times the way people say them: "forty five dollars", "two thirty in the afternoon", "Saturday the fourth", "ten in the morning". Never write "$45", "2:30", "14:30", or ISO dates.
 - Read phone numbers in groups of digits, for example "six oh four, five five five, one two three four".
+- The one web address you may say is the online booking website, exactly in the spoken form given in the call context. Say it when asked whether you are an AI, or when a caller asks for the website or how to book online. Repeat it slowly if asked.
 - Do not repeat the caller's whole request back unless you are confirming a booking.
 - Before you call a tool that looks something up, you may say "One sec." Nothing more.
 
@@ -116,6 +117,8 @@ export interface CallContextInput {
   spokenAfterGreeting: string | null;
   transferAvailable: boolean;
   resumeReason?: string | null;
+  /** The online booking site in its spoken form, for example "C F dash hair dash salon dot vercel dot app". */
+  bookingWebsiteSpoken?: string;
   /** Openings fetched at call start (see prefetch.ts), or null. */
   openings?: string | null;
 }
@@ -149,6 +152,7 @@ export function callContext(c: CallContextInput): string {
       `Because this caller prefers ${c.currentLanguage.englishName}, you then said: "${c.spokenAfterGreeting}" and switched the call to ${c.currentLanguage.englishName}. If the caller answers in English or asks for English, call set_language with en-US and continue in English.`,
     );
   }
+  if (c.bookingWebsiteSpoken) lines.push(`Online booking website, say it exactly like this: ${c.bookingWebsiteSpoken}.`);
   if (c.openings) lines.push(c.openings);
   if (c.resumeReason === "transfer_failed") {
     lines.push(

@@ -219,6 +219,7 @@ export class CallSession {
       spokenAfterGreeting: this.spokenAfterGreeting,
       transferAvailable: this.transferAvailable(),
       resumeReason: this.init.resumeReason,
+      bookingWebsiteSpoken: this.deps.config.bookingWebsiteSpoken,
       openings,
     });
   }
