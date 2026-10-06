@@ -423,7 +423,8 @@ export class CallSession {
       sendMessage: (m) => this.postMessage(m),
       now: () => this.now(),
       smsOptIn: {
-        eligible: () => !this.smsOptInOffered && !!this.caller?.phone && !this.caller.anonymous && this.caller.smsOptInAskable,
+        eligible: () =>
+          this.deps.config.phoneSmsOptIn && !this.smsOptInOffered && !!this.caller?.phone && !this.caller.anonymous && this.caller.smsOptInAskable,
         offered: () => this.smsOptInOffered,
         markOffered: () => {
           this.smsOptInOffered = true;

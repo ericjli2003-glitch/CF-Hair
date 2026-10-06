@@ -153,18 +153,24 @@ reads the caller's saved language (`GET /api/callers/{phone}`, waiting at most
 `OPENING_LOOKUP_TIMEOUT_MS`, default 1 s) before it answers. The TwiML then starts ConversationRelay
 in that language: the greeting, the voice and speech recognition are all Cantonese (or Mandarin, or
 Korean) from the first word. There is no English line first and no extra "we can continue in" line.
-Greetings are short (`greeting` in `src/languages.ts`), for example 你好，CF Hair Salon 語音助理。有咩幫到你？
+Greetings are short (`greeting` in `src/languages.ts`), for example 你好，CF Hair Salon。
 If the caller answers in English or asks for English, the agent switches back and saves English.
 
 **Everyone else opens in English.** New numbers, withheld numbers, and calls where the lookup is
-slow or the website is down hear the English welcome, which ends with "We also speak Mandarin,
-Cantonese and Korean." A returning English caller hears a shorter English greeting without that line.
+slow or the website is down hear "Hi, CF Hair Salon. I'm the virtual assistant." A returning
+English caller hears just "Hi, CF Hair Salon." Callers who answer in Mandarin, Cantonese or Korean
+are switched automatically, so the greeting does not list the languages.
 The lookup in the webhook only reads; the session counts the call and loads the name and consent
 state while the greeting plays. If the webhook gave up on a slow lookup but the session then finds a
 saved language, it falls back to the old behaviour: one short line in that language, then a switch.
 
-**Short replies.** The prompt holds Claude to one sentence per reply (two at most), one question at a
-time, at most two time options, no filler or restating, and a few words to confirm a booking.
+**Calls as short as the owner's.** The prompt includes a real booking call the owner handles in
+about ten short turns, and holds Claude to it: two to eight words per reply, one question at a time,
+one time offered (the one asked for, or the closest), no stylist question unless the caller names
+one, no name question when a name is on file, the caller ID used silently as the phone number, one
+quick check ("Men's cut at three, Eric?"), then "OK, see you at three" and the call ends. No
+"anything else?". The promotional text question after a booking is off by default for the same
+reason (`PHONE_SMS_OPTIN=true` turns it back on; see below).
 
 **Openings are ready before the caller asks.** While the greeting plays, the server fetches the
 next two open days of times for the most requested services (`PREFETCH_SERVICES`, default men's,
@@ -332,7 +338,8 @@ Korean callers.
 ## Promotional text opt-in
 
 The salon texts occasional specials only to clients who agreed (Canada's anti-spam law, CASL; see
-`docs/sms-compliance.md`). The phone assistant can collect that agreement politely, at most once:
+`docs/sms-compliance.md`). With `PHONE_SMS_OPTIN=true` (off by default, to keep calls short), the
+phone assistant can collect that agreement politely, at most once:
 
 - Only right after a successful `book_appointment`, only for the caller's own number (caller ID
   present, not withheld, and the booking is under that number), and only when the website says the

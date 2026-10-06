@@ -68,6 +68,8 @@ export interface AppConfig {
   dataDir: string;
   callbackOnAbandon: boolean;
   endCallGraceMs: number;
+  /** Ask the one promotional-text question after a phone booking. Off by default: it lengthens every call. */
+  phoneSmsOptIn: boolean;
   /** Services whose openings are fetched at call start (empty turns the prefetch off). */
   prefetchServiceIds: string[];
   /** On SIGTERM (a redeploy), how long live calls may continue before the process exits. */
@@ -108,13 +110,14 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     callbackOnAbandon: envBool("CALLBACK_ON_ABANDON", true),
     endCallGraceMs: envInt("END_CALL_GRACE_MS", 1200),
     drainTimeoutMs: envInt("DRAIN_TIMEOUT_MS", 280_000),
+    phoneSmsOptIn: envBool("PHONE_SMS_OPTIN", false),
     prefetchServiceIds: env("PREFETCH_SERVICES", "mens-cut,womens-cut,kids-cut")
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s && s !== "off"),
     welcomeGreeting: env(
       "WELCOME_GREETING",
-      "Hi, this is CF Hair Salon's virtual assistant. We also speak Mandarin, Cantonese and Korean. How can I help?",
+      "Hi, CF Hair Salon. I'm the virtual assistant.",
     ),
   };
   const start = env("CR_START_TRANSCRIPTION_LANGUAGE", "en-US").toLowerCase() === "multi" ? "multi" : "en-US";

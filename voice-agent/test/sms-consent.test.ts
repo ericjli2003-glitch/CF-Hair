@@ -28,8 +28,19 @@ type Result = { smsOptIn?: { question: string }; ok?: boolean; error?: string };
 const results = (s: CallSession, name: string) => s.log.record.toolCalls.filter((t) => t.name === name).map((t) => t.result as Result);
 
 describe("promotional SMS opt-in on the phone", () => {
+  it("is off by default, so calls stay short", async () => {
+    const deps = testDeps({ llm: new FakeLlm([]) });
+    const start = await firstSlot(deps);
+    const s = session({ ...deps, llm: new FakeLlm([book(start), { text: "OK, see you Friday." }]) }, "+16045550177");
+    await s.handlePrompt("Book me a men's cut Friday at ten, I'm Alex Chen.");
+    expect(results(s, "book_appointment")[0]).toMatchObject({ ok: true });
+    expect(results(s, "book_appointment")[0].smsOptIn).toBeUndefined();
+    await s.close();
+  });
+
   it("asks once after a booking when the caller has no answer on file, and records a yes with the exact wording", async () => {
     const deps = testDeps({ llm: new FakeLlm([]) });
+    deps.config.phoneSmsOptIn = true;
     const start = await firstSlot(deps);
     const steps: ScriptedStep[] = [
       book(start),
@@ -64,6 +75,7 @@ describe("promotional SMS opt-in on the phone", () => {
 
   it("records a decline so the caller is never asked on future calls", async () => {
     const deps = testDeps({ llm: new FakeLlm([]) });
+    deps.config.phoneSmsOptIn = true;
     const phone = "+16045550178";
     const steps: ScriptedStep[] = [book(await firstSlot(deps)), { text: "Booked. Would you like texts?" }, { tools: [{ name: "record_sms_consent", input: { accepted: false } }] }, { text: "No problem." }];
     const s = session({ ...deps, llm: new FakeLlm(steps) }, phone);
@@ -81,6 +93,7 @@ describe("promotional SMS opt-in on the phone", () => {
 
   it("asks only once per call, even after a second booking", async () => {
     const deps = testDeps({ llm: new FakeLlm([]) });
+    deps.config.phoneSmsOptIn = true;
     const steps: ScriptedStep[] = [book(await firstSlot(deps)), { text: "Booked." }, book(await firstSlot(deps, 5), { customer_name: "Sam Chen" }), { text: "Booked too." }];
     const s = session({ ...deps, llm: new FakeLlm(steps) }, "+16045550179");
     await s.handlePrompt("A cut for me.");
@@ -93,6 +106,7 @@ describe("promotional SMS opt-in on the phone", () => {
 
   it("never asks without caller ID, or when the booking is for another number", async () => {
     const deps = testDeps({ llm: new FakeLlm([]) });
+    deps.config.phoneSmsOptIn = true;
     const anon = session({ ...deps, llm: new FakeLlm([book(await firstSlot(deps), { customer_phone: "604 555 0190" }), { text: "Booked." }]) }, "anonymous");
     await anon.handlePrompt("Cut please, my number is 604 555 0190.");
     expect(results(anon, "book_appointment")[0]).toMatchObject({ ok: true });
@@ -108,6 +122,7 @@ describe("promotional SMS opt-in on the phone", () => {
 
   it("refuses record_sms_consent when the question was not offered", async () => {
     const deps = testDeps({ llm: new FakeLlm([{ tools: [{ name: "record_sms_consent", input: { accepted: true } }] }, { text: "Okay." }]) });
+    deps.config.phoneSmsOptIn = true;
     const s = session(deps, "+16045550181");
     await s.handlePrompt("Sign me up for texts.");
     expect(results(s, "record_sms_consent")[0]).toMatchObject({ error: "NOT_OFFERED" });
@@ -119,6 +134,7 @@ describe("promotional SMS opt-in on the phone", () => {
   it("asks in the caller's language: Mandarin, Cantonese and Korean", async () => {
     for (const lang of ["zh-CN", "zh-HK", "ko-KR"] as const) {
       const deps = testDeps({ llm: new FakeLlm([]) });
+      deps.config.phoneSmsOptIn = true;
       const phone = `+1604555${lang === "zh-CN" ? "0182" : lang === "zh-HK" ? "0183" : "0184"}`;
       deps.mockApi!.callers.set(phone, { phone, preferredLanguage: lang, callCount: 1, lastCallAt: null, name: null });
       const steps: ScriptedStep[] = [book(await firstSlot(deps)), { text: SMS_OPTIN_QUESTION[lang] }, { tools: [{ name: "record_sms_consent", input: { accepted: true } }] }, { text: "OK" }];
