@@ -70,6 +70,9 @@ export interface SessionInit {
 
 const MAX_STEPS = 8;
 
+/** Tools that act on the caller's behalf, so they must not run in the reply that is still asking. */
+const WAITS_FOR_ANSWER = new Set(["book_appointment", "reschedule_booking", "cancel_booking", "end_call", "transfer_to_human"]);
+
 const TROUBLE: Record<LanguageCode, string> = {
   "en-US": "Sorry, I'm having a little trouble on my end. Could you say that again?",
   "zh-CN": "抱歉，我这边出了点问题。可以请您再说一遍吗？",
@@ -601,15 +604,35 @@ export class CallSession {
         if (this.deps.config.logTranscripts && spokenText.trim()) console.log(`[call ${this.init.callSid}] said: "${spokenText.trim()}"`);
         if (isFinal) break;
 
+        // Guard: the agent asked the caller something in this same reply ("Ten in the morning?") and
+        // also tried to book, change, cancel, transfer or hang up. Those wait for the caller's answer;
+        // the model's confirmed_with_caller flag alone is not trusted for this.
+        const askedNow = /[?？]["'”」)]*$/u.test(spokenText.trim());
+        const held = askedNow && toolUses.some((t) => WAITS_FOR_ANSWER.has(t.name));
         const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];
         for (const tu of toolUses) {
           const t0 = Date.now();
+          if (held && WAITS_FOR_ANSWER.has(tu.name)) {
+            const content = JSON.stringify({
+              error: "WAIT_FOR_ANSWER",
+              instruction: "You just asked the caller a question. Nothing was booked, changed, transferred or ended. Wait for their answer before calling this.",
+            });
+            this.log.tool({ name: tu.name, input: tu.input, result: content, isError: true, ms: 0 });
+            results.push({ type: "tool_result", tool_use_id: tu.id, content, is_error: true });
+            continue;
+          }
           const r = await this.executor.run(tu.name, tu.input);
           this.log.tool({ name: tu.name, input: tu.input, result: safeJson(r.content), isError: r.isError, ms: Date.now() - t0 });
           toolTimes.push(`${tu.name} ${Date.now() - t0}ms`);
           results.push({ type: "tool_result", tool_use_id: tu.id, content: r.content, ...(r.isError ? { is_error: true } : {}) });
         }
         this.messages.push({ role: "user", content: results });
+        if (held) {
+          // End the reply on the question and let the caller answer.
+          console.warn(`[call ${this.init.callSid}] held ${toolUses.map((t) => t.name).join(", ")}: the reply asked the caller a question`);
+          this.speak(turn, "", true);
+          break;
+        }
         if (turn.signal.aborted) break; // interrupted while tools ran: keep results, let the caller talk
         if (this.stopAfterTools) {
           // ask_caller_language already spoke the question and ended the reply.

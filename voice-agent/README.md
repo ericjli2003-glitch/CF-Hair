@@ -173,6 +173,18 @@ quick check ("Men's cut at three, Eric?"), then "OK, see you at three" and the c
 "anything else?". The promotional text question after a booking is off by default for the same
 reason (`PHONE_SMS_OPTIN=true` turns it back on; see below).
 
+**Accented English is the normal case.** Most of the salon's callers are Chinese and Korean
+immigrants. The prompt tells Claude to read each transcript for what the caller most likely meant
+by sound and context ("Amend" on a real test call meant "men's"), never to say "I don't understand"
+or repeat a question, and to check a guess inside the next question instead. The speech hints list
+salon phrases ("men's cut", "women's cut") to bias recognition toward them.
+
+**No booking without the caller's answer.** If a reply asks the caller something ("Ten in the
+morning?") and also calls `book_appointment`, `reschedule_booking`, `cancel_booking`,
+`transfer_to_human` or `end_call`, the server refuses those tools, ends the reply on the question
+and waits. A real test call booked a time the caller never agreed to this way; the model's
+`confirmed_with_caller` flag alone is not trusted.
+
 **Openings are ready before the caller asks.** While the greeting plays, the server fetches the
 next two open days of times for the most requested services (`PREFETCH_SERVICES`, default men's,
 women's and children's cuts) and adds them to the call context, one entry per start time with its
