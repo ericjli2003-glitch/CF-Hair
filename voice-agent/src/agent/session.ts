@@ -264,6 +264,7 @@ export class CallSession {
         : ({ action: "none" } as const);
       const spokenLang = decision.action === "switch" ? decision.to : this.language;
       this.log.say("caller", text, { lang: spokenLang });
+      if (this.deps.config.logTranscripts) console.log(`[call ${this.init.callSid}] heard (${spokenLang}): "${text}"`);
       if (decision.action === "ask") {
         this.askLanguageQuestion(text, decision.reason);
         return;
@@ -597,6 +598,7 @@ export class CallSession {
           if (spokenText) turn.segments.push({ index: this.messages.length - 1, text: spokenText });
         }
         this.log.say("agent", spokenText, { lang: this.language });
+        if (this.deps.config.logTranscripts && spokenText.trim()) console.log(`[call ${this.init.callSid}] said: "${spokenText.trim()}"`);
         if (isFinal) break;
 
         const results: Anthropic.Beta.BetaToolResultBlockParam[] = [];

@@ -88,6 +88,8 @@ export interface AppConfig {
   /** The online booking site the agent can point callers to, and how to say it on the phone. */
   bookingWebsite: string;
   bookingWebsiteSpoken: string;
+  /** Print what callers said and what the agent replied to the server log (testing only: it holds names). */
+  logTranscripts: boolean;
   /** Ask the one promotional-text question after a phone booking. Off by default: it lengthens every call. */
   phoneSmsOptIn: boolean;
   /** Services whose openings are fetched at call start (empty turns the prefetch off). */
@@ -131,6 +133,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     endCallGraceMs: envInt("END_CALL_GRACE_MS", 1200),
     drainTimeoutMs: envInt("DRAIN_TIMEOUT_MS", 280_000),
     phoneSmsOptIn: envBool("PHONE_SMS_OPTIN", false),
+    logTranscripts: envBool("LOG_TRANSCRIPTS", false),
     bookingWebsite: env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"),
     bookingWebsiteSpoken: env("BOOKING_WEBSITE_SPOKEN", spokenWebAddress(env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"))),
     prefetchServiceIds: env("PREFETCH_SERVICES", "mens-cut,womens-cut,kids-cut")
