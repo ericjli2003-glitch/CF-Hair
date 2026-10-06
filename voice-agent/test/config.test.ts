@@ -47,3 +47,21 @@ describe("booking website on the phone", () => {
     expect(spokenWebAddress("www.cfhairsalon.ca")).toBe("cfhairsalon dot C A");
   });
 });
+
+describe("per-language voice overrides", () => {
+  it("uses ElevenLabs for a language whose voice is an ElevenLabs ID, even without its own provider", async () => {
+    const { relayLanguages, languageWarnings, looksLikeElevenLabsVoice } = await import("../src/languages.js");
+    expect(looksLikeElevenLabsVoice("ZF6FPAbjXT4488VcRRnw")).toBe(true);
+    expect(looksLikeElevenLabsVoice("ZF6FPAbjXT4488VcRRnw-flash_v2_5")).toBe(true);
+    expect(looksLikeElevenLabsVoice("yue-HK-Chirp3-HD-Aoede")).toBe(false);
+    const env = { CR_TTS_PROVIDER: "ElevenLabs", CR_ELEVENLABS_VOICE: "AAAAAAAAAAAAAAAAAAAA", CR_ZH_HK_VOICE: "BBBBBBBBBBBBBBBBBBBB" };
+    const langs = relayLanguages(env);
+    expect(langs["zh-HK"]).toMatchObject({ ttsProvider: "ElevenLabs", voice: "BBBBBBBBBBBBBBBBBBBB" });
+    expect(langs["en-US"].ttsProvider).toBe("ElevenLabs");
+    // A Google voice name for Cantonese keeps Google.
+    expect(relayLanguages({ ...env, CR_ZH_HK_VOICE: "yue-HK-Chirp3-HD-Aoede" })["zh-HK"].ttsProvider).toBe("Google");
+    // An explicit provider still wins, and the mismatch is reported.
+    const forced = relayLanguages({ ...env, CR_ZH_HK_TTS_PROVIDER: "Google" });
+    expect(languageWarnings(forced, env).join(" ")).toMatch(/zh-HK voice .* looks like an ElevenLabs voice ID/);
+  });
+});

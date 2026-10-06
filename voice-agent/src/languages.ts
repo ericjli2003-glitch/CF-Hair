@@ -102,6 +102,14 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
   },
 };
 
+/**
+ * True for an ElevenLabs voice ID ("ZF6FPAbjXT4488VcRRnw", optionally with "-model-settings"), as
+ * opposed to a Google or Amazon voice name ("yue-HK-Chirp3-HD-Aoede", "Joanna-Neural").
+ */
+export function looksLikeElevenLabsVoice(voice: string): boolean {
+  return /^[A-Za-z0-9]{20}(-|$)/.test(voice) && !/^[a-z]{2,3}-[A-Z]{2}-/.test(voice);
+}
+
 function envKey(code: LanguageCode, field: string): string {
   return `CR_${code.replace("-", "_").toUpperCase()}_${field}`;
 }
@@ -137,10 +145,14 @@ export function relayLanguages(env: NodeJS.ProcessEnv = process.env): Record<Lan
       ttsProvider = "ElevenLabs";
       voice = elModel === "flash_v2_5" || elVoice.includes("-") ? elVoice : `${elVoice}-${elModel}`;
     }
+    const voiceOverride = env[envKey(code, "VOICE")];
+    // A per-language ElevenLabs voice ID with no per-language provider would otherwise be sent to
+    // Google, which Twilio rejects for the whole call. Infer the provider from the ID instead.
+    if (voiceOverride && !env[envKey(code, "TTS_PROVIDER")] && looksLikeElevenLabsVoice(voiceOverride)) ttsProvider = "ElevenLabs";
     out[code] = {
       ...d,
       ttsProvider: env[envKey(code, "TTS_PROVIDER")] || ttsProvider,
-      voice: env[envKey(code, "VOICE")] || voice,
+      voice: voiceOverride || voice,
       transcriptionProvider: env[envKey(code, "TRANSCRIPTION_PROVIDER")] || d.transcriptionProvider,
       speechModel: env[envKey(code, "SPEECH_MODEL")] || d.speechModel,
     };
@@ -156,6 +168,9 @@ export function languageWarnings(langs: Record<LanguageCode, RelayLanguage>, env
   }
   for (const code of LANGUAGE_CODES) {
     const l = langs[code];
+    if (!/^elevenlabs$/i.test(l.ttsProvider) && looksLikeElevenLabsVoice(l.voice)) {
+      w.push(`${code} voice "${l.voice}" looks like an ElevenLabs voice ID but the provider is ${l.ttsProvider}; Twilio will reject every call. Set ${envKey(code, "TTS_PROVIDER")}=ElevenLabs or remove ${envKey(code, "VOICE")}.`);
+    }
     if (/^elevenlabs$/i.test(l.ttsProvider)) {
       // Twilio format: <voiceId>[-<model>[-<speed>_<stability>_<similarity>]]
       const model = l.voice.split("-")[1] || "flash_v2_5";
