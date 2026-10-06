@@ -29,14 +29,18 @@ export class AnthropicLlm implements LlmClient {
 }
 
 /** Model capability switches. Haiku 4.5 takes no effort parameter and no server-side fallbacks. */
-export function modelOptions(cfg: Pick<AppConfig, "anthropicModel" | "anthropicEffort" | "claudeFallbacks">) {
+export function modelOptions(cfg: Pick<AppConfig, "anthropicModel" | "anthropicEffort" | "claudeFallbacks" | "anthropicThinking">) {
   const m = cfg.anthropicModel;
   const isHaiku = /haiku/.test(m);
   const supportsDefaultFallbacks = /^claude-(sonnet-5-5|opus-5-5|opus-5|fable-5)/.test(m);
   const fallbacks = cfg.claudeFallbacks === "on" || (cfg.claudeFallbacks === "auto" && supportsDefaultFallbacks);
   // Mid-conversation `role: "system"` messages (no beta header) are accepted by these models only.
   const systemMessages = /^claude-(sonnet-5-5|opus-5-5|opus-5|opus-4-8|fable-5|mythos-5)/.test(m);
+  // Claude Sonnet 5.5 thinks by default (adaptive). On a phone call that thinking is silence before
+  // the first word, so "off" sends between_tools, the model's no-extended-thinking setting.
+  const betweenTools = cfg.anthropicThinking === "off" && /^claude-sonnet-5-5/.test(m);
   return {
+    betweenTools,
     effort: isHaiku ? undefined : cfg.anthropicEffort,
     systemMessages,
     fallbacks,

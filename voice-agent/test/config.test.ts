@@ -28,3 +28,14 @@ describe("Claude credentials", () => {
     expect("ANTHROPIC_API_KEY" in process.env).toBe(false);
   });
 });
+
+describe("thinking setting", () => {
+  it("sends between_tools to Claude Sonnet 5.5 by default and nothing to other models", async () => {
+    const { modelOptions } = await import("../src/agent/llm.js");
+    const base = { anthropicEffort: "low" as const, claudeFallbacks: "auto" as const, anthropicThinking: "off" as const };
+    expect(modelOptions({ ...base, anthropicModel: "claude-sonnet-5-5" }).betweenTools).toBe(true);
+    expect(modelOptions({ ...base, anthropicModel: "claude-sonnet-5-5", anthropicThinking: "adaptive" }).betweenTools).toBe(false);
+    expect(modelOptions({ ...base, anthropicModel: "claude-haiku-4-5" }).betweenTools).toBe(false);
+    expect(modelOptions({ ...base, anthropicModel: "claude-opus-5-5" }).betweenTools).toBe(false);
+  });
+});

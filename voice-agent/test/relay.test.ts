@@ -176,6 +176,7 @@ describe("ConversationRelay WebSocket protocol", () => {
     expect(system[1].cache_control).toBeUndefined();
     expect(req.cache_control).toEqual({ type: "ephemeral" });
     expect(req.model).toBe("claude-sonnet-5-5");
+    expect(req.thinking).toEqual({ type: "between_tools" }); // no extended thinking: faster first words
   });
 
   it("aborts on interrupt and trims history to what the caller heard", async () => {

@@ -515,6 +515,7 @@ export class CallSession {
       messages: this.messages,
       cache_control: { type: "ephemeral" },
       ...(opts.effort ? { output_config: { effort: opts.effort } } : {}),
+      ...(opts.betweenTools ? { thinking: { type: "between_tools" as const } } : {}),
       ...(opts.fallbacks ? { fallbacks: "default" as const, betas: ["server-side-fallback-2026-07-01"] } : {}),
     };
   }
@@ -532,6 +533,9 @@ export class CallSession {
     this.lastTurn = turn;
     let resolveDone!: () => void;
     turn.done = new Promise((r) => (resolveDone = r));
+    const startedAt = Date.now();
+    const toolTimes: string[] = [];
+    let modelCalls = 0;
     if (notice && modelOptions(this.deps.config).systemMessages) {
       // Harness notice as a mid-conversation system message, kept separate from the caller's words.
       this.messages.push({ role: "user", content });
@@ -542,6 +546,7 @@ export class CallSession {
     try {
       for (let step = 0; step < MAX_STEPS; step++) {
         if (turn.signal.aborted) break;
+        modelCalls++;
         const res = await this.streamStep(turn);
         if (res.kind === "aborted") break;
         if (res.kind === "error") {
@@ -583,6 +588,7 @@ export class CallSession {
           const t0 = Date.now();
           const r = await this.executor.run(tu.name, tu.input);
           this.log.tool({ name: tu.name, input: tu.input, result: safeJson(r.content), isError: r.isError, ms: Date.now() - t0 });
+          toolTimes.push(`${tu.name} ${Date.now() - t0}ms`);
           results.push({ type: "tool_result", tool_use_id: tu.id, content: r.content, ...(r.isError ? { is_error: true } : {}) });
         }
         this.messages.push({ role: "user", content: results });
@@ -599,6 +605,12 @@ export class CallSession {
         }
       }
     } finally {
+      // One line per reply, so pauses can be traced: time to the first spoken words, and where it went.
+      const first = turn.firstSentAt ? `${((turn.firstSentAt - startedAt) / 1000).toFixed(1)}s` : "none";
+      console.log(
+        `[call ${this.init.callSid}] reply: first words after ${first}, total ${((Date.now() - startedAt) / 1000).toFixed(1)}s, ` +
+          `${modelCalls} model call(s)${toolTimes.length ? `, tools: ${toolTimes.join(", ")}` : ""}${turn.signal.aborted ? " (interrupted)" : ""}`,
+      );
       if (turn.signal.aborted) this.trimTurn(turn);
       this.activeTurn = null;
       resolveDone();
@@ -703,13 +715,25 @@ export class CallSession {
     if (turn.interruptUtterance !== null || turn.inflight) this.log.trimLastAgentLine(lastHeard);
   }
 
-  /** Replace the text of an assistant message, keeping thinking and tool_use blocks unchanged. */
+  /**
+   * Replace the text of an assistant message, keeping tool_use blocks. Editing a message invalidates
+   * thinking blocks from that point on (the API's history check), so they are dropped from it and
+   * from every later assistant message.
+   */
   private replaceText(index: number, text: string) {
     const m = this.messages[index];
     if (!m || m.role !== "assistant" || typeof m.content === "string") return;
+    for (let i = index + 1; i < this.messages.length; i++) {
+      const later = this.messages[i];
+      if (later.role === "assistant" && typeof later.content !== "string") {
+        const kept = later.content.filter((b) => b.type !== "thinking" && b.type !== "redacted_thinking");
+        if (kept.length !== later.content.length) this.messages[i] = { role: "assistant", content: kept.length ? kept : [{ type: "text", text: "..." }] };
+      }
+    }
     const out: ContentBlockParam[] = [];
     let placed = false;
     for (const b of m.content) {
+      if (b.type === "thinking" || b.type === "redacted_thinking") continue;
       if (b.type === "text") {
         if (!placed && text) out.push({ type: "text", text });
         placed = true;

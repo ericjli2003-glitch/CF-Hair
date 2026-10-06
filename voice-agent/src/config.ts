@@ -47,6 +47,8 @@ export interface AppConfig {
   publicBaseUrl: string;
   anthropicModel: string;
   anthropicEffort: Effort;
+  /** "off" (default): no extended thinking where the model allows it, for faster replies. "adaptive": the model decides. */
+  anthropicThinking: "off" | "adaptive";
   /** "auto" enables server-side refusal fallbacks on models that support them. */
   claudeFallbacks: "auto" | "on" | "off";
   maxTokens: number;
@@ -86,6 +88,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     publicBaseUrl: env("PUBLIC_BASE_URL", env("RENDER_EXTERNAL_URL")).replace(/\/+$/, ""),
     anthropicModel: env("ANTHROPIC_MODEL", "claude-sonnet-5-5"),
     anthropicEffort: env("ANTHROPIC_EFFORT", "low") as Effort,
+    anthropicThinking: env("ANTHROPIC_THINKING", "off") === "adaptive" ? "adaptive" : "off",
     claudeFallbacks: env("CLAUDE_FALLBACKS", "auto") as AppConfig["claudeFallbacks"],
     maxTokens: envInt("ANTHROPIC_MAX_TOKENS", 4096),
     bookingApiUrl: env("BOOKING_API_URL", "http://localhost:3000").replace(/\/+$/, ""),
