@@ -4,19 +4,40 @@
  */
 export class SentenceChunker {
   private buf = "";
+  private emitted = false;
 
-  constructor(private readonly maxChars = 220) {}
+  /**
+   * `earlyFirstChunk`: the first piece of a reply may end at a comma ("OK," "Sure,"), so the voice
+   * starts while the model is still writing the rest of that sentence. Later pieces stay whole
+   * sentences, which sound more natural.
+   */
+  constructor(
+    private readonly maxChars = 220,
+    private readonly earlyFirstChunk = true,
+  ) {}
 
   /** Add a delta; returns zero or more complete sentences ready to speak. */
   push(delta: string): string[] {
     this.buf += delta;
     const out: string[] = [];
+    if (this.earlyFirstChunk && !this.emitted) {
+      const m = /^[^.!?。！？；\n]{1,40}?[,，、](\s+|(?=\S))/u.exec(this.buf);
+      // Only when something follows the comma, so "4,500" style numbers never split.
+      if (m && this.buf.length > m[0].length && !/\d[,，]$/.test(m[0].trimEnd().slice(-2))) {
+        out.push(m[0]);
+        this.buf = this.buf.slice(m[0].length);
+        this.emitted = true;
+      }
+    }
     for (;;) {
       const idx = this.findBoundary();
       if (idx < 0) break;
       const sentence = this.buf.slice(0, idx);
       this.buf = this.buf.slice(idx);
-      if (sentence.trim()) out.push(sentence);
+      if (sentence.trim()) {
+        out.push(sentence);
+        this.emitted = true;
+      }
     }
     if (this.buf.length > this.maxChars) {
       // Very long run-on sentence: break at the last comma or space.
@@ -53,7 +74,7 @@ export class SentenceChunker {
         if (/[\s"')\]”]/.test(next)) {
           // Avoid splitting very short fragments like "Mr." or "a.m."
           const before = s.slice(0, i + 1).trim();
-          if (before.length < 4 || /\b(?:Mr|Mrs|Ms|Dr|St|a\.m|p\.m)\.$/i.test(before)) continue;
+          if (before.length < 3 || /\b(?:Mr|Mrs|Ms|Dr|St|a\.m|p\.m)\.$/i.test(before)) continue;
           let j = i + 1;
           while (j < s.length && /[\s"')\]”]/.test(s[j])) j++;
           return j;

@@ -15,12 +15,17 @@ function feed(text: string, size = 3) {
 }
 
 describe("sentence chunking", () => {
-  it("emits sentences as soon as they end", () => {
-    expect(feed("Sure, I can help. What day works? Great!")).toEqual(["Sure, I can help.", "What day works?", "Great!"]);
+  it("emits sentences as soon as they end, starting the first one at its first comma", () => {
+    expect(feed("Sure, I can help. What day works? Great, thanks!")).toEqual(["Sure,", "I can help.", "What day works?", "Great, thanks!"]);
+    expect(feed("OK. Men's or women's?")).toEqual(["OK.", "Men's or women's?"]);
+  });
+  it("never splits a number at its thousands comma", () => {
+    expect(feed("It is 1,500 dollars. OK?")).toEqual(["It is 1,500 dollars.", "OK?"]);
   });
   it("splits Chinese and Korean sentences", () => {
     expect(feed("好的。请问哪天方便？谢谢！")).toEqual(["好的。", "请问哪天方便？", "谢谢！"]);
-    expect(feed("네, 가능해요. 몇 시가 좋으세요?")).toEqual(["네, 가능해요.", "몇 시가 좋으세요?"]);
+    expect(feed("好呀，聽日三點有位。")).toEqual(["好呀，", "聽日三點有位。"]);
+    expect(feed("네, 가능해요. 몇 시가 좋으세요?")).toEqual(["네,", "가능해요.", "몇 시가 좋으세요?"]);
   });
   it("does not split decimals or common abbreviations", () => {
     expect(feed("It is 4.5 hours with Dr. Lee. Okay?")).toEqual(["It is 4.5 hours with Dr. Lee.", "Okay?"]);

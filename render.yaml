@@ -63,8 +63,10 @@ services:
         value: https://cf-hair-salon.vercel.app
       - key: SALON_MAIN_NUMBER
         value: "+16044757705"
+      # Set in the dashboard (claude-sonnet-5-5 if unset). sync: false so a dashboard change, for
+      # example claude-haiku-4-5 for faster replies, is not reset by the next Blueprint sync.
       - key: ANTHROPIC_MODEL
-        value: claude-sonnet-5-5
+        sync: false
       - key: ANTHROPIC_EFFORT
         value: low
       - key: TWILIO_VALIDATE_SIGNATURE
