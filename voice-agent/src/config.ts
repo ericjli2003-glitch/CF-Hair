@@ -131,6 +131,11 @@ export interface AppConfig {
   realtimeSilenceMs: number;
   /** Background transcription of the caller for the call log ("off" turns it off). */
   realtimeTranscribeModel: string;
+  /** ElevenLabs phone agent test line (src/eleven). On when ELEVENLABS_API_KEY is set, unless ELEVENLABS_AGENT=off. */
+  elevenAgentApiKey: string;
+  elevenAgentLlm: string;
+  /** ElevenLabs' code for Cantonese in agents; "" treats Cantonese callers with the Mandarin settings. */
+  elevenAgentCantoneseCode: string;
   /** Detect the caller's language from transcripts and switch automatically. */
   autoDetectLanguage: boolean;
   /** When the evidence is weak, ask one short question in all four languages. */
@@ -198,6 +203,9 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     realtimeReasoning: env("OPENAI_REASONING_EFFORT", "low"),
     realtimeSilenceMs: envInt("OPENAI_VAD_SILENCE_MS", 500),
     realtimeTranscribeModel: env("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
+    elevenAgentApiKey: env("ELEVENLABS_AGENT", "on") === "off" ? "" : env("ELEVENLABS_API_KEY").trim(),
+    elevenAgentLlm: env("ELEVENLABS_AGENT_LLM", "claude-haiku-4-5"),
+    elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", "yue"),
     welcomeGreeting: env(
       "WELCOME_GREETING",
       "Hi, CF Hair Salon.",

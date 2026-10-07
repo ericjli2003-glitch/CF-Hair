@@ -13,6 +13,7 @@ import { normalizeLanguage } from "./languages.js";
 import { handleS2sSocket } from "./s2s/realtime.js";
 import { s2sAfterTwiml, s2sTwiml } from "./s2s/twiml.js";
 import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
+import { ElevenLine, toolKeyFor } from "./eleven/agent.js";
 
 export const RELAY_PATH = "/relay";
 export const LISTEN_PATH = "/listen";
@@ -59,6 +60,24 @@ export function createServer(deps: SessionDeps) {
   const app = express();
   const registry = new CallRegistry();
   const openAi = openAiAuthFromConfig(cfg);
+  // ElevenLabs phone agent test line: the agent is created or updated as soon as the server starts.
+  const toolSecret = cfg.twilioAuthToken || cfg.agentApiKey;
+  const eleven =
+    cfg.elevenAgentApiKey && cfg.publicBaseUrl
+      ? new ElevenLine(
+          deps,
+          {
+            apiKey: cfg.elevenAgentApiKey,
+            apiBase: cfg.elevenLabsApiBase,
+            publicBaseUrl: cfg.publicBaseUrl,
+            llm: cfg.elevenAgentLlm,
+            cantoneseCode: cfg.elevenAgentCantoneseCode,
+            toolKey: toolKeyFor(toolSecret),
+          },
+          toolSecret,
+        )
+      : null;
+  eleven?.ready().catch(() => {}); // logged inside; retried on the first call
   /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
   const s2sFailed = new Map<string, number>();
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
@@ -151,6 +170,36 @@ export function createServer(deps: SessionDeps) {
     const callSid = String(req.body?.CallSid ?? "");
     const failed = s2sFailed.delete(callSid);
     res.type("text/xml").send(s2sAfterTwiml(failed));
+  });
+
+  // ElevenLabs phone agent test line: point a Twilio number's "A call comes in" here.
+  app.post("/eleven/twiml", verify, async (req, res) => {
+    const sorry = (msg: string) => {
+      const vr = new twilio.twiml.VoiceResponse();
+      vr.say(msg);
+      vr.hangup();
+      res.type("text/xml").send(vr.toString());
+    };
+    if (!eleven) {
+      console.warn("[eleven] a call came in, but the ElevenLabs agent is off (needs ELEVENLABS_API_KEY and the public URL)");
+      return sorry("This test line is not set up yet.");
+    }
+    const callSid = String(req.body?.CallSid ?? "");
+    console.log(`[eleven call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}`);
+    try {
+      const twiml = await eleven.register({ callSid, from: String(req.body?.From ?? ""), to: String(req.body?.To ?? "") });
+      res.type("text/xml").send(twiml);
+    } catch (err) {
+      console.error(`[eleven call ${callSid}] could not start: ${(err as Error).message}`);
+      sorry("Sorry, this test line is not working right now. Please try again later.");
+    }
+  });
+
+  // Booking tools for the ElevenLabs agent (its webhook tools), with the same code as the main line.
+  app.post("/eleven/tools/:name", express.json({ limit: "64kb" }), async (req, res) => {
+    if (!eleven) return void res.status(404).json({ error: "off" });
+    const out = await eleven.runTool(req.params.name, { key: req.header("x-cf-tool-key") }, req.body ?? {});
+    res.status(out.status).json(out.body);
   });
 
   // <Connect action>: called when the ConversationRelay session ends.

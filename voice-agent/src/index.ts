@@ -44,6 +44,9 @@ server.listen(cfg.port, () => {
     `  Speech-to-speech test line: ${openAiMode !== "none" ? `on, POST /s2s/twiml (${cfg.realtimeModel}, voice ${cfg.realtimeVoice}), OpenAI auth: ${openAiMode}` : "off (set OPENAI_API_KEY, or OpenAI workload identity)"}`,
   );
   if (openAi.missing().length) console.warn(`  Warning: OpenAI workload identity is missing ${openAi.missing().join(", ")}`);
+  console.log(
+    `  ElevenLabs agent test line: ${cfg.elevenAgentApiKey && cfg.publicBaseUrl ? `on, POST /eleven/twiml (${cfg.elevenAgentLlm})` : "off (needs ELEVENLABS_API_KEY and the public URL)"}`,
+  );
   console.log(`  Language ID for new callers: ${cfg.elevenLabsApiKey ? "ElevenLabs Scribe" : "off (set ELEVENLABS_API_KEY)"}`);
   const transferIssue = transferBlockReason({ target: cfg.salonForwardNumber, mainNumber: cfg.salonMainNumber || deps.salon.phone });
   if (!cfg.salonForwardNumber) console.log("  Transfers: off (SALON_FORWARD_NUMBER not set); callers can leave a message");

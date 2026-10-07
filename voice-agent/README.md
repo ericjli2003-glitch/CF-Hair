@@ -16,6 +16,7 @@ the admin screen and the phone all see the same calendar.
 - [Languages and caller memory](#languages-and-caller-memory)
 - [Why Twilio ConversationRelay and not ElevenLabs?](#why-twilio-conversationrelay-and-not-elevenlabs)
 - [Speech-to-speech test line (OpenAI Realtime)](#speech-to-speech-test-line-openai-realtime)
+- [ElevenLabs phone agent test line](#elevenlabs-phone-agent-test-line)
 - [Promotional text opt-in](#promotional-text-opt-in)
 - [Calls tab](#calls-tab)
 - [Twilio setup, step by step](#twilio-setup-step-by-step)
@@ -457,6 +458,32 @@ page): `gpt-realtime-2.1` audio is $32 per million input tokens and $64 per mill
 about $0.06 to $0.11 a minute once caching works, and the mini model about $0.02 to $0.05. Twilio's
 Media Streams minute is cheaper than ConversationRelay's, but Twilio's per-minute call price still
 applies. Check both in the Twilio console.
+
+## ElevenLabs phone agent test line
+
+A third line where ElevenLabs runs the whole call (ElevenLabs Agents): listening, turn-taking,
+the model (Claude Haiku 4.5 by default, `ELEVENLABS_AGENT_LLM`) and the voice, with the salon's
+ElevenLabs voices from `CR_<LANG>_VOICE` and Eleven v4 Turbo for Cantonese. `src/eleven/` keeps the
+agent's settings in code: when the server starts it creates the agent named "CF Hair Salon phone
+agent (test)" in the ElevenLabs account, or updates it, so there is nothing to set up by hand in
+the ElevenLabs dashboard. Calls and their transcripts show in ElevenLabs under Agents.
+
+- `POST /eleven/twiml` (the Twilio number's webhook) looks up the caller (saved language, name,
+  visits) and today's openings, registers the call with ElevenLabs (`/v1/convai/twilio/register-call`),
+  and returns ElevenLabs' TwiML. Returning callers are greeted in their saved language and voice.
+- The agent's tools are webhooks to `POST /eleven/tools/<tool>`, which run the same booking code as
+  the main line against the website, so bookings land in the calendar and block the time. Each call
+  carries a per-call key; the agent sends a shared key (`x-cf-tool-key`) derived from
+  `TWILIO_AUTH_TOKEN`.
+- Not on this line yet: live transfer, the promotional text question, the Calls tab record, and the
+  server-side "no booking in the reply that asks" check (the prompt says it instead).
+
+Set up: the `ELEVENLABS_API_KEY` needs the **ElevenLabs Agents** permission (Write) as well as Text
+to Speech and Speech to Text. The startup log shows `[eleven] agent ready: agent_...` or why it
+failed. Then point a Twilio number's "A call comes in" to `https://<host>/eleven/twiml` (POST).
+`ELEVENLABS_AGENT=off` turns the line off. If ElevenLabs refuses the Cantonese language code
+(`ELEVENLABS_AGENT_CANTONESE`, default `yue`), the agent is saved without it and Cantonese callers
+get the Mandarin settings with the Cantonese voice.
 
 ## Promotional text opt-in
 
