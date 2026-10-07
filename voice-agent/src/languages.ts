@@ -119,6 +119,9 @@ export const ELEVENLABS_RELAY_LANGUAGES: Record<string, LanguageCode[]> = {
   // Flash v2.5 and Turbo v2.5 cover English, Mandarin and Korean, but not Cantonese (checked 2026-10-04).
   flash_v2_5: ["en-US", "zh-CN", "ko-KR"],
   turbo_v2_5: ["en-US", "zh-CN", "ko-KR"],
+  // Eleven v4 Turbo lists Cantonese. Twilio's docs do not list v4 models for ConversationRelay yet
+  // (checked 2026-10-07); "<voiceId>-v4_turbo" follows Twilio's pattern of the model id without "eleven_".
+  v4_turbo: ["en-US", "zh-CN", "zh-HK", "ko-KR"],
   flash_v2: ["en-US"],
   turbo_v2: ["en-US"],
 };

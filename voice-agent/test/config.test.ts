@@ -65,3 +65,13 @@ describe("per-language voice overrides", () => {
     expect(languageWarnings(forced, env).join(" ")).toMatch(/zh-HK voice .* looks like an ElevenLabs voice ID/);
   });
 });
+
+describe("Eleven v4 Turbo", () => {
+  it("passes the v4_turbo model through for Cantonese without a Cantonese warning", async () => {
+    const { relayLanguages, languageWarnings } = await import("../src/languages.js");
+    const env = { CR_ZH_HK_VOICE: "CCCCCCCCCCCCCCCCCCCC-v4_turbo" };
+    const langs = relayLanguages(env);
+    expect(langs["zh-HK"]).toMatchObject({ ttsProvider: "ElevenLabs", voice: "CCCCCCCCCCCCCCCCCCCC-v4_turbo" });
+    expect(languageWarnings(langs, env)).toEqual([]);
+  });
+});
