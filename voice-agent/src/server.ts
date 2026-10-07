@@ -10,9 +10,12 @@ import { DirectTts } from "./tts/direct.js";
 import { isLanguageCode, looksLikeElevenLabsVoice } from "./languages.js";
 import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, relayToken } from "./relay/twiml.js";
 import { normalizeLanguage } from "./languages.js";
+import { handleS2sSocket } from "./s2s/realtime.js";
+import { s2sTwiml } from "./s2s/twiml.js";
 
 export const RELAY_PATH = "/relay";
 export const LISTEN_PATH = "/listen";
+export const S2S_PATH = "/s2s/media";
 
 /** Last four digits only, so logs show which test phone called without storing full numbers. */
 function maskPhone(raw: unknown): string {
@@ -113,6 +116,29 @@ export function createServer(deps: SessionDeps) {
     );
   });
 
+  // Speech-to-speech test line (OpenAI Realtime): point a second Twilio number's "A call comes in"
+  // here to compare it with the main line. Off unless OPENAI_API_KEY is set.
+  app.post("/s2s/twiml", verify, async (req, res) => {
+    if (!cfg.openAiApiKey) {
+      console.warn("[s2s] a call came in, but OPENAI_API_KEY is not set");
+      res.type("text/xml").send(new twilio.twiml.VoiceResponse().say("This test line is not set up yet.").toString());
+      return;
+    }
+    const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
+    const callSid = String(req.body?.CallSid ?? "");
+    console.log(`[s2s call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}: opening in ${language}`);
+    res.type("text/xml").send(
+      s2sTwiml({
+        wsUrl: publicBase(cfg, req).replace(/^http/, "ws") + S2S_PATH,
+        token: tokenSecret ? relayToken(tokenSecret, callSid) : "dev",
+        from: req.body?.From ? String(req.body.From) : undefined,
+        to: req.body?.To ? String(req.body.To) : undefined,
+        startLanguage: language,
+        opening: known ? "returning" : "welcome",
+      }),
+    );
+  });
+
   // <Connect action>: called when the ConversationRelay session ends.
   app.post("/twiml/action", verify, (req, res) => {
     res.type("text/xml").send(
@@ -152,6 +178,10 @@ export function createServer(deps: SessionDeps) {
           scribe: { url: cfg.scribeRealtimeUrl, apiKey: cfg.elevenLabsApiKey },
         });
       });
+      return;
+    }
+    if (url.pathname === S2S_PATH && cfg.openAiApiKey) {
+      wss.handleUpgrade(req, socket, head, (ws) => void handleS2sSocket(ws, deps, { tokenSecret }));
       return;
     }
     if (url.pathname !== RELAY_PATH) {

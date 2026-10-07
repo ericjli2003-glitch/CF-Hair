@@ -15,6 +15,7 @@ the admin screen and the phone all see the same calendar.
 - [Architecture](#architecture)
 - [Languages and caller memory](#languages-and-caller-memory)
 - [Why Twilio ConversationRelay and not ElevenLabs?](#why-twilio-conversationrelay-and-not-elevenlabs)
+- [Speech-to-speech test line (OpenAI Realtime)](#speech-to-speech-test-line-openai-realtime)
 - [Promotional text opt-in](#promotional-text-opt-in)
 - [Calls tab](#calls-tab)
 - [Twilio setup, step by step](#twilio-setup-step-by-step)
@@ -194,7 +195,7 @@ on Mandarin versus Cantonese, the words decide. Needs `ELEVENLABS_API_KEY` (Spee
 permission); the log shows `language identified: yue in 1400ms`. Cost: about 0.39 US dollars per
 hour of audio, a few seconds per new caller. Privacy: those first seconds of audio go to ElevenLabs
 too; mention it in the privacy notice. If Scribe is slow or down, the keypad fallback below still
-applies.
+applies. Check both in the Twilio console.
 
 **Cantonese in Eleven v4 Turbo, spoken by ElevenLabs directly.** Twilio's ElevenLabs voices only
 run the flash and turbo v2 models, which do not list Cantonese, and a voice ending in `-v4_turbo`
@@ -394,6 +395,50 @@ clearly by ElevenLabs Agents. ElevenLabs Agents would fix first-call detection f
 Korean, at the cost of moving tool logic, caller memory and logging onto their platform and
 re-testing everything. Worth a spike after the meeting if the owner hears many first-time Mandarin or
 Korean callers.
+
+## Speech-to-speech test line (OpenAI Realtime)
+
+The main line chains three services: Twilio turns speech into text, Claude writes the reply, and a
+voice (Google or ElevenLabs) reads it out. A speech-to-speech model does all three in one: it hears
+the caller's audio and answers with audio. That removes two hand-offs, hears tone and accent
+directly, and usually answers sooner. The trade-offs: one voice per call (OpenAI's own voices, not
+the ElevenLabs Cantonese voice), less control over exact wording, and a higher price per minute.
+
+To compare them, `src/s2s/` runs a second phone line on OpenAI's Realtime API (`gpt-realtime-2.1`
+by default) beside the main one. It uses the same salon prompt, the same booking tools, the same
+caller memory and Calls tab, and the same rule that a reply asking "Men's cut at three, Eric?"
+cannot also book. Live transfer and the promotional text question are left out of the test line.
+
+How it works: `POST /s2s/twiml` answers with `<Connect><Stream>`, a two-way audio stream to
+`/s2s/media`. Caller audio (G.711 mu-law) goes to OpenAI unchanged and the model's audio comes back
+in the same format, so nothing is converted. OpenAI's voice detection decides when the caller has
+finished; if the caller talks over a reply, the audio still queued at Twilio is cleared and the
+model is told how much was heard. When the agent ends the call, the stream closes after the
+goodbye has played and Twilio hangs up.
+
+Set up (about ten minutes):
+1. platform.openai.com > API keys > create a key for a project with Realtime access.
+2. Render > cf-hair-voice > Environment > add `OPENAI_API_KEY` with that key. Never paste it in chat.
+3. Twilio console > a second phone number > Voice configuration > "A call comes in": Webhook,
+   `https://cf-hair-voice.onrender.com/s2s/twiml`, HTTP POST.
+4. Call each number with the same script and read the Render log lines:
+   - main line: `reply: first words after Xs, ...` (time from the transcript arriving to the first
+     words being sent to the voice; it does not include Twilio's own end-of-speech wait or the voice)
+   - test line: `reply: first audio Xs after the caller stopped talking (Ys after the turn was
+     detected)`, which includes the end-of-speech wait and the voice, so it is the stricter number.
+   The fairest check is by ear: the same questions on both lines, back to back.
+
+Settings: `OPENAI_REALTIME_MODEL` (`gpt-realtime-2.1`, or `gpt-realtime-2.1-mini` for faster and
+cheaper), `OPENAI_REALTIME_VOICE` (`marin` or `cedar` sound most natural), `OPENAI_REASONING_EFFORT`
+(`low`; `minimal` is faster, `off` sends none), `OPENAI_VAD_SILENCE_MS` (500; lower answers sooner
+but may cut in on slow speakers), `OPENAI_TRANSCRIBE_MODEL` (caller transcripts for the call log,
+`off` to skip).
+
+Price, roughly (third-party summaries of OpenAI's pricing, July 2026; confirm on OpenAI's pricing
+page): `gpt-realtime-2.1` audio is $32 per million input tokens and $64 per million output tokens,
+about $0.06 to $0.11 a minute once caching works, and the mini model about $0.02 to $0.05. Twilio's
+Media Streams minute is cheaper than ConversationRelay's, but Twilio's per-minute call price still
+applies. Check both in the Twilio console.
 
 ## Promotional text opt-in
 
@@ -688,6 +733,10 @@ Vitest suites, all offline (Claude is replaced by a scripted fake that streams w
   message id, spam, SMS answer only when asked), the summary fallback template, the retry queue
   (next call and startup), transfer results and merging the resumed session, and `POST /api/calls`
   over HTTP.
+- `test/s2s.test.ts`: the speech-to-speech test line against a stand-in OpenAI Realtime server and a
+  stand-in Twilio stream: TwiML, mu-law session settings and tools, the greeting, audio passed back
+  to Twilio, the "no booking in the reply that asks" rule, lookups followed by a spoken answer,
+  barge-in (clear and truncate), and hanging up after the goodbye with the call log written.
 - `test/chunker.test.ts`: sentence splitting (English, Chinese, Korean), interrupt matching, phone
   number and language code helpers.
 

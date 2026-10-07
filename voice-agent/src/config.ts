@@ -113,6 +113,17 @@ export interface AppConfig {
   /** On SIGTERM (a redeploy), how long live calls may continue before the process exits. */
   drainTimeoutMs: number;
   welcomeGreeting: string;
+  /** Speech-to-speech test line (src/s2s): OpenAI Realtime. Empty key turns /s2s/twiml off. */
+  openAiApiKey: string;
+  realtimeUrl: string;
+  realtimeModel: string;
+  realtimeVoice: string;
+  /** Reasoning effort for the gpt-realtime-2 family ("off" sends none). */
+  realtimeReasoning: string;
+  /** Silence that ends the caller's turn, in ms (OpenAI server VAD). */
+  realtimeSilenceMs: number;
+  /** Background transcription of the caller for the call log ("off" turns it off). */
+  realtimeTranscribeModel: string;
   /** Detect the caller's language from transcripts and switch automatically. */
   autoDetectLanguage: boolean;
   /** When the evidence is weak, ask one short question in all four languages. */
@@ -168,6 +179,13 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s && s !== "off"),
+    openAiApiKey: env("OPENAI_API_KEY"),
+    realtimeUrl: env("OPENAI_REALTIME_URL", "wss://api.openai.com/v1/realtime"),
+    realtimeModel: env("OPENAI_REALTIME_MODEL", "gpt-realtime-2.1"),
+    realtimeVoice: env("OPENAI_REALTIME_VOICE", "marin"),
+    realtimeReasoning: env("OPENAI_REASONING_EFFORT", "low"),
+    realtimeSilenceMs: envInt("OPENAI_VAD_SILENCE_MS", 500),
+    realtimeTranscribeModel: env("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
     welcomeGreeting: env(
       "WELCOME_GREETING",
       "Hi, CF Hair Salon.",
