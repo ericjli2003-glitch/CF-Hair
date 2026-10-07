@@ -72,6 +72,12 @@ describe("ElevenLabs phone agent line", () => {
     expect(create.body.name).toBe(AGENT_NAME);
     expect(cc.asr.user_input_audio_format).toBe("ulaw_8000");
     expect(cc.asr.keywords).toEqual(expect.arrayContaining(["men's cut", "Henderson Place"]));
+    // Salon words in Cantonese, Mandarin and Korean help recognition too.
+    expect(cc.asr.keywords).toEqual(expect.arrayContaining(["飛髮", "理发", "离子烫", "다운펌"]));
+    // The prompt tells the model how each service is asked for in every language.
+    expect(cc.agent.prompt.prompt).toContain("男士理发");
+    expect(cc.agent.prompt.prompt).toContain("負離子");
+    expect(cc.agent.prompt.prompt).toContain("남자 커트");
     expect(cc.tts.agent_output_audio_format).toBe("ulaw_8000");
     expect(cc.agent.prompt.llm).toBe("claude-haiku-4-5");
     expect(cc.agent.prompt.prompt).toContain("{{call_context}}");

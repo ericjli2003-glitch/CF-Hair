@@ -29,6 +29,13 @@ import { SPEECH_HINTS } from "../relay/twiml.js";
 export const AGENT_NAME = "CF Hair Salon phone agent (test)";
 
 const MODEL_FAST = "eleven_flash_v2_5";
+
+/** Salon words in Cantonese, Mandarin and Korean, to help speech recognition hear them right. */
+export const MULTILINGUAL_HINTS = [
+  "飛髮", "剪頭髮", "男士剪髮", "女士剪髮", "小朋友剪髮", "洗剪吹", "電髮", "負離子", "焗油", "補色", "染髮", "預約", "聽日", "有冇位",
+  "剪头发", "理发", "男士理发", "女士剪发", "儿童剪发", "烫发", "离子烫", "染发", "预约", "明天", "有没有位置",
+  "커트", "남자 커트", "여자 커트", "펌", "다운펌", "매직", "염색", "뿌리 염색", "클리닉", "예약", "내일",
+];
 const MODEL_CANTONESE = "eleven_v4_turbo";
 
 /** Tools the agent can call on this server. Transfers and the SMS question are left out of the test. */
@@ -125,7 +132,7 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
     name: AGENT_NAME,
     tags: ["cf-hair"],
     conversation_config: {
-      asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: SPEECH_HINTS.split(",").slice(0, 40) },
+      asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: [...SPEECH_HINTS.split(","), ...MULTILINGUAL_HINTS] },
       turn: { turn_timeout: 7, turn_eagerness: "eager", speculative_turn: true },
       tts: {
         model_id: MODEL_FAST,
