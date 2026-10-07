@@ -891,6 +891,13 @@ export class CallSession {
   private scheduleEndIfRequested(turn: Turn) {
     if (!this.pendingEnd && !this.pendingTransfer) return;
     const lang = this.deps.languages[this.language];
+    // A friendly run of goodbyes before hanging up ("Bye, bye, bye!", 拜拜，拜拜，拜拜！), as people do
+    // on the phone. Not for spam, technical failures or transfers.
+    const reason = this.pendingEnd?.reason ?? "";
+    if (this.pendingEnd && !this.pendingTransfer && reason !== "spam" && reason !== "technical_error") {
+      this.speak(turn, lang.byes, true);
+      this.log.say("agent", lang.byes, { lang: this.language });
+    }
     const speechMs = turn.chars * lang.msPerChar;
     const elapsed = turn.firstSentAt ? Date.now() - turn.firstSentAt : 0;
     const wait = Math.max(0, speechMs - elapsed) + this.deps.config.endCallGraceMs;

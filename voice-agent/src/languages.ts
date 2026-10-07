@@ -31,6 +31,8 @@ export interface RelayLanguage {
   continueOffer: string;
   /** Said when a live transfer was not answered and the call comes back to the agent. */
   transferFailed: string;
+  /** The friendly run of goodbyes added after the agent's own goodbye, as people do on the phone. */
+  byes: string;
   /** Said when the caller picks this language by keypad. */
   switchedConfirmation: string;
   /** This language's part of the four-language "which language?" question. */
@@ -51,6 +53,7 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     greeting: "Hi, CF Hair Salon.",
     continueOffer: "We can continue in English. How can I help?",
     transferFailed: "Sorry, no one could pick up. Can I take a message?",
+    byes: "Bye, bye, bye!",
     switchedConfirmation: "Sure, English. How can I help?",
     questionPart: "Which language? For English, press 1.",
     msPerChar: 65,
@@ -66,6 +69,7 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     greeting: "您好，CF Hair Salon。",
     continueOffer: "我们可以用普通话。有什么可以帮您？",
     transferFailed: "抱歉，同事暂时接不了。我帮您留言，要转达什么？",
+    byes: "拜拜，拜拜，拜拜！",
     switchedConfirmation: "好的，普通话。有什么可以帮您？",
     questionPart: "普通话请按2。",
     msPerChar: 230,
@@ -81,6 +85,7 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     greeting: "你好，CF Hair Salon。",
     continueOffer: "我哋可以講廣東話。有咩幫到你？",
     transferFailed: "唔好意思，同事暫時聽唔到。我幫你留言，想講咩？",
+    byes: "拜拜，拜拜，拜拜！",
     switchedConfirmation: "好呀，廣東話。有咩幫到你？",
     questionPart: "廣東話請按3。",
     msPerChar: 230,
@@ -96,6 +101,7 @@ const DEFAULTS: Record<LanguageCode, RelayLanguage> = {
     greeting: "안녕하세요, CF Hair Salon입니다.",
     continueOffer: "한국어로 도와드릴게요. 무엇을 도와드릴까요?",
     transferFailed: "죄송해요, 지금 받을 수 있는 직원이 없어요. 메시지 남겨 드릴게요. 뭐라고 전할까요?",
+    byes: "네, 네, 안녕히 계세요!",
     switchedConfirmation: "네, 한국어로 할게요. 무엇을 도와드릴까요?",
     questionPart: "한국어는 4번을 눌러 주세요.",
     msPerChar: 200,
