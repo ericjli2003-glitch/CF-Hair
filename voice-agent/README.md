@@ -179,6 +179,13 @@ by sound and context ("Amend" on a real test call meant "men's"), never to say "
 or repeat a question, and to check a guess inside the next question instead. The speech hints list
 salon phrases ("men's cut", "women's cut") to bias recognition toward them.
 
+**Never silent when the caller is not understood.** A new caller who answers the English greeting
+in Mandarin, Cantonese or Korean often gets no words back from the English recognizer at all (its
+automatic language detection does not cover Chinese or Korean). So if nothing understandable
+arrives within `SILENCE_NUDGE_MS` (5 s) after the greeting, or speech arrives with no words, the
+agent asks in all four languages with keypad options ("普通话请按2" and so on), at most twice per
+call. A keypad press switches voice and recognition at once and is remembered for the number.
+
 **No booking without the caller's answer.** If a reply asks the caller something ("Ten in the
 morning?") and also calls `book_appointment`, `reschedule_booking`, `cancel_booking`,
 `transfer_to_human` or `end_call`, the server refuses those tools, ends the reply on the question

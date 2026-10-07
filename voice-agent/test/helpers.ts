@@ -114,6 +114,7 @@ export function testDeps(opts: { llm?: LlmClient; api?: BookingApi; forward?: st
       twilioAuthToken: "test_auth_token",
       validateTwilioSignature: true,
       callbackOnAbandon: true,
+      silenceNudgeMs: 0, // off in tests unless a test turns it on
     },
   });
 }

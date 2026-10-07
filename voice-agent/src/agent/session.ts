@@ -138,6 +138,10 @@ export class CallSession {
   private pendingEnd: { reason: string } | null = null;
   private pendingTransfer: { reason: string; summary: string } | null = null;
   private endTimer: NodeJS.Timeout | null = null;
+  /** Fires when the caller has said nothing the phone could understand since the greeting. */
+  private silenceTimer: NodeJS.Timeout | null = null;
+  private heardCaller = false;
+  private nudges = 0;
   private callerUtterances = 0;
   private consecutiveErrors = 0;
   private spokenAfterGreeting: string | null = null;
@@ -183,6 +187,7 @@ export class CallSession {
   }
 
   private async doStart() {
+    this.armSilenceCheck(true);
     void this.deps.reporter?.flush(); // retry any Calls records queued while the website was down
     // Caller lookup and today's openings load together while the greeting plays.
     const serviceIds = this.deps.config.prefetchServiceIds;
@@ -253,7 +258,15 @@ export class CallSession {
    * transcription language, or the detected language when transcription runs in "multi" mode.
    */
   handlePrompt(text: string, providerLang: string | null = null): Promise<void> {
-    if (this.ended || !text.trim()) return Promise.resolve();
+    if (this.ended) return Promise.resolve();
+    if (!text.trim()) {
+      // Speech the recognizer could not turn into words, typically Chinese or Korean heard by the
+      // English recognizer. Never leave the caller in silence: ask, with keypad options.
+      if (!this.heardCaller) this.nudge("speech not recognized");
+      return Promise.resolve();
+    }
+    this.heardCaller = true;
+    this.clearSilenceCheck();
     if (this.activeTurn) this.interrupt(null); // caller spoke over a reply that had not started playing
     this.cancelPendingEnd();
     const run = async () => {
@@ -291,6 +304,8 @@ export class CallSession {
   /** Keypad press. 1 to 4 pick a language; anything else is passed to the model. */
   handleDtmf(digit: string): Promise<void> {
     if (this.ended) return Promise.resolve();
+    this.heardCaller = true;
+    this.clearSilenceCheck();
     const code = DTMF_LANGUAGES[digit];
     const run = async () => {
       await this.start();
@@ -336,6 +351,7 @@ export class CallSession {
     this.closed = true;
     this.activeTurn?.controller.abort();
     if (this.endTimer) clearTimeout(this.endTimer);
+    this.clearSilenceCheck();
     await this.chain.catch(() => {});
     const rec = this.log.record;
     rec.endedAt = new Date().toISOString();
@@ -473,6 +489,40 @@ export class CallSession {
     const text = parts.map((p) => p.t).join(" ");
     this.log.say("agent", text, { lang: "multi" });
     return text;
+  }
+
+  /**
+   * Silence after the greeting usually means the caller spoke Chinese or Korean and the English
+   * recognizer returned nothing. After `silenceNudgeMs` (plus the greeting's length), ask which
+   * language in all four, with keypad options; at most twice per call.
+   */
+  private armSilenceCheck(afterGreeting = false) {
+    this.clearSilenceCheck();
+    if (this.heardCaller || this.ended || this.nudges >= 2 || !this.deps.config.silenceNudgeMs) return;
+    const greetingMs = afterGreeting ? this.greeting.length * this.deps.languages[this.language].msPerChar : 0;
+    this.silenceTimer = setTimeout(() => this.nudge("no speech heard"), greetingMs + this.deps.config.silenceNudgeMs);
+    this.silenceTimer.unref?.();
+  }
+
+  private clearSilenceCheck() {
+    if (this.silenceTimer) clearTimeout(this.silenceTimer);
+    this.silenceTimer = null;
+  }
+
+  private nudge(reason: string) {
+    this.clearSilenceCheck();
+    if (this.heardCaller || this.ended || this.closed || this.nudges >= 2) return;
+    this.nudges++;
+    const run = async () => {
+      if (this.heardCaller || this.ended || this.activeTurn) return;
+      console.log(`[call ${this.init.callSid}] ${reason}: asking which language (${this.nudges} of 2)`);
+      this.log.say("system", `${reason}; asked which language`);
+      const question = this.speakLanguageQuestion(true);
+      this.messages.push({ role: "user", content: [{ type: "text", text: "(The caller spoke, but the phone could not make out the words, or said nothing.)" }] });
+      this.messages.push({ role: "assistant", content: [{ type: "text", text: question }] });
+      this.armSilenceCheck();
+    };
+    this.chain = this.chain.then(run, run);
   }
 
   /** Detector found weak signs of another language: ask, without a model call. */
