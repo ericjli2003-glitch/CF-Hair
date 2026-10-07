@@ -142,6 +142,8 @@ export class CallSession {
   private pendingEnd: { reason: string } | null = null;
   private pendingTransfer: { reason: string; summary: string } | null = null;
   private endTimer: NodeJS.Timeout | null = null;
+  /** After "bye bye": listening for the caller's goodbye, then saying it once more. */
+  private farewell: "none" | "listening" | "repeated" = "none";
   /** Fires when the caller has said nothing the phone could understand since the greeting. */
   private silenceTimer: NodeJS.Timeout | null = null;
   private heardCaller = false;
@@ -296,6 +298,11 @@ export class CallSession {
     }
     this.heardCaller = true;
     this.clearSilenceCheck();
+    // The caller says goodbye back after "bye bye": answer it once more and hang up, without a model call.
+    if (this.farewell !== "none" && isClosingWords(text)) {
+      this.sayByeAgain(text);
+      return Promise.resolve();
+    }
     if (this.activeTurn) this.interrupt(null); // caller spoke over a reply that had not started playing
     this.cancelPendingEnd();
     const run = async () => {
@@ -361,6 +368,8 @@ export class CallSession {
    * caller actually heard. `utterance` is ConversationRelay's utteranceUntilInterrupt.
    */
   interrupt(utterance: string | null) {
+    // Talking over "bye bye" does not stop the hang-up; what they said (the prompt) decides.
+    if (this.farewell !== "none") return;
     this.cancelPendingEnd();
     const turn = this.activeTurn ?? this.lastTurn;
     if (!turn || turn.trimmed) return;
@@ -916,43 +925,79 @@ export class CallSession {
     if (!this.ended) {
       this.pendingEnd = null;
       this.pendingTransfer = null;
+      this.farewell = "none";
     }
+  }
+
+  /** The caller's goodbye after ours: one more "bye bye", then hang up once it has played. */
+  private sayByeAgain(heard: string) {
+    this.log.say("caller", heard, { lang: this.language });
+    if (this.farewell === "repeated" || !this.endTimer) return;
+    this.farewell = "repeated";
+    const lang = this.deps.languages[this.language];
+    this.channel.sendText(lang.byes, true, this.language);
+    this.log.say("agent", lang.byes, { lang: this.language });
+    clearTimeout(this.endTimer);
+    this.endTimer = setTimeout(() => this.endNow(), lang.byes.length * lang.msPerChar + this.deps.config.endCallGraceMs);
   }
 
   private scheduleEndIfRequested(turn: Turn) {
     if (!this.pendingEnd && !this.pendingTransfer) return;
     const lang = this.deps.languages[this.language];
-    // A friendly run of goodbyes before hanging up ("Bye, bye, bye!", 拜拜，拜拜，拜拜！), as people do
-    // on the phone. Not for spam, technical failures or transfers.
+    // A friendly "bye bye" before hanging up (拜拜！), as people do on the phone, then a short pause
+    // for the caller's own goodbye (answered once more, see sayByeAgain). Not for spam, technical
+    // failures or transfers.
     const reason = this.pendingEnd?.reason ?? "";
-    if (this.pendingEnd && !this.pendingTransfer && reason !== "spam" && reason !== "technical_error") {
+    const friendly = !!this.pendingEnd && !this.pendingTransfer && reason !== "spam" && reason !== "technical_error";
+    if (friendly) {
       this.speak(turn, lang.byes, true);
       this.log.say("agent", lang.byes, { lang: this.language });
+      this.farewell = "listening";
     }
     const speechMs = turn.chars * lang.msPerChar;
     const elapsed = turn.firstSentAt ? Date.now() - turn.firstSentAt : 0;
-    const wait = Math.max(0, speechMs - elapsed) + this.deps.config.endCallGraceMs;
-    const doEnd = () => {
-      this.endTimer = null;
-      if (this.ended) return;
-      this.ended = true;
-      if (this.pendingTransfer) {
-        this.log.record.outcomes.push({ outcome: "transferred", at: new Date().toISOString(), detail: { ...this.pendingTransfer } });
-        this.log.record.endedBy = "transfer";
-        this.channel.end({
-          reasonCode: "live-agent-handoff",
-          reason: this.pendingTransfer.reason,
-          summary: this.pendingTransfer.summary,
-          callerPhone: this.caller?.phone ?? null,
-          language: this.language,
-        });
-      } else {
-        this.log.record.endedBy = "agent";
-        this.channel.end({ reasonCode: "end-call", reason: this.pendingEnd?.reason ?? "completed" });
-      }
-    };
-    this.endTimer = setTimeout(doEnd, wait);
+    const wait = Math.max(0, speechMs - elapsed) + (friendly ? Math.max(this.deps.config.byeListenMs, this.deps.config.endCallGraceMs) : this.deps.config.endCallGraceMs);
+    this.endTimer = setTimeout(() => this.endNow(), wait);
   }
+
+  private endNow() {
+    this.endTimer = null;
+    if (this.ended) return;
+    this.ended = true;
+    if (this.pendingTransfer) {
+      this.log.record.outcomes.push({ outcome: "transferred", at: new Date().toISOString(), detail: { ...this.pendingTransfer } });
+      this.log.record.endedBy = "transfer";
+      this.channel.end({
+        reasonCode: "live-agent-handoff",
+        reason: this.pendingTransfer.reason,
+        summary: this.pendingTransfer.summary,
+        callerPhone: this.caller?.phone ?? null,
+        language: this.language,
+      });
+    } else {
+      this.log.record.endedBy = "agent";
+      this.channel.end({ reasonCode: "end-call", reason: this.pendingEnd?.reason ?? "completed" });
+    }
+  }
+}
+
+/**
+ * A goodbye, thanks or OK and nothing more ("bye", "thank you, bye", "ok see you", 拜拜, 唔該, 감사합니다),
+ * as opposed to a new question that should get a real answer.
+ */
+export function isClosingWords(text: string): boolean {
+  const t = text.toLowerCase().trim();
+  if (!t || /[?？]/.test(t)) return false;
+  const cjk = t.replace(/[\s\p{P}\p{S}]/gu, "");
+  if (/[\p{Script=Han}\p{Script=Hangul}]/u.test(cjk)) {
+    const rest = cjk.replace(/拜拜|再见|再見|谢谢|謝謝|多谢|多謝|唔该|唔該|好的|好|嗯|ok|okay|bye|안녕히\s*계세요|안녕히|안녕|감사합니다|감사해요|고맙습니다|수고하세요|네|예/g, "");
+    return rest.length <= 1 && cjk.length <= 14;
+  }
+  const words = t.replace(/[^a-z\s']/g, " ").split(/\s+/).filter(Boolean);
+  const ok = new Set(
+    "bye goodbye byebye thanks thank you ok okay k alright all right see ya you too cool great perfect sounds good have a nice good day night cheers yep yes yeah sure take care then later talk soon so much very".split(" "),
+  );
+  return words.length > 0 && words.length <= 8 && words.every((w) => ok.has(w));
 }
 
 /** Drop fallback markers and pre-boundary blocks the API says not to echo back. */

@@ -109,6 +109,7 @@ export function testDeps(opts: { llm?: LlmClient; api?: BookingApi; forward?: st
       logDir: path.join(dir, "logs"),
       dataDir: path.join(dir, "data"),
       endCallGraceMs: 0,
+      byeListenMs: 0, // tests that need the listening pause set it
       salonForwardNumber: opts.forward ?? "",
       salonMainNumber: "",
       twilioAuthToken: "test_auth_token",

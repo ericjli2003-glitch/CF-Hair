@@ -110,7 +110,7 @@ describe("speech-to-speech test line", () => {
     expect(names).not.toContain("transfer_to_human");
     expect(names).not.toContain("ask_caller_language");
     expect(s.instructions).toContain("speech to speech");
-    expect(s.instructions).toContain("Bye, bye, bye!");
+    expect(s.instructions).toContain("Bye bye!");
     expect(oai.of("response.create")[0].response.instructions).toContain("Hi, CF Hair Salon.");
 
     call.media(20);
@@ -194,8 +194,8 @@ describe("speech-to-speech test line", () => {
     oai.send({ type: "response.output_audio_transcript.done", response_id: "r_greet", transcript: "Hi, CF Hair Salon." });
     oai.send({ type: "input_audio_buffer.speech_stopped", audio_end_ms: 0, item_id: "u1" });
     oai.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "Thanks, bye." });
-    oai.send({ type: "response.output_audio_transcript.delta", response_id: "r5", delta: "OK, see you. Bye, bye, bye!" });
-    oai.send({ type: "response.output_audio_transcript.done", response_id: "r5", transcript: "OK, see you. Bye, bye, bye!" });
+    oai.send({ type: "response.output_audio_transcript.delta", response_id: "r5", delta: "OK, see you. Bye bye!" });
+    oai.send({ type: "response.output_audio_transcript.done", response_id: "r5", transcript: "OK, see you. Bye bye!" });
     oai.send({ type: "response.function_call_arguments.done", response_id: "r5", call_id: "c3", name: "end_call", arguments: JSON.stringify({ reason: "completed" }) });
     oai.send({ type: "response.done", response: { id: "r5", status: "completed" } });
     await waitFor(() => call.got.some((m) => m.event === "mark" && m.mark.name === "end"));

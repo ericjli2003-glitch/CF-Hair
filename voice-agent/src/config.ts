@@ -85,6 +85,8 @@ export interface AppConfig {
   dataDir: string;
   callbackOnAbandon: boolean;
   endCallGraceMs: number;
+  /** After "bye bye", how long to listen for the caller's own goodbye before hanging up. */
+  byeListenMs: number;
   /** The online booking site the agent can point callers to, and how to say it on the phone. */
   bookingWebsite: string;
   bookingWebsiteSpoken: string;
@@ -163,6 +165,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     dataDir: env("DATA_DIR", path.resolve(PROJECT_ROOT, "data")),
     callbackOnAbandon: envBool("CALLBACK_ON_ABANDON", true),
     endCallGraceMs: envInt("END_CALL_GRACE_MS", 1200),
+    byeListenMs: envInt("BYE_LISTEN_MS", 2500),
     drainTimeoutMs: envInt("DRAIN_TIMEOUT_MS", 280_000),
     phoneSmsOptIn: envBool("PHONE_SMS_OPTIN", false),
     logTranscripts: envBool("LOG_TRANSCRIPTS", false),
