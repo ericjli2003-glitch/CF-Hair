@@ -90,7 +90,7 @@ describe("speech-to-speech test line", () => {
     expect(xml).toContain(`<Connect><Stream url="ws://127.0.0.1:${port}/s2s/media">`);
     expect(xml).toContain(`<Parameter name="token" value="${relayToken(AUTH, "CA_tw")}"/>`);
     expect(xml).toContain('<Parameter name="opening" value="welcome"/>');
-    expect(xml).toMatch(/<\/Connect><Hangup\/><\/Response>$/);
+    expect(xml).toMatch(/<\/Connect><Redirect method="POST">http:\/\/127\.0\.0\.1:\d+\/s2s\/after<\/Redirect><\/Response>$/);
   });
 
   it("sets up the session in mu-law with the booking tools and says the greeting", async () => {
@@ -292,5 +292,36 @@ describe("OpenAI workload identity", () => {
     const partial = new OpenAiAuth({ apiKey: "", identityProviderId: "idp", serviceAccountId: "", tokenFile: "", tokenUrl: "" });
     expect(partial.mode()).toBe("none");
     expect(partial.missing()).toEqual(["OPENAI_SERVICE_ACCOUNT_ID", "OPENAI_IDENTITY_TOKEN_FILE (set by Render)"]);
+  });
+});
+
+describe("when the speech-to-speech call fails", () => {
+  it("apologizes instead of hanging up in silence when the OpenAI login is refused", async () => {
+    const refused = http.createServer((_req, res) => {
+      res.statusCode = 401;
+      res.end(JSON.stringify({ error: "invalid_grant", error_description: "audience mismatch" }));
+    });
+    await new Promise<void>((r) => refused.listen(0, "127.0.0.1", () => r()));
+    closers.push(() => refused.close());
+    const oai = await fakeRealtime();
+    const { port } = await startServer(oai.url, {
+      openAiApiKey: "",
+      openAiIdentityProviderId: "idp_test",
+      openAiServiceAccountId: "user-svc",
+      openAiIdentityTokenFile: tokenFile("render.jwt"),
+      openAiTokenUrl: `http://127.0.0.1:${(refused.address() as AddressInfo).port}/oauth/token`,
+    });
+    const call = await twilioCall(port, "CA_fail");
+    await call.closed; // the stream is closed by the server
+    const url = `http://127.0.0.1:${port}/s2s/after`;
+    const post = (sid: string) =>
+      fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": twilio.getExpectedTwilioSignature(AUTH, url, { CallSid: sid }) },
+        body: new URLSearchParams({ CallSid: sid }),
+      }).then((r) => r.text());
+    expect(await post("CA_fail")).toContain("<Say>Sorry, this test line is not working right now.");
+    // A normal end just hangs up.
+    expect(await post("CA_other")).toBe('<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>');
   });
 });

@@ -78,6 +78,8 @@ export interface S2sOptions {
   auth: OpenAiAuth;
   /** For tests: how long to wait for the final playback mark before hanging up anyway. */
   hangupFallbackMs?: number;
+  /** Called when the call cannot go on (OpenAI login or session failed), so Twilio can apologize. */
+  onFailure?: (callSid: string) => void;
 }
 
 export function handleS2sSocket(twilioWs: WebSocket, deps: SessionDeps, opts: S2sOptions): RealtimeCall {
@@ -105,6 +107,9 @@ export class RealtimeCall {
   private audioMs = 0;
   private sent: SentChunk[] = [];
   private configured = false;
+  private failed = false;
+  /** Some model audio has been sent to the caller. */
+  private heardAudio = false;
   /** The first response is the greeting; its transcript was logged when it was requested. */
   private greetingResponseId: string | null = null;
   private closed = false;
@@ -146,7 +151,7 @@ export class RealtimeCall {
       bearer = await this.opts.auth.bearer();
     } catch (err) {
       this.tag(`OpenAI login failed: ${(err as Error).message}`, "error");
-      this.hangUp();
+      this.fail();
       return;
     }
     if (this.closed) return;
@@ -162,7 +167,7 @@ export class RealtimeCall {
     oai.on("close", (code, reason) => {
       if (!this.closed) {
         this.tag(`OpenAI closed the session (${code} ${reason.toString()})`, "error");
-        this.hangUp();
+        this.fail();
       }
     });
   }
@@ -248,6 +253,15 @@ export class RealtimeCall {
   }
 
   /** Ends the stream; Twilio then runs the next TwiML verb, <Hangup/>. */
+  /** The call cannot go on: Twilio apologizes (see /s2s/after) and hangs up. */
+  private fail() {
+    if (this.failed) return;
+    this.failed = true;
+    if (this.log) this.log.record.endedBy = "error";
+    this.opts.onFailure?.(this.callSid);
+    this.hangUp();
+  }
+
   private hangUp() {
     if (this.hangupTimer) clearTimeout(this.hangupTimer);
     this.hangupTimer = null;
@@ -374,6 +388,8 @@ export class RealtimeCall {
     switch (e.type) {
       case "error":
         this.tag(`OpenAI error: ${e.error?.code ?? ""} ${e.error?.message ?? ""} ${e.error?.param ? `(param ${e.error.param})` : ""}`.trim(), "error");
+        // Before any audio has played (bad settings, no credits) the caller would only hear silence.
+        if (!this.heardAudio) this.fail();
         return;
       case "response.created":
         this.greetingResponseId ??= e.response?.id ?? null;
@@ -408,6 +424,7 @@ export class RealtimeCall {
           this.lastAssistantItem = e.item_id;
           this.responseStartTs = this.latestMediaTs;
         }
+        this.heardAudio = true;
         this.sendTwilio({ event: "media", media: { payload: e.delta } });
         this.sendTwilio({ event: "mark", mark: { name: "audio" } });
         this.marksOutstanding++;

@@ -11,7 +11,7 @@ import { isLanguageCode, looksLikeElevenLabsVoice } from "./languages.js";
 import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, relayToken } from "./relay/twiml.js";
 import { normalizeLanguage } from "./languages.js";
 import { handleS2sSocket } from "./s2s/realtime.js";
-import { s2sTwiml } from "./s2s/twiml.js";
+import { s2sAfterTwiml, s2sTwiml } from "./s2s/twiml.js";
 import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
 
 export const RELAY_PATH = "/relay";
@@ -59,6 +59,8 @@ export function createServer(deps: SessionDeps) {
   const app = express();
   const registry = new CallRegistry();
   const openAi = openAiAuthFromConfig(cfg);
+  /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
+  const s2sFailed = new Map<string, number>();
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
   const directVoices = Object.fromEntries(
     cfg.directTtsLanguages
@@ -139,8 +141,16 @@ export function createServer(deps: SessionDeps) {
         to: req.body?.To ? String(req.body.To) : undefined,
         startLanguage: language,
         opening: known ? "returning" : "welcome",
+        afterUrl: `${publicBase(cfg, req)}/s2s/after`,
       }),
     );
+  });
+
+  // The stream ended: apologize if the call failed (OpenAI login or session), then hang up.
+  app.post("/s2s/after", verify, (req, res) => {
+    const callSid = String(req.body?.CallSid ?? "");
+    const failed = s2sFailed.delete(callSid);
+    res.type("text/xml").send(s2sAfterTwiml(failed));
   });
 
   // <Connect action>: called when the ConversationRelay session ends.
@@ -185,7 +195,15 @@ export function createServer(deps: SessionDeps) {
       return;
     }
     if (url.pathname === S2S_PATH && openAi.mode() !== "none") {
-      wss.handleUpgrade(req, socket, head, (ws) => void handleS2sSocket(ws, deps, { tokenSecret, auth: openAi }));
+      wss.handleUpgrade(req, socket, head, (ws) => void handleS2sSocket(ws, deps, {
+          tokenSecret,
+          auth: openAi,
+          onFailure: (sid) => {
+            const cutoff = Date.now() - 600_000;
+            for (const [k, t] of s2sFailed) if (t < cutoff) s2sFailed.delete(k);
+            if (sid) s2sFailed.set(sid, Date.now());
+          },
+        }));
       return;
     }
     if (url.pathname !== RELAY_PATH) {
