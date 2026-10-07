@@ -106,8 +106,8 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
     : { language: start, transcriptionProvider: sl.transcriptionProvider, speechModel: sl.speechModel };
   const cr = connect.conversationRelay({
     url: o.wsUrl,
-    welcomeGreeting: o.greeting,
-    welcomeGreetingInterruptible: "any",
+    // Empty when the greeting is played by the server instead (direct ElevenLabs speech).
+    ...(o.greeting ? { welcomeGreeting: o.greeting, welcomeGreetingInterruptible: "any" } : {}),
     interruptible: "any",
     ...languageAttrs,
     ttsProvider: sl.ttsProvider,
@@ -162,6 +162,8 @@ export function dialStatusTwiml(o: {
   dialCallStatus: string | undefined;
   /** The call's language before the transfer (from the ?lang= on the dial action URL). */
   language?: LanguageCode;
+  /** The server plays the greeting itself (direct ElevenLabs speech), so leave it out of the TwiML. */
+  greetingPlayedByServer?: boolean;
   relay: Omit<RelayTwimlOptions, "greeting" | "resume" | "startLanguage" | "opening">;
 }): string {
   if (o.dialCallStatus === "completed" || o.dialCallStatus === "answered") {
@@ -172,7 +174,7 @@ export function dialStatusTwiml(o: {
   const language = o.language ?? DEFAULT_LANGUAGE;
   return conversationRelayTwiml({
     ...o.relay,
-    greeting: o.relay.languages[language].transferFailed,
+    greeting: o.greetingPlayedByServer ? "" : o.relay.languages[language].transferFailed,
     startLanguage: language,
     opening: "transfer_failed",
     resume: "transfer_failed",

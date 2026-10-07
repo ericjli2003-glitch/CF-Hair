@@ -58,6 +58,10 @@ services:
       # their first sentence (Scribe v2 Realtime). Leave empty to turn it off.
       - key: ELEVENLABS_API_KEY
         sync: false
+      # Languages spoken by ElevenLabs directly with Eleven v4 Turbo, for example zh-HK (Cantonese).
+      # Needs CR_ZH_HK_VOICE set to an ElevenLabs voice id, and Text to Speech on the key above.
+      - key: ELEVENLABS_DIRECT_LANGUAGES
+        sync: false
       # The owner's mobile or a second line in E.164, never the salon's main number.
       # Leave empty to turn live transfers off (callers can still leave a message).
       - key: SALON_FORWARD_NUMBER

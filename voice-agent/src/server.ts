@@ -6,6 +6,8 @@ import type { AppConfig } from "./config.js";
 import type { SessionDeps } from "./agent/session.js";
 import { handleRelaySocket } from "./relay/handler.js";
 import { CallRegistry, handleListenSocket } from "./relay/listen.js";
+import { DirectTts } from "./tts/direct.js";
+import { isLanguageCode, looksLikeElevenLabsVoice } from "./languages.js";
 import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, relayToken } from "./relay/twiml.js";
 import { normalizeLanguage } from "./languages.js";
 
@@ -52,6 +54,17 @@ export function createServer(deps: SessionDeps) {
   const tokenSecret = cfg.validateTwilioSignature ? cfg.twilioAuthToken : "";
   const app = express();
   const registry = new CallRegistry();
+  // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
+  const directVoices = Object.fromEntries(
+    cfg.directTtsLanguages
+      .filter(isLanguageCode)
+      .map((code) => [code, deps.languages[code].voice.split("-")[0]])
+      .filter(([, id]) => looksLikeElevenLabsVoice(id)),
+  );
+  const directTts = new DirectTts({ apiKey: cfg.elevenLabsApiKey, apiBase: cfg.elevenLabsApiBase, model: cfg.directTtsModel, voices: directVoices });
+  for (const code of cfg.directTtsLanguages) {
+    if (!isLanguageCode(code) || !directTts.covers(code)) console.warn(`Warning: ELEVENLABS_DIRECT_LANGUAGES lists ${code}, but it needs ELEVENLABS_API_KEY and an ElevenLabs voice id in that language's CR_<LANG>_VOICE; using Twilio's voice.`);
+  }
   app.set("trust proxy", true);
   app.use(express.urlencoded({ extended: false }));
 
@@ -68,6 +81,9 @@ export function createServer(deps: SessionDeps) {
       forwardedFrom: req.body?.ForwardedFrom ? String(req.body.ForwardedFrom) : undefined,
     };
   };
+
+  // Direct ElevenLabs speech clips, fetched by Twilio for `play` messages. Ids are random and single use.
+  app.get("/tts/:id.mp3", (req, res) => void directTts.serve(req.params.id, res));
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true, model: cfg.anthropicModel, bookingApi: cfg.bookingApiUrl });
@@ -89,7 +105,8 @@ export function createServer(deps: SessionDeps) {
         // Every call that opens in English: a new caller, or a saved English caller who may answer in
         // Chinese or Korean. Calls opening in a saved Chinese or Korean language do not need it.
         listenUrl: language === "en-US" && cfg.elevenLabsApiKey ? publicBase(cfg, req).replace(/^http/, "ws") + LISTEN_PATH : undefined,
-        greeting: openingGreeting(opening, language, cfg.welcomeGreeting, deps.languages),
+        // A directly spoken greeting is played by the relay handler instead.
+        greeting: directTts.covers(language) ? "" : openingGreeting(opening, language, cfg.welcomeGreeting, deps.languages),
       }),
     );
   });
@@ -110,7 +127,14 @@ export function createServer(deps: SessionDeps) {
     // Calls tab: post the call again with how the transfer went.
     if (req.body?.CallSid) void deps.reporter?.transferResult(String(req.body.CallSid), req.body?.DialCallStatus);
     const language = normalizeLanguage(typeof req.query.lang === "string" ? req.query.lang : null) ?? undefined;
-    res.type("text/xml").send(dialStatusTwiml({ dialCallStatus: req.body?.DialCallStatus, language, relay: relayOpts(req) }));
+    res.type("text/xml").send(
+      dialStatusTwiml({
+        dialCallStatus: req.body?.DialCallStatus,
+        language,
+        greetingPlayedByServer: directTts.covers(language ?? "en-US"),
+        relay: relayOpts(req),
+      }),
+    );
   });
 
   const server = http.createServer(app);
@@ -138,6 +162,8 @@ export function createServer(deps: SessionDeps) {
         greeting: cfg.welcomeGreeting,
         languages: deps.languages,
         registry,
+        directTts,
+        ttsUrl: (id: string) => `${cfg.publicBaseUrl || `https://${req.headers.host}`}/tts/${id}.mp3`,
         onSessionClosed: (s, file) =>
           console.log(`[call ${s.init.callSid}] ended: ${s.log.record.outcome}${file ? ` (log ${file})` : ""}`),
       });

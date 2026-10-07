@@ -93,6 +93,11 @@ export interface AppConfig {
   /** ElevenLabs API key for Scribe language identification of new callers (empty turns it off). */
   elevenLabsApiKey: string;
   scribeRealtimeUrl: string;
+  /** Languages spoken with ElevenLabs directly instead of through Twilio (for example zh-HK). */
+  directTtsLanguages: string[];
+  /** ElevenLabs model for direct speech (Twilio does not accept v4 models). */
+  directTtsModel: string;
+  elevenLabsApiBase: string;
   /** Stop language identification after this long without a sentence. */
   languageIdMaxMs: number;
   /** Print what callers said and what the agent replied to the server log (testing only: it holds names). */
@@ -144,6 +149,12 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     silenceNudgeMs: envInt("SILENCE_NUDGE_MS", 5000),
     elevenLabsApiKey: env("LANGUAGE_ID", "on") === "off" ? "" : env("ELEVENLABS_API_KEY"),
     scribeRealtimeUrl: env("SCRIBE_REALTIME_URL", "wss://api.elevenlabs.io/v1/speech-to-text/realtime"),
+    directTtsLanguages: env("ELEVENLABS_DIRECT_LANGUAGES")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    directTtsModel: env("ELEVENLABS_DIRECT_MODEL", "eleven_v4_turbo"),
+    elevenLabsApiBase: env("ELEVENLABS_API_BASE", "https://api.elevenlabs.io").replace(/\/+$/, ""),
     languageIdMaxMs: envInt("LANGUAGE_ID_MAX_MS", 20_000),
     bookingWebsite: env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"),
     bookingWebsiteSpoken: env("BOOKING_WEBSITE_SPOKEN", spokenWebAddress(env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"))),

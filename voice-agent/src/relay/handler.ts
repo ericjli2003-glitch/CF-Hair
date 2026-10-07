@@ -3,6 +3,7 @@ import { CallSession, type CallChannel, type SessionDeps } from "../agent/sessio
 import { DEFAULT_LANGUAGE, isLanguageCode, type LanguageCode, type RelayLanguage } from "../languages.js";
 import { openingGreeting, verifyRelayToken, type OpeningKind } from "./twiml.js";
 import type { CallRegistry } from "./listen.js";
+import type { DirectTts } from "../tts/direct.js";
 
 /**
  * ConversationRelay WebSocket protocol.
@@ -38,6 +39,10 @@ export interface RelayOptions {
   languages: Record<LanguageCode, RelayLanguage>;
   /** Hands language identified from the call audio to the right session. */
   registry?: CallRegistry;
+  /** Languages spoken with ElevenLabs directly; their text becomes `play` messages. */
+  directTts?: DirectTts;
+  /** Public URL of a direct speech clip, for the `play` message. */
+  ttsUrl?: (id: string) => string;
   onSessionClosed?: (session: CallSession, logFile: string | null) => void;
 }
 
@@ -49,7 +54,14 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
   };
 
   const channel: CallChannel = {
-    sendText: (token: string, last: boolean, lang: LanguageCode) => send({ type: "text", token, last, lang }),
+    sendText: (token: string, last: boolean, lang: LanguageCode) => {
+      if (opts.directTts?.covers(lang) && opts.ttsUrl) {
+        // Spoken by ElevenLabs directly (for example Cantonese with Eleven v4 Turbo).
+        if (token.trim()) send({ type: "play", source: opts.ttsUrl(opts.directTts.prepare(token, lang)), interruptible: true, preemptible: false });
+        return;
+      }
+      send({ type: "text", token, last, lang });
+    },
     setLanguage: (code: LanguageCode) => send({ type: "language", ttsLanguage: code, transcriptionLanguage: code }),
     end: (handoffData: Record<string, unknown>) => send({ type: "end", handoffData: JSON.stringify(handoffData) }),
   };
@@ -89,6 +101,10 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
         );
         console.log(`[call ${callSid}] voice connected (${startLanguage})`);
         opts.registry?.attach(callSid, session);
+        // A greeting in a directly spoken language was left out of the TwiML: play it now.
+        if (opts.directTts?.covers(startLanguage)) {
+          channel.sendText(openingGreeting(opening, startLanguage, opts.greeting, opts.languages), true, startLanguage);
+        }
         // The full caller lookup (name, call count, consent) runs while Twilio plays the greeting.
         void session.start().catch((e) => console.error(`[relay] start failed: ${(e as Error).message}`));
         break;
@@ -99,7 +115,8 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
         void session?.handlePrompt(msg.voicePrompt ?? "", msg.lang ?? null);
         break;
       case "interrupt":
-        session?.interrupt(msg.utteranceUntilInterrupt ?? null);
+        // Twilio cannot say how much of a played clip was heard; treat it as heard.
+        session?.interrupt(session && opts.directTts?.covers(session.language) ? null : (msg.utteranceUntilInterrupt ?? null));
         break;
       case "dtmf":
         void session?.handleDtmf(String(msg.digit ?? ""));

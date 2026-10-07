@@ -196,6 +196,19 @@ hour of audio, a few seconds per new caller. Privacy: those first seconds of aud
 too; mention it in the privacy notice. If Scribe is slow or down, the keypad fallback below still
 applies.
 
+**Cantonese in Eleven v4 Turbo, spoken by ElevenLabs directly.** Twilio's ElevenLabs voices only
+run the flash and turbo v2 models, which do not list Cantonese, and a voice ending in `-v4_turbo`
+makes Twilio reject the call (tested 2026-10-07; the server now drops unsupported models). With
+`ELEVENLABS_DIRECT_LANGUAGES=zh-HK` (and an ElevenLabs voice id in `CR_ZH_HK_VOICE`), every
+Cantonese sentence the agent writes is sent to ElevenLabs straight away (`src/tts/direct.ts`:
+`eleven_v4_turbo`, `language_code` yue, mp3), and ConversationRelay gets a `play` message for
+`/tts/<id>.mp3` on this server, which streams the audio through as ElevenLabs makes it. Clips are
+random, single use and expire in two minutes. The greeting of a call that opens in Cantonese is
+played the same way (left out of the TwiML). Callers can still interrupt; an interrupted clip
+counts as heard. Expect a few hundred milliseconds more per Cantonese reply than Twilio's own
+voices. Needs `ELEVENLABS_API_KEY` with Text to Speech permission; Cantonese speech then uses the
+ElevenLabs account's credits. Remove the setting to go back to Twilio's voice.
+
 **Never silent when the caller is not understood.** A new caller who answers the English greeting
 in Mandarin, Cantonese or Korean often gets no words back from the English recognizer at all (its
 automatic language detection does not cover Chinese or Korean). So if nothing understandable
