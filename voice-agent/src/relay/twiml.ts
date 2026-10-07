@@ -73,6 +73,8 @@ export interface RelayTwimlOptions {
   opening?: OpeningKind;
   /** Twilio ForwardedFrom on the inbound call, passed through to the session for the transfer guard. */
   forwardedFrom?: string;
+  /** wss URL for a copy of the caller's audio (language identification); omitted when off. */
+  listenUrl?: string;
   /** "multi" starts transcription in Deepgram automatic language detection mode. */
   startTranscription?: "en-US" | "multi";
   startSpeechModel?: string;
@@ -84,6 +86,11 @@ export interface RelayTwimlOptions {
  */
 export function conversationRelayTwiml(o: RelayTwimlOptions): string {
   const vr = new VoiceResponse();
+  if (o.listenUrl) {
+    // A copy of the caller's audio for language identification; runs alongside ConversationRelay.
+    const stream = vr.start().stream({ url: o.listenUrl, track: "inbound_track" });
+    stream.parameter({ name: "token", value: o.token });
+  }
   const connect = vr.connect({ action: o.actionUrl, method: "POST" });
   const start = o.startLanguage ?? DEFAULT_LANGUAGE;
   const sl = o.languages[start];

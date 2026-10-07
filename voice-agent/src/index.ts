@@ -37,6 +37,7 @@ server.listen(cfg.port, () => {
     `  Languages: start transcription ${cfg.startTranscriptionLanguage}, auto-detect ${cfg.autoDetectLanguage ? "on" : "off"}, voices ${Object.values(deps.languages).map((l) => `${l.code}=${l.ttsProvider}`).join(" ")}`,
   );
   console.log(`  Booking API: ${useMock ? "built-in mock" : cfg.bookingApiUrl}`);
+  console.log(`  Language ID for new callers: ${cfg.elevenLabsApiKey ? "ElevenLabs Scribe" : "off (set ELEVENLABS_API_KEY)"}`);
   const transferIssue = transferBlockReason({ target: cfg.salonForwardNumber, mainNumber: cfg.salonMainNumber || deps.salon.phone });
   if (!cfg.salonForwardNumber) console.log("  Transfers: off (SALON_FORWARD_NUMBER not set); callers can leave a message");
   else if (transferIssue) console.warn(`Warning: transfers disabled. ${transferIssue} Set SALON_FORWARD_NUMBER to the owner's mobile or a second line.`);

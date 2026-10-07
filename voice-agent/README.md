@@ -179,6 +179,22 @@ by sound and context ("Amend" on a real test call meant "men's"), never to say "
 or repeat a question, and to check a guess inside the next question instead. The speech hints list
 salon phrases ("men's cut", "women's cut") to bias recognition toward them.
 
+**A new caller's language is identified from their first sentence.** ConversationRelay hears a
+call in one language, and its only automatic detection (Deepgram "multi") covers neither Chinese
+nor Korean, so the call has to start in English. For callers whose language is not saved yet, the
+TwiML also asks Twilio for a copy of the caller's audio (`<Start><Stream>` to `/listen`). The
+server forwards it to ElevenLabs Scribe v2 Realtime (`src/langid/scribe.ts`: mu-law 8 kHz,
+voice-activity commits, language detection on). When the first sentence comes back, for example
+`yue` with 你好，我想約聽日剪頭髮, the call switches to Cantonese (voice and recognition), that
+sentence is answered as if the caller had said it in Cantonese all along, the language is saved
+for the number, and the audio copy is dropped. Codes map as `eng` English (left to the call's own
+recognizer), `zho` Mandarin, `yue` Cantonese, `kor` Korean; when the code and the words disagree
+on Mandarin versus Cantonese, the words decide. Needs `ELEVENLABS_API_KEY` (Speech to Text
+permission); the log shows `language identified: yue in 1400ms`. Cost: about 0.39 US dollars per
+hour of audio, a few seconds per new caller. Privacy: those first seconds of audio go to ElevenLabs
+too; mention it in the privacy notice. If Scribe is slow or down, the keypad fallback below still
+applies.
+
 **Never silent when the caller is not understood.** A new caller who answers the English greeting
 in Mandarin, Cantonese or Korean often gets no words back from the English recognizer at all (its
 automatic language detection does not cover Chinese or Korean). So if nothing understandable

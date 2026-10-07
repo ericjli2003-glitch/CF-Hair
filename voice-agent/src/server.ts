@@ -5,10 +5,12 @@ import { WebSocketServer } from "ws";
 import type { AppConfig } from "./config.js";
 import type { SessionDeps } from "./agent/session.js";
 import { handleRelaySocket } from "./relay/handler.js";
+import { CallRegistry, handleListenSocket } from "./relay/listen.js";
 import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, relayToken } from "./relay/twiml.js";
 import { normalizeLanguage } from "./languages.js";
 
 export const RELAY_PATH = "/relay";
+export const LISTEN_PATH = "/listen";
 
 /** Last four digits only, so logs show which test phone called without storing full numbers. */
 function maskPhone(raw: unknown): string {
@@ -49,6 +51,7 @@ export function createServer(deps: SessionDeps) {
   const cfg = deps.config;
   const tokenSecret = cfg.validateTwilioSignature ? cfg.twilioAuthToken : "";
   const app = express();
+  const registry = new CallRegistry();
   app.set("trust proxy", true);
   app.use(express.urlencoded({ extended: false }));
 
@@ -83,6 +86,8 @@ export function createServer(deps: SessionDeps) {
         ...relayOpts(req),
         startLanguage: language,
         opening,
+        // Only callers whose language is unknown need it identified from their audio.
+        listenUrl: opening === "welcome" && cfg.elevenLabsApiKey ? publicBase(cfg, req).replace(/^http/, "ws") + LISTEN_PATH : undefined,
         greeting: openingGreeting(opening, language, cfg.welcomeGreeting, deps.languages),
       }),
     );
@@ -111,6 +116,17 @@ export function createServer(deps: SessionDeps) {
   const wss = new WebSocketServer({ noServer: true });
   server.on("upgrade", (req, socket, head) => {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (url.pathname === LISTEN_PATH && cfg.elevenLabsApiKey) {
+      wss.handleUpgrade(req, socket, head, (ws) => {
+        handleListenSocket(ws, {
+          tokenSecret,
+          registry,
+          maxMs: cfg.languageIdMaxMs,
+          scribe: { url: cfg.scribeRealtimeUrl, apiKey: cfg.elevenLabsApiKey },
+        });
+      });
+      return;
+    }
     if (url.pathname !== RELAY_PATH) {
       socket.destroy();
       return;
@@ -120,6 +136,7 @@ export function createServer(deps: SessionDeps) {
         tokenSecret,
         greeting: cfg.welcomeGreeting,
         languages: deps.languages,
+        registry,
         onSessionClosed: (s, file) =>
           console.log(`[call ${s.init.callSid}] ended: ${s.log.record.outcome}${file ? ` (log ${file})` : ""}`),
       });

@@ -2,6 +2,7 @@ import type { WebSocket } from "ws";
 import { CallSession, type CallChannel, type SessionDeps } from "../agent/session.js";
 import { DEFAULT_LANGUAGE, isLanguageCode, type LanguageCode, type RelayLanguage } from "../languages.js";
 import { openingGreeting, verifyRelayToken, type OpeningKind } from "./twiml.js";
+import type { CallRegistry } from "./listen.js";
 
 /**
  * ConversationRelay WebSocket protocol.
@@ -35,6 +36,8 @@ export interface RelayOptions {
   /** The general English welcome; the opening actually played is rebuilt from the setup parameters. */
   greeting: string;
   languages: Record<LanguageCode, RelayLanguage>;
+  /** Hands language identified from the call audio to the right session. */
+  registry?: CallRegistry;
   onSessionClosed?: (session: CallSession, logFile: string | null) => void;
 }
 
@@ -85,6 +88,7 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
           channel,
         );
         console.log(`[call ${callSid}] voice connected (${startLanguage})`);
+        opts.registry?.attach(callSid, session);
         // The full caller lookup (name, call count, consent) runs while Twilio plays the greeting.
         void session.start().catch((e) => console.error(`[relay] start failed: ${(e as Error).message}`));
         break;
@@ -111,6 +115,7 @@ export function handleRelaySocket(ws: WebSocket, deps: SessionDeps, opts: RelayO
 
   ws.on("close", async () => {
     if (!session) return;
+    opts.registry?.detach(session.init.callSid);
     const file = await session.close("caller");
     opts.onSessionClosed?.(session, file);
   });

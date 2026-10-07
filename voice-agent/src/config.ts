@@ -90,6 +90,11 @@ export interface AppConfig {
   bookingWebsiteSpoken: string;
   /** If the caller says nothing the phone can understand this long after the greeting, ask which language (0 turns it off). */
   silenceNudgeMs: number;
+  /** ElevenLabs API key for Scribe language identification of new callers (empty turns it off). */
+  elevenLabsApiKey: string;
+  scribeRealtimeUrl: string;
+  /** Stop language identification after this long without a sentence. */
+  languageIdMaxMs: number;
   /** Print what callers said and what the agent replied to the server log (testing only: it holds names). */
   logTranscripts: boolean;
   /** Ask the one promotional-text question after a phone booking. Off by default: it lengthens every call. */
@@ -137,6 +142,9 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     phoneSmsOptIn: envBool("PHONE_SMS_OPTIN", false),
     logTranscripts: envBool("LOG_TRANSCRIPTS", false),
     silenceNudgeMs: envInt("SILENCE_NUDGE_MS", 5000),
+    elevenLabsApiKey: env("LANGUAGE_ID", "on") === "off" ? "" : env("ELEVENLABS_API_KEY"),
+    scribeRealtimeUrl: env("SCRIBE_REALTIME_URL", "wss://api.elevenlabs.io/v1/speech-to-text/realtime"),
+    languageIdMaxMs: envInt("LANGUAGE_ID_MAX_MS", 20_000),
     bookingWebsite: env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"),
     bookingWebsiteSpoken: env("BOOKING_WEBSITE_SPOKEN", spokenWebAddress(env("BOOKING_WEBSITE", "cf-hair-salon.vercel.app"))),
     prefetchServiceIds: env("PREFETCH_SERVICES", "mens-cut,womens-cut,kids-cut")

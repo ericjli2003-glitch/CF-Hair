@@ -8,7 +8,7 @@ import type { SalonData } from "../salon.js";
 import { openStatus } from "../salon.js";
 import { ApiUnavailableError, type BookingApi } from "../api/types.js";
 import type { CallerInfo, CallerMemory } from "../callers.js";
-import { DEFAULT_LANGUAGE, DTMF_LANGUAGES, type LanguageCode, type RelayLanguage } from "../languages.js";
+import { DEFAULT_LANGUAGE, DTMF_LANGUAGES, normalizeLanguage, type LanguageCode, type RelayLanguage } from "../languages.js";
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { SentenceChunker } from "./chunker.js";
 import { CallLog } from "./calllog.js";
@@ -24,7 +24,8 @@ import {
 import { callContext, staticSystemPrompt } from "./prompt.js";
 import { TOOL_DEFINITIONS, ToolExecutor, type Outcome, type ToolHooks } from "./tools.js";
 import { smsOptInWording } from "./sms-optin.js";
-import { LanguageDetector, analyzeUtterance, languageEvidence } from "./langdetect.js";
+import { LanguageDetector, analyzeUtterance, chineseVariant, languageEvidence } from "./langdetect.js";
+import type { Detection } from "../langid/scribe.js";
 import type { CallReporter } from "../calls.js";
 import { DEFAULT_PREFETCH, prefetchOpenings } from "./prefetch.js";
 
@@ -489,6 +490,41 @@ export class CallSession {
     const text = parts.map((p) => p.t).join(" ");
     this.log.say("agent", text, { lang: "multi" });
     return text;
+  }
+
+  /**
+   * Language identified from the call audio (ElevenLabs Scribe, see langid/scribe.ts) for a caller
+   * whose language was not known. Switches voice and recognition, then answers the sentence Scribe
+   * heard, so a Mandarin or Cantonese caller never presses a key or repeats themselves.
+   * English is left to the call's own English recognizer.
+   */
+  applyDetection(d: Detection): Promise<void> {
+    const a = analyzeUtterance(d.text);
+    let lang = normalizeLanguage(d.languageCode);
+    if (!lang) lang = a.hangul > 0 ? "ko-KR" : a.han > 0 ? "zh-CN" : null;
+    // Mandarin and Cantonese share characters; the words decide when Scribe's code and the text disagree.
+    if (lang === "zh-CN" || lang === "zh-HK") lang = d.languageCode?.toLowerCase().startsWith("yue") ? "zh-HK" : chineseVariant(a, d.languageCode);
+    if (!lang || lang === "en-US" || !d.text.trim()) return Promise.resolve();
+    const target = lang;
+    const run = async () => {
+      await this.start();
+      if (this.ended || this.language !== DEFAULT_LANGUAGE || this.languageSource !== "default") return;
+      if (this.activeTurn) this.interrupt(null); // the English recognizer's guess at the same words
+      this.heardCaller = true;
+      this.clearSilenceCheck();
+      const { saved } = await this.switchLanguage(target, `language identified from audio: ${d.languageCode ?? "text"}`, "detected");
+      this.log.say("caller", d.text, { lang: target });
+      if (this.deps.config.logTranscripts) console.log(`[call ${this.init.callSid}] heard (${target}, from audio): "${d.text}"`);
+      this.log.say("system", `language identified from audio (${d.languageCode}); switched to ${target} (saved: ${saved})`);
+      const l = this.deps.languages[target];
+      await this.runTurn(
+        [{ type: "text", text: d.text }],
+        `Phone system note: the caller is speaking ${l.englishName}, so speech recognition and the voice are now ${target}. ` +
+          `Reply only in ${l.englishName} from now on. Do not call set_language for this.`,
+      );
+    };
+    this.chain = this.chain.then(run, run);
+    return this.chain;
   }
 
   /**
