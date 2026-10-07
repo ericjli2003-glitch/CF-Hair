@@ -125,7 +125,7 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
     name: AGENT_NAME,
     tags: ["cf-hair"],
     conversation_config: {
-      asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: SPEECH_HINTS.slice(0, 40) },
+      asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: SPEECH_HINTS.split(",").slice(0, 40) },
       turn: { turn_timeout: 7, turn_eagerness: "eager", speculative_turn: true },
       tts: {
         model_id: MODEL_FAST,
@@ -144,8 +144,12 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
           temperature: 0.3,
           tools: agentTools(opts),
           built_in_tools: {
-            end_call: { name: "end_call", description: "", params: { system_tool_type: "end_call" } },
-            language_detection: { name: "language_detection", description: "", params: { system_tool_type: "language_detection" } },
+            end_call: { name: "end_call", description: "End the call after the goodbye has been said.", params: { system_tool_type: "end_call" } },
+            language_detection: {
+              name: "language_detection",
+              description: "Switch to the language the caller is speaking: English, Mandarin, Cantonese or Korean.",
+              params: { system_tool_type: "language_detection" },
+            },
           },
         },
       },
@@ -191,7 +195,9 @@ export async function upsertAgent(deps: SessionDeps, opts: ElevenAgentOptions): 
     return await send(true);
   } catch (err) {
     // If ElevenLabs does not take the Cantonese language code, keep the rest working.
-    if ((err as { status?: number }).status && (err as { status: number }).status < 500 && opts.cantoneseCode) {
+    const status = (err as { status?: number }).status ?? 0;
+    const aboutLanguage = new RegExp(`language|"${opts.cantoneseCode}"`, "i").test((err as Error).message);
+    if (status >= 400 && status < 500 && opts.cantoneseCode && aboutLanguage) {
       console.warn(`[eleven] agent settings refused with Cantonese (${opts.cantoneseCode}); retrying without it: ${(err as Error).message}`);
       return send(false);
     }

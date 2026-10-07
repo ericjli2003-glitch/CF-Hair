@@ -71,6 +71,7 @@ describe("ElevenLabs phone agent line", () => {
     const cc = create.body.conversation_config;
     expect(create.body.name).toBe(AGENT_NAME);
     expect(cc.asr.user_input_audio_format).toBe("ulaw_8000");
+    expect(cc.asr.keywords).toEqual(expect.arrayContaining(["men's cut", "Henderson Place"]));
     expect(cc.tts.agent_output_audio_format).toBe("ulaw_8000");
     expect(cc.agent.prompt.llm).toBe("claude-haiku-4-5");
     expect(cc.agent.prompt.prompt).toContain("{{call_context}}");
