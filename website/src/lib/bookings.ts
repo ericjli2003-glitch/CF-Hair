@@ -14,6 +14,7 @@ import {
   type StaffLite,
 } from "./availability";
 import { upsertCustomer } from "./customers";
+import { timeOffBusy } from "./time-off";
 import { languageForSiteLang } from "./languages";
 import { toE164 } from "./phone";
 import { salon, SALON_TZ } from "./salon";
@@ -89,7 +90,8 @@ async function loadBusy(staffIds: string[], from: Date, to: Date): Promise<BusyB
     where: { staffId: { in: staffIds }, status: { not: "cancelled" }, start: { lt: to }, end: { gt: from } },
     select: { id: true, staffId: true, start: true, end: true },
   });
-  return rows;
+  // Time off counts as busy, so online booking and the phone agent never offer it.
+  return [...rows, ...(await timeOffBusy(staffIds, from, to))];
 }
 
 function dayBounds(dateKey: string): { from: Date; to: Date } {

@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { BookingView } from "@/lib/bookings";
+import type { TimeOffView } from "@/lib/time-off";
 import { dayLabel, hhmm, phonePretty, SOURCE_LABEL, STATUS_LABEL, STATUS_STYLES, time12 } from "@/lib/admin-format";
 import { rodTint } from "@/lib/rods";
 import { hhmmToMin, weekdayOf } from "@/lib/time";
 import { useModal } from "@/lib/use-modal";
 import { CloseIcon } from "./icons";
 import { StatusButtons } from "./StatusActions";
+import { min12, TimeDraftDialog, TimeOffDialog, type TimeDraft } from "./TimeDialogs";
 
 interface StaffInfo {
   id: string;
@@ -18,6 +20,16 @@ interface StaffInfo {
 }
 
 const ROW_PX = 22; // height of a 15-minute row
+/** Press and hold this long on a phone before dragging selects time (a quick swipe still scrolls). */
+const HOLD_MS = 350;
+
+interface Selecting {
+  key: string;
+  day: string;
+  staffId?: string;
+  anchor: number;
+  cur: number;
+}
 
 export function CalendarView(props: {
   view: "day" | "week";
@@ -33,12 +45,85 @@ export function CalendarView(props: {
   openBookingId?: string;
   /** Service id to category, so a block wears its category's rod colour. */
   categoryOf?: Record<string, string>;
+  timeOff?: TimeOffView[];
+  /** Opens the time-off dialog on load (the header's Time off button). */
+  openTimeOff?: boolean;
 }) {
   const { view, days, staff, bookings, dayStartMin, dayEndMin } = props;
   const [selected, setSelected] = useState<BookingView | null>(() => bookings.find((b) => b.id === props.openBookingId) ?? null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [showCancelled, setShowCancelled] = useState(false);
   const colorOf = useMemo(() => new Map(staff.map((s) => [s.id, s.color])), [staff]);
+  const timeOff = props.timeOff ?? [];
+  const [draft, setDraft] = useState<TimeDraft | null>(() =>
+    props.openTimeOff ? { day: days[0], startMin: Math.max(dayStartMin, Math.min(12 * 60, dayEndMin - 60)), endMin: Math.min(dayEndMin, Math.max(dayStartMin, 12 * 60) + 60), mode: "off" } : null,
+  );
+  const [offOpen, setOffOpen] = useState<TimeOffView | null>(null);
+
+  // Drag to pick time: mouse drags at once; on a phone, press and hold first so a swipe still scrolls.
+  const [sel, setSel] = useState<Selecting | null>(null);
+  const selRef = useRef<Selecting | null>(null);
+  const selEl = useRef<HTMLElement | null>(null);
+  const hold = useRef<{ timer: ReturnType<typeof setTimeout>; x: number; y: number } | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  const minAt = useCallback(
+    (el: HTMLElement, clientY: number) => {
+      const rows = (dayEndMin - dayStartMin) / 15;
+      const slot = Math.min(rows - 1, Math.max(0, Math.floor((clientY - el.getBoundingClientRect().top) / ROW_PX)));
+      return dayStartMin + slot * 15;
+    },
+    [dayStartMin, dayEndMin],
+  );
+  const begin = (el: HTMLElement, c: { key: string; day: string; staffId?: string }, min: number) => {
+    selEl.current = el;
+    selRef.current = { key: c.key, day: c.day, staffId: c.staffId, anchor: min, cur: min };
+    setSel(selRef.current);
+  };
+  const update = useCallback(
+    (clientY: number) => {
+      const s = selRef.current;
+      if (!s || !selEl.current) return;
+      const cur = minAt(selEl.current, clientY);
+      if (cur === s.cur) return;
+      selRef.current = { ...s, cur };
+      setSel(selRef.current);
+    },
+    [minAt],
+  );
+  const finish = useCallback(() => {
+    const s = selRef.current;
+    selRef.current = null;
+    selEl.current = null;
+    setSel(null);
+    if (!s) return;
+    const a = Math.min(s.anchor, s.cur);
+    // A click without dragging picks half an hour.
+    const b = s.anchor === s.cur ? Math.min(dayEndMin, a + 30) : Math.max(s.anchor, s.cur) + 15;
+    setDraft({ day: s.day, staffId: s.staffId, startMin: a, endMin: b });
+  }, [dayEndMin]);
+  const cancelHold = () => {
+    if (hold.current) clearTimeout(hold.current.timer);
+    hold.current = null;
+  };
+
+  // touchmove has to be non-passive to stop the page scrolling while a selection is being dragged.
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const onMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t) return;
+      if (selRef.current) {
+        e.preventDefault();
+        update(t.clientY);
+      } else if (hold.current && Math.hypot(t.clientX - hold.current.x, t.clientY - hold.current.y) > 10) {
+        cancelHold(); // a scroll, not a hold
+      }
+    };
+    el.addEventListener("touchmove", onMove, { passive: false });
+    return () => el.removeEventListener("touchmove", onMove);
+  }, [update]);
 
   const rows = (dayEndMin - dayStartMin) / 15;
   const height = rows * ROW_PX;
@@ -88,7 +173,11 @@ export function CalendarView(props: {
         </label>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl bg-paper ring-1 ring-line">
+      <p className="mt-3 text-sm text-ink-soft">
+        Drag across empty time to add a booking or time off. On a phone, press and hold, then drag.
+      </p>
+
+      <div className="mt-3 overflow-x-auto rounded-xl bg-paper ring-1 ring-line">
         <div className="min-w-[640px]">
           {/* Column headers */}
           <div className="sticky top-0 z-10 grid border-b border-line bg-paper" style={{ gridTemplateColumns: `64px repeat(${columns.length}, minmax(0, 1fr))` }}>
@@ -111,7 +200,7 @@ export function CalendarView(props: {
           </div>
 
           {/* Grid */}
-          <div className="relative grid pb-4" style={{ gridTemplateColumns: `64px repeat(${columns.length}, minmax(0, 1fr))`, height: height + 16 }}>
+          <div ref={gridRef} className="relative grid pb-4" style={{ gridTemplateColumns: `64px repeat(${columns.length}, minmax(0, 1fr))`, height: height + 16 }}>
             <div className="relative">
               {hours.map((m) => (
                 <span key={m} className={`absolute right-2 text-xs ${m === dayStartMin ? "translate-y-0.5" : "-translate-y-1/2"} tabular-nums text-mute`} style={{ top: ((m - dayStartMin) / 15) * ROW_PX }}>
@@ -146,8 +235,59 @@ export function CalendarView(props: {
                 }
               }
               const closed = props.closedDays.includes(weekdayOf(c.day));
+              const colOff = timeOff.filter(
+                (t) =>
+                  t.start.slice(0, 10) <= c.day &&
+                  t.end.slice(0, 10) >= c.day &&
+                  (t.staffId === null || view === "week" ? !(t.staffId && hidden.has(t.staffId)) : t.staffId === c.staffId),
+              );
+              const live = sel && sel.key === c.key ? { a: Math.min(sel.anchor, sel.cur), b: Math.max(sel.anchor, sel.cur) + 15 } : null;
               return (
-                <div key={c.key} className={`relative border-l border-line ${isToday && view === "week" ? "bg-tile/40" : ""} ${closed ? "bg-[repeating-linear-gradient(135deg,transparent,transparent_8px,rgba(0,0,0,0.025)_8px,rgba(0,0,0,0.025)_16px)]" : ""}`}>
+                <div
+                  key={c.key}
+                  className={`relative cursor-cell touch-manipulation select-none border-l border-line [-webkit-touch-callout:none] ${isToday && view === "week" ? "bg-tile/40" : ""} ${closed ? "bg-[repeating-linear-gradient(135deg,transparent,transparent_8px,rgba(0,0,0,0.025)_8px,rgba(0,0,0,0.025)_16px)]" : ""}`}
+                  onMouseDown={(e) => {
+                    if (e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
+                    e.preventDefault();
+                    const el = e.currentTarget;
+                    begin(el, c, minAt(el, e.clientY));
+                    const move = (ev: MouseEvent) => update(ev.clientY);
+                    const up = () => {
+                      window.removeEventListener("mousemove", move);
+                      window.removeEventListener("mouseup", up);
+                      finish();
+                    };
+                    window.addEventListener("mousemove", move);
+                    window.addEventListener("mouseup", up);
+                  }}
+                  onTouchStart={(e) => {
+                    if (e.touches.length !== 1 || (e.target as HTMLElement).closest("button")) return cancelHold();
+                    const t = e.touches[0];
+                    const el = e.currentTarget;
+                    cancelHold();
+                    hold.current = {
+                      x: t.clientX,
+                      y: t.clientY,
+                      timer: setTimeout(() => {
+                        hold.current = null;
+                        begin(el, c, minAt(el, t.clientY));
+                        navigator.vibrate?.(15);
+                      }, HOLD_MS),
+                    };
+                  }}
+                  onTouchEnd={() => {
+                    cancelHold();
+                    if (selRef.current) finish();
+                  }}
+                  onTouchCancel={() => {
+                    cancelHold();
+                    selRef.current = null;
+                    setSel(null);
+                  }}
+                  onContextMenu={(e) => {
+                    if (selRef.current || hold.current) e.preventDefault();
+                  }}
+                >
                   {Array.from({ length: rows }).map((_, i) => (
                     <div
                       key={i}
@@ -159,6 +299,43 @@ export function CalendarView(props: {
                     <div className="absolute inset-x-0 z-20 flex items-center" style={{ top: ((props.nowMin - dayStartMin) / 15) * ROW_PX }}>
                       <span className="-ml-1 h-2 w-2 rounded-full bg-primary" />
                       <span className="h-px flex-1 bg-primary" />
+                    </div>
+                  )}
+                  {colOff.map((t) => {
+                    const from = t.start.slice(0, 10) < c.day ? dayStartMin : hhmmToMin(hhmm(t.start));
+                    const to = t.end.slice(0, 10) > c.day ? dayEndMin : hhmmToMin(hhmm(t.end));
+                    const a = Math.max(from, dayStartMin);
+                    const b = Math.min(to, dayEndMin);
+                    if (b <= a) return null;
+                    const who = t.staffName ?? "Whole salon";
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setOffOpen(t)}
+                        aria-haspopup="dialog"
+                        aria-label={`Time off, ${who}, ${min12(a)} to ${min12(b)}${t.reason ? `, ${t.reason}` : ""}`}
+                        className="absolute inset-x-1 z-[5] overflow-hidden rounded-md px-2 py-1 text-left text-[0.8rem] leading-tight text-ink-soft ring-1 ring-line hover:ring-ink-soft"
+                        style={{
+                          top: ((a - dayStartMin) / 15) * ROW_PX + 1,
+                          height: Math.max(ROW_PX, ((b - a) / 15) * ROW_PX - 3),
+                          background:
+                            "repeating-linear-gradient(135deg, var(--color-tile), var(--color-tile) 6px, var(--color-paper) 6px, var(--color-paper) 12px)",
+                          borderLeft: t.staffId ? `4px solid ${colorOf.get(t.staffId) ?? "var(--color-ink-soft)"}` : undefined,
+                        }}
+                      >
+                        <span className="block truncate font-medium text-ink">{t.reason || "Time off"}</span>
+                        {(view === "week" || !t.staffId) && ((b - a) / 15) * ROW_PX > ROW_PX * 1.7 && <span className="block truncate">{who}</span>}
+                      </button>
+                    );
+                  })}
+                  {live && (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-x-1 z-40 rounded-md bg-primary/15 px-2 py-1 text-[0.8rem] font-medium text-primary ring-2 ring-primary"
+                      style={{ top: ((live.a - dayStartMin) / 15) * ROW_PX + 1, height: ((live.b - live.a) / 15) * ROW_PX - 2 }}
+                    >
+                      {min12(live.a)} to {min12(live.b)}
                     </div>
                   )}
                   {colBookings.map((b) => {
@@ -220,6 +397,17 @@ export function CalendarView(props: {
           </Link>
         </p>
       )}
+
+      {draft && (
+        <TimeDraftDialog
+          draft={draft}
+          staff={staff.map((s) => ({ id: s.id, name: s.name, color: s.color }))}
+          dayStartMin={dayStartMin}
+          dayEndMin={dayEndMin}
+          onClose={() => setDraft(null)}
+        />
+      )}
+      {offOpen && <TimeOffDialog item={offOpen} onClose={() => setOffOpen(null)} />}
 
       {selected && (
         <BookingDrawer

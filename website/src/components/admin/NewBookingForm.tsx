@@ -29,12 +29,20 @@ export function NewBookingForm({
   categories,
   initialDate,
   today,
+  initialStart = null,
+  initialStaffId,
+  initialMinutes,
 }: {
   services: CatalogService[];
   staff: CatalogStaff[];
   categories: string[];
   initialDate: string;
   today: string;
+  /** A start picked on the calendar; kept even when it is not one of the listed open times. */
+  initialStart?: string | null;
+  initialStaffId?: string;
+  /** Length picked on the calendar: the service closest to it is chosen. */
+  initialMinutes?: number;
 }) {
   const [source, setSource] = useState<"phone" | "walk-in" | "admin">("phone");
   const [phone, setPhone] = useState("");
@@ -42,11 +50,17 @@ export function NewBookingForm({
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [lookup, setLookup] = useState<{ phone: string; found: Found | null } | null>(null);
-  const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
-  const [staffId, setStaffId] = useState("any");
+  const [serviceId, setServiceId] = useState(() => {
+    const offered = initialStaffId ? services.filter((s) => staff.find((x) => x.id === initialStaffId)?.serviceIds.includes(s.id)) : services;
+    if (!initialMinutes || !offered.length) return offered[0]?.id ?? services[0]?.id ?? "";
+    return [...offered].sort((a, b) => Math.abs(a.durationMin - initialMinutes) - Math.abs(b.durationMin - initialMinutes))[0].id;
+  });
+  const [staffId, setStaffId] = useState(initialStaffId ?? "any");
   const [date, setDate] = useState(initialDate);
   const [slots, setSlots] = useState<Slot[] | null>(null);
-  const [start, setStart] = useState<string | null>(null);
+  const [start, setStart] = useState<string | null>(initialStart);
+  // The calendar-picked start survives loading the open times for its own day.
+  const [picked, setPicked] = useState<string | null>(initialStart);
   // Errors sit next to their field; "form" is for a failure that is not one field's.
   const [errors, setErrors] = useState<{ phone?: string; name?: string; time?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
@@ -92,19 +106,21 @@ export function NewBookingForm({
       .then((d) => {
         if (off) return;
         setSlots(d.slots ?? []);
-        setStart(null);
+        setStart((cur) => (cur && cur === picked && cur.slice(0, 10) === date ? cur : null));
       });
     return () => {
       off = true;
     };
-  }, [serviceId, staffId, date]);
+  }, [serviceId, staffId, date, picked]);
 
   function walkInNow() {
     const now = new Date();
     const rounded = new Date(Math.floor(now.getTime() / 900000) * 900000);
+    const now15 = toZonedISO(rounded, SALON_TZ);
     setSource("walk-in");
     setDate(today);
-    setStart(toZonedISO(rounded, SALON_TZ));
+    setPicked(now15);
+    setStart(now15);
   }
 
   async function submit(e: React.FormEvent) {
@@ -139,7 +155,7 @@ export function NewBookingForm({
       return;
     }
     if (res.status === 409) {
-      setErrors({ time: "That time was just taken. Pick another time." });
+      setErrors({ time: "That time is taken or blocked as time off. Pick another time." });
       document.getElementById("n-time-label")?.focus();
     } else setErrors({ form: `Could not create the booking. ${body.message ?? "Check the details and try again."}` });
   }
@@ -318,7 +334,10 @@ export function NewBookingForm({
           </span>
           {errText("n-time-err", errors.time)}
           {start && !slots?.some((s) => s.start === start) && (
-            <p className="mb-2 rounded-xl bg-tile px-3 py-2 text-sm text-ink">Walk-in starting {time12(start)}</p>
+            <p className="mb-2 rounded-xl bg-tile px-3 py-2 text-sm text-ink">
+              {source === "walk-in" ? "Walk-in starting" : "Starting"} {time12(start)}
+              {source !== "walk-in" && start === picked ? ", as picked on the calendar" : ""}
+            </p>
           )}
           <p role="status" className="sr-only">
             {slots === null ? "Loading open times" : `${slots.length} open time${slots.length === 1 ? "" : "s"}`}
@@ -339,6 +358,7 @@ export function NewBookingForm({
                   type="button"
                   onClick={() => {
                     setStart(s.start);
+                    setPicked(null);
                     if (errors.time) setErrors((x) => ({ ...x, time: undefined }));
                   }}
                   aria-pressed={start === s.start}

@@ -36,6 +36,7 @@ model Staff {
   services  StaffService[]
   bookings  Booking[]
   locks     SlotLock[]
+  timeOff   TimeOff[]
 }
 
 model StaffService {
@@ -119,6 +120,21 @@ model SlotLock {
 
   @@id([staffId, slotStart])
   @@index([bookingId])
+}
+
+// Time a stylist is out (lunch, a holiday, an appointment), or, with no staffId, the whole
+// salon. Online booking and the phone agent treat it as busy, like a booking.
+model TimeOff {
+  id        String   @id @default(cuid())
+  staffId   String?
+  start     DateTime
+  end       DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+  staff     Staff?   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([start])
+  @@index([staffId, start])
 }
 
 model Message {

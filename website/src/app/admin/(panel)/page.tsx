@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarView } from "@/components/admin/CalendarView";
 import { ChevronIcon } from "@/components/admin/icons";
 import { listBookings } from "@/lib/bookings";
+import { listTimeOff } from "@/lib/time-off";
 import { prisma } from "@/lib/db";
 import { dayLabel, staffColor } from "@/lib/admin-format";
 import { DAY_KEYS, salon, SALON_TZ } from "@/lib/salon";
@@ -14,16 +15,17 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
   const today = dateKeyOf(new Date(), SALON_TZ);
   const view = sp.view === "week" ? "week" : "day";
   const date = typeof sp.date === "string" && isDateKey(sp.date) ? sp.date : today;
-  // Weeks start on Monday.
-  const weekStart = addDays(date, -((DAY_KEYS.indexOf(weekdayOf(date)) + 7) % 7));
+  const mondayOf = (d: string) => addDays(d, -DAY_KEYS.indexOf(weekdayOf(d))); // weeks start on Monday
+  const weekStart = mondayOf(date);
   const from = view === "week" ? weekStart : date;
   const to = addDays(from, view === "week" ? 7 : 1);
 
-  const [bookings, staffRows, newMessages, serviceRows] = await Promise.all([
+  const [bookings, staffRows, newMessages, serviceRows, timeOff] = await Promise.all([
     listBookings(zonedTime(from, 0, SALON_TZ), zonedTime(to, 0, SALON_TZ)),
     prisma.staff.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
     prisma.message.count({ where: { status: "new" } }),
     prisma.service.findMany({ select: { id: true, category: true } }),
+    listTimeOff(zonedTime(from, 0, SALON_TZ), zonedTime(to, 0, SALON_TZ)),
   ]);
   const categoryOf = Object.fromEntries(serviceRows.map((s) => [s.id, s.category]));
   const staff = staffRows.map((s, i) => ({ id: s.id, name: s.name, role: s.role, color: staffColor(i) }));
@@ -39,12 +41,28 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
   const prev = addDays(date, view === "week" ? -7 : -1);
   const next = addDays(date, view === "week" ? 7 : 1);
   const q = (d: string, v = view) => `/admin?view=${v}&date=${d}`;
+  // Where the page is relative to today, so it is never unclear whether this is today.
+  const onToday = view === "week" ? weekStart === mondayOf(today) : date === today;
+  const relative = (() => {
+    if (view === "week") {
+      const weeks = Math.round(daysBetween(mondayOf(today), weekStart) / 7);
+      if (weeks === 0) return "This week";
+      if (weeks === 1) return "Next week";
+      if (weeks === -1) return "Last week";
+      return weeks > 0 ? `In ${weeks} weeks` : `${-weeks} weeks ago`;
+    }
+    const n = daysBetween(today, date);
+    if (n === 0) return "Today";
+    if (n === 1) return "Tomorrow";
+    if (n === -1) return "Yesterday";
+    return n > 0 ? `In ${n} days` : `${-n} days ago`;
+  })();
 
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[0.95rem] text-ink-soft">{view === "week" ? "Week" : date === today ? "Today" : "Schedule"}</p>
+          <p className={`text-[0.95rem] ${onToday ? "font-medium text-primary" : "text-ink-soft"}`}>{relative}</p>
           <h1 className="display mt-1 text-[2.4rem] leading-none sm:text-[2.8rem]">
             {view === "week"
               ? `${dayLabel(from, { month: "short", day: "numeric" })} to ${dayLabel(addDays(to, -1), { month: "short", day: "numeric" })}`
@@ -68,13 +86,26 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
             <Link href={q(prev)} className="grid h-11 w-11 place-items-center rounded-md hover:bg-tile" aria-label={view === "week" ? "Previous week" : "Previous day"}>
               <ChevronIcon dir="left" />
             </Link>
-            <Link href={q(today)} className="inline-flex min-h-11 items-center justify-center rounded-md px-3 text-[0.95rem] hover:bg-tile">
-              Today
-            </Link>
+            {onToday ? (
+              <span aria-current="date" className="inline-flex min-h-11 items-center justify-center rounded-md bg-tile px-3 text-[0.95rem] font-medium">
+                {view === "week" ? "This week" : "Today"}
+              </span>
+            ) : (
+              <Link
+                href={q(today)}
+                title={`Go to today, ${dayLabel(today, { weekday: "long", month: "long", day: "numeric" })}`}
+                className="inline-flex min-h-11 items-center justify-center rounded-md px-3 text-[0.95rem] text-primary underline-offset-4 hover:bg-tile hover:underline"
+              >
+                Back to today
+              </Link>
+            )}
             <Link href={q(next)} className="grid h-11 w-11 place-items-center rounded-md hover:bg-tile" aria-label={view === "week" ? "Next week" : "Next day"}>
               <ChevronIcon dir="right" />
             </Link>
           </div>
+          <Link href={`${q(date)}&timeoff=1`} scroll={false} className="btn-ghost">
+            Time off
+          </Link>
           <Link href={`/admin/new?date=${date}`} className="btn-primary">
             New booking
           </Link>
@@ -109,9 +140,16 @@ export default async function SchedulePage(props: PageProps<"/admin">) {
         dayEndMin={dayEndMin}
         closedDays={DAY_KEYS.filter((d) => !salon.hours[d])}
         openBookingId={typeof sp.booking === "string" ? sp.booking : undefined}
+        timeOff={timeOff}
+        openTimeOff={sp.timeoff === "1"}
+        key={sp.timeoff === "1" ? "timeoff" : "calendar"}
       />
     </div>
   );
+}
+
+function daysBetween(a: string, b: string): number {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86400000);
 }
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {

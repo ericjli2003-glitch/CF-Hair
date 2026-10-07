@@ -4,7 +4,7 @@ Next.js (App Router, TypeScript, Tailwind v4) with Prisma. SQLite for local deve
 
 - Public site: home, services and pricing, team, visit and contact, online booking with "Add to calendar" (.ics).
 - Languages: English, 简体中文, 繁體中文 for Cantonese-speaking (Hong Kong) clients and 한국어 (toggle `EN | 简体 | 繁體 | 한국어` in the header, remembered in a cookie; site codes `en`, `zh`, `hk`, `ko`).
-- Owner admin at `/admin`: day and week schedule by stylist, bookings list with status changes, walk-in and phone bookings, callback messages, client list with visit counts, language and referral editing, CSV export.
+- Owner admin at `/admin`: day and week schedule by stylist (drag across empty time, or press and hold then drag on a phone, to start a booking with that time and stylist filled in, or to block time off for one stylist or the whole salon), bookings list with status changes, walk-in and phone bookings, callback messages, client list with visit counts, language and referral editing, CSV export.
 - Calls tab: every call the phone receptionist answered, with outcome, language, summary and the transcript in chat form, linked to the booking, message and client. See [Calls and cards](#calls-and-handwritten-cards).
 - Cards tab: the approval queue for handwritten cards from the notes pipeline, with inline edits, a monthly limit and the cost. Nothing is mailed until the owner approves it.
 - Promotional texts (Promotions tab): CASL consent records, campaign composer in four languages with live preview and cost, audience builder, quiet hours, frequency cap, STOP handling, results with booking attribution. Works offline in an outbox mode for demos. See [Promotional texts](#promotional-texts-sms-campaigns).
@@ -144,6 +144,9 @@ All endpoints in the contract are implemented. Times are ISO 8601 with the `Amer
 | GET | `/api/bookings/lookup?phone=` | (agent) Returns `{phone, customer, bookings: [booking]}` with upcoming confirmed bookings |
 | POST | `/api/bookings/{id}/cancel` | (agent) `{booking}`; `409 NOT_CANCELLABLE` for completed or no-show |
 | POST | `/api/bookings/{id}/reschedule` | (agent) `{start, staffId?}`; keeps the same stylist when free |
+| GET | `/api/time-off?from&to` | (admin) time off overlapping the dates; online booking and the phone agent treat it as busy |
+| POST | `/api/time-off` | (admin) `{start, end, staffId?, reason?}`; no staffId blocks the whole salon; returns how many bookings already fall in it |
+| DELETE | `/api/time-off/{id}` | (admin) remove time off |
 | POST | `/api/messages` | (agent) Callback request; shows in the admin Messages inbox |
 | GET | `/api/customers?since=&tag=&phone=&q=` | (admin) See fields below |
 | GET, PUT | `/api/callers/{phone}` | (agent) Caller profile and remembered language; unknown numbers return a default |
