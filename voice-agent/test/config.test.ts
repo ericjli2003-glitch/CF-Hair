@@ -66,12 +66,12 @@ describe("per-language voice overrides", () => {
   });
 });
 
-describe("Eleven v4 Turbo", () => {
-  it("passes the v4_turbo model through for Cantonese without a Cantonese warning", async () => {
-    const { relayLanguages, languageWarnings } = await import("../src/languages.js");
-    const env = { CR_ZH_HK_VOICE: "CCCCCCCCCCCCCCCCCCCC-v4_turbo" };
-    const langs = relayLanguages(env);
-    expect(langs["zh-HK"]).toMatchObject({ ttsProvider: "ElevenLabs", voice: "CCCCCCCCCCCCCCCCCCCC-v4_turbo" });
-    expect(languageWarnings(langs, env)).toEqual([]);
+describe("ElevenLabs models Twilio does not accept", () => {
+  it("drops an unsupported model such as v4_turbo instead of failing every call", async () => {
+    const { relayLanguages } = await import("../src/languages.js");
+    expect(relayLanguages({ CR_ZH_HK_VOICE: "CCCCCCCCCCCCCCCCCCCC-v4_turbo" })["zh-HK"]).toMatchObject({ ttsProvider: "ElevenLabs", voice: "CCCCCCCCCCCCCCCCCCCC" });
+    expect(relayLanguages({ CR_ZH_HK_VOICE: "CCCCCCCCCCCCCCCCCCCC-turbo_v2_5-1.0_0.5_0.8" })["zh-HK"].voice).toBe("CCCCCCCCCCCCCCCCCCCC-turbo_v2_5-1.0_0.5_0.8");
+    const all = relayLanguages({ CR_TTS_PROVIDER: "ElevenLabs", CR_ELEVENLABS_VOICE: "AAAAAAAAAAAAAAAAAAAA", CR_ELEVENLABS_MODEL: "v4_turbo" });
+    expect(all["en-US"].voice).toBe("AAAAAAAAAAAAAAAAAAAA");
   });
 });

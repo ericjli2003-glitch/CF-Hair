@@ -110,6 +110,15 @@ export function looksLikeElevenLabsVoice(voice: string): boolean {
   return /^[A-Za-z0-9]{20}(-|$)/.test(voice) && !/^[a-z]{2,3}-[A-Z]{2}-/.test(voice);
 }
 
+/** "<id>-<model>[-<settings>]" with a model Twilio does not offer becomes "<id>" (default model), with a warning. */
+export function supportedElevenLabsVoice(voice: string, code: string): string {
+  const [id, model, ...rest] = voice.split("-");
+  if (!model || ELEVENLABS_RELAY_LANGUAGES[model]) return voice;
+  console.warn(`Warning: ${code} voice uses ElevenLabs model "${model}", which Twilio ConversationRelay does not accept; using ${id} with flash_v2_5 so calls keep working.`);
+  void rest;
+  return id;
+}
+
 function envKey(code: LanguageCode, field: string): string {
   return `CR_${code.replace("-", "_").toUpperCase()}_${field}`;
 }
@@ -119,9 +128,6 @@ export const ELEVENLABS_RELAY_LANGUAGES: Record<string, LanguageCode[]> = {
   // Flash v2.5 and Turbo v2.5 cover English, Mandarin and Korean, but not Cantonese (checked 2026-10-04).
   flash_v2_5: ["en-US", "zh-CN", "ko-KR"],
   turbo_v2_5: ["en-US", "zh-CN", "ko-KR"],
-  // Eleven v4 Turbo lists Cantonese. Twilio's docs do not list v4 models for ConversationRelay yet
-  // (checked 2026-10-07); "<voiceId>-v4_turbo" follows Twilio's pattern of the model id without "eleven_".
-  v4_turbo: ["en-US", "zh-CN", "zh-HK", "ko-KR"],
   flash_v2: ["en-US"],
   turbo_v2: ["en-US"],
 };
@@ -144,11 +150,18 @@ export function relayLanguages(env: NodeJS.ProcessEnv = process.env): Record<Lan
     const d = DEFAULTS[code];
     let ttsProvider = d.ttsProvider;
     let voice = d.voice;
-    if (/^elevenlabs$/i.test(global) && elVoice && (ELEVENLABS_RELAY_LANGUAGES[elModel] ?? []).includes(code)) {
-      ttsProvider = "ElevenLabs";
-      voice = elModel === "flash_v2_5" || elVoice.includes("-") ? elVoice : `${elVoice}-${elModel}`;
+    if (/^elevenlabs$/i.test(global) && elVoice && !ELEVENLABS_RELAY_LANGUAGES[elModel]) {
+      console.warn(`Warning: CR_ELEVENLABS_MODEL=${elModel} is not a model Twilio ConversationRelay accepts (${Object.keys(ELEVENLABS_RELAY_LANGUAGES).join(", ")}); using flash_v2_5.`);
     }
-    const voiceOverride = env[envKey(code, "VOICE")];
+    const model = ELEVENLABS_RELAY_LANGUAGES[elModel] ? elModel : "flash_v2_5";
+    if (/^elevenlabs$/i.test(global) && elVoice && (ELEVENLABS_RELAY_LANGUAGES[model] ?? []).includes(code)) {
+      ttsProvider = "ElevenLabs";
+      voice = model === "flash_v2_5" || elVoice.includes("-") ? supportedElevenLabsVoice(elVoice, code) : `${elVoice}-${model}`;
+    }
+    let voiceOverride = env[envKey(code, "VOICE")];
+    // Twilio rejects the whole call when any declared voice names a model it does not offer (a test
+    // with "-v4_turbo" did, 2026-10-07), so keep only models ConversationRelay accepts.
+    if (voiceOverride && looksLikeElevenLabsVoice(voiceOverride)) voiceOverride = supportedElevenLabsVoice(voiceOverride, code);
     // A per-language ElevenLabs voice ID with no per-language provider would otherwise be sent to
     // Google, which Twilio rejects for the whole call. Infer the provider from the ID instead.
     if (voiceOverride && !env[envKey(code, "TTS_PROVIDER")] && looksLikeElevenLabsVoice(voiceOverride)) ttsProvider = "ElevenLabs";
