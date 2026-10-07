@@ -63,8 +63,11 @@ services:
       - key: ELEVENLABS_DIRECT_LANGUAGES
         sync: false
       # Speech-to-speech test line (OpenAI Realtime) on a second Twilio number, webhook /s2s/twiml.
-      # Leave empty to turn it off.
-      - key: OPENAI_API_KEY
+      # OpenAI login without a key: Render's managed OIDC sets OPENAI_IDENTITY_TOKEN_FILE once these
+      # two are present (README, "Speech-to-speech test line"). Leave all empty to turn the line off.
+      - key: OPENAI_IDENTITY_PROVIDER_ID
+        sync: false
+      - key: OPENAI_SERVICE_ACCOUNT_ID
         sync: false
       # The owner's mobile or a second line in E.164, never the salon's main number.
       # Leave empty to turn live transfers off (callers can still leave a message).

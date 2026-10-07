@@ -12,6 +12,7 @@ import { ApiUnavailableError } from "../api/types.js";
 import { DEFAULT_LANGUAGE, normalizeLanguage, type LanguageCode } from "../languages.js";
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
+import type { OpenAiAuth } from "./openai-auth.js";
 
 /**
  * Speech-to-speech test line: the caller's audio goes straight to OpenAI's Realtime API, which
@@ -74,6 +75,7 @@ interface ResponseState {
 
 export interface S2sOptions {
   tokenSecret: string;
+  auth: OpenAiAuth;
   /** For tests: how long to wait for the final playback mark before hanging up anyway. */
   hangupFallbackMs?: number;
 }
@@ -85,8 +87,10 @@ export function handleS2sSocket(twilioWs: WebSocket, deps: SessionDeps, opts: S2
 export class RealtimeCall {
   private readonly cfg: SessionDeps["config"];
   private readonly now: () => DateTime;
-  private readonly oai: WebSocket;
+  private oai: WebSocket | null = null;
   private oaiOpen = false;
+  /** Caller details and openings once loaded (the first instructions go out without them). */
+  private context: { caller: CallerInfo | null; openings: string | null } = { caller: null, openings: null };
   private streamSid = "";
   callSid = "";
   private from: string | null = null;
@@ -130,23 +134,37 @@ export class RealtimeCall {
     this.cfg = deps.config;
     this.now = deps.now ?? (() => DateTime.now());
     // Connect to OpenAI right away, while Twilio is still sending its start message.
+    void this.connect();
+    twilio.on("message", (raw) => this.onTwilio(raw.toString()));
+    twilio.on("close", () => void this.close("caller"));
+    twilio.on("error", (err) => this.tag(`Twilio socket error: ${err.message}`, "error"));
+  }
+
+  private async connect() {
+    let bearer: string;
+    try {
+      bearer = await this.opts.auth.bearer();
+    } catch (err) {
+      this.tag(`OpenAI login failed: ${(err as Error).message}`, "error");
+      this.hangUp();
+      return;
+    }
+    if (this.closed) return;
     const url = `${this.cfg.realtimeUrl}?model=${encodeURIComponent(this.cfg.realtimeModel)}`;
-    this.oai = new WebSocket(url, { headers: { Authorization: `Bearer ${this.cfg.openAiApiKey}` } });
-    this.oai.on("open", () => {
+    const oai = new WebSocket(url, { headers: { Authorization: `Bearer ${bearer}` } });
+    this.oai = oai;
+    oai.on("open", () => {
       this.oaiOpen = true;
       this.configure();
     });
-    this.oai.on("message", (raw) => this.onOpenAi(raw.toString()));
-    this.oai.on("error", (err) => this.tag(`OpenAI socket error: ${err.message}`, "error"));
-    this.oai.on("close", (code, reason) => {
+    oai.on("message", (raw) => this.onOpenAi(raw.toString()));
+    oai.on("error", (err) => this.tag(`OpenAI socket error: ${err.message}`, "error"));
+    oai.on("close", (code, reason) => {
       if (!this.closed) {
         this.tag(`OpenAI closed the session (${code} ${reason.toString()})`, "error");
         this.hangUp();
       }
     });
-    twilio.on("message", (raw) => this.onTwilio(raw.toString()));
-    twilio.on("close", () => void this.close("caller"));
-    twilio.on("error", (err) => this.tag(`Twilio socket error: ${err.message}`, "error"));
   }
 
   private tag(msg: string, level: "log" | "warn" | "error" = "log") {
@@ -197,7 +215,7 @@ export class RealtimeCall {
     if (this.opts.tokenSecret && !verifyRelayToken(this.opts.tokenSecret, this.callSid, p.token)) {
       this.tag("rejected stream: bad or missing token", "warn");
       this.closed = true;
-      this.oai.close();
+      this.oai?.close();
       this.twilio.close(1008, "unauthorized");
       return;
     }
@@ -241,7 +259,7 @@ export class RealtimeCall {
   // ---------------------------------------------------------------- OpenAI
 
   private sendOai(msg: Record<string, unknown>) {
-    if (this.oai.readyState === WebSocket.OPEN) this.oai.send(JSON.stringify(msg));
+    if (this.oai?.readyState === WebSocket.OPEN) this.oai.send(JSON.stringify(msg));
   }
 
   private sendAudio(chunk: { payload: string; at: number }) {
@@ -292,7 +310,7 @@ export class RealtimeCall {
         type: "realtime",
         model: this.cfg.realtimeModel,
         output_modalities: ["audio"],
-        instructions: this.instructions({ caller: null, openings: null }),
+        instructions: this.instructions(this.context),
         audio: {
           input: {
             format: { type: "audio/pcmu" },
@@ -330,11 +348,11 @@ export class RealtimeCall {
       ids.length ? prefetchOpenings(this.deps.api, this.deps.salon, this.now(), { ...DEFAULT_PREFETCH, serviceIds: ids }).catch(() => null) : null,
     ]);
     this.caller = caller;
+    this.context = { caller, openings };
     if (this.closed) return;
     this.tag(`caller and openings loaded in ${Date.now() - t0}ms`);
-    const update = () => this.sendOai({ type: "session.update", session: { type: "realtime", instructions: this.instructions({ caller, openings }) } });
-    if (this.configured) update();
-    else this.oai.once("open", update);
+    // Not configured yet: configure() sends these instructions itself.
+    if (this.configured) this.sendOai({ type: "session.update", session: { type: "realtime", instructions: this.instructions(this.context) } });
   }
 
   private response(id: string): ResponseState {
@@ -554,7 +572,7 @@ export class RealtimeCall {
     if (this.closed) return;
     this.closed = true;
     if (this.hangupTimer) clearTimeout(this.hangupTimer);
-    if (this.oai.readyState === WebSocket.OPEN || this.oai.readyState === WebSocket.CONNECTING) this.oai.close();
+    if (this.oai?.readyState === WebSocket.OPEN || this.oai?.readyState === WebSocket.CONNECTING) this.oai.close();
     if (!this.log) return;
     await Promise.all([...this.responses.values()].flatMap((r) => r.tools));
     const rec = this.log.record;

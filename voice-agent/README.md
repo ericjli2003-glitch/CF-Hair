@@ -416,12 +416,30 @@ finished; if the caller talks over a reply, the audio still queued at Twilio is 
 model is told how much was heard. When the agent ends the call, the stream closes after the
 goodbye has played and Twilio hangs up.
 
-Set up (about ten minutes):
-1. platform.openai.com > API keys > create a key for a project with Realtime access.
-2. Render > cf-hair-voice > Environment > add `OPENAI_API_KEY` with that key. Never paste it in chat.
-3. Twilio console > a second phone number > Voice configuration > "A call comes in": Webhook,
+Set up (about fifteen minutes). OpenAI login works like the Claude one: no key, Render's managed
+OIDC gives the service a short-lived token and the app exchanges it for an OpenAI access token,
+refreshing it on its own. (A plain `OPENAI_API_KEY` also works; if both are set, the keyless login
+wins.)
+1. OpenAI platform > Settings (organization) > Security > Workload Identity Provider > Create:
+   - Name: `Render cf-hair-voice`. Provider type: OIDC.
+   - OIDC Issuer URL: `https://oidc.render.com/<your Render workspace ID>` (starts with `tea-`).
+   - Audience: `api.openai.com`. Check it in step 4 and edit the provider if Render's token says
+     otherwise.
+   - Leave Advanced and Attribute transformations empty. Create, then copy the provider id (`idp_...`).
+2. On the provider's page, add a service account mapping: the project, a service account in it
+   (create one if needed; copy its id), and a rule that only this Render service matches, for
+   example subject ending in `:service:<your service ID>` (starts with `srv-`). Make sure the
+   organization has credits (Billing), or Realtime calls are refused.
+3. Render > cf-hair-voice > Environment: add `OPENAI_IDENTITY_PROVIDER_ID` and
+   `OPENAI_SERVICE_ACCOUNT_ID`. Render then sets `OPENAI_IDENTITY_TOKEN_FILE` itself on the next
+   deploy. The startup log shows `OpenAI auth: federation`.
+4. Check the token Render made, in the service's Shell tab:
+   `node -e 'const c=JSON.parse(Buffer.from(require("fs").readFileSync(process.env.OPENAI_IDENTITY_TOKEN_FILE,"utf8").split(".")[1],"base64url"));console.log(c.iss, c.aud, c.sub)'`.
+   The issuer, audience and subject must match step 1 and 2. A failed login shows in the Render log
+   as `OpenAI login failed: OpenAI token exchange failed: 4xx ...`.
+5. Twilio console > a second phone number > Voice configuration > "A call comes in": Webhook,
    `https://cf-hair-voice.onrender.com/s2s/twiml`, HTTP POST.
-4. Call each number with the same script and read the Render log lines:
+6. Call each number with the same script and read the Render log lines:
    - main line: `reply: first words after Xs, ...` (time from the transcript arriving to the first
      words being sent to the voice; it does not include Twilio's own end-of-speech wait or the voice)
    - test line: `reply: first audio Xs after the caller stopped talking (Ys after the turn was

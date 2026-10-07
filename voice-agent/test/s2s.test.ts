@@ -7,6 +7,9 @@ import twilio from "twilio";
 import { createServer } from "../src/server.js";
 import { relayToken } from "../src/relay/twiml.js";
 import { realtimeTools } from "../src/s2s/realtime.js";
+import http from "node:http";
+import os from "node:os";
+import { OpenAiAuth } from "../src/s2s/openai-auth.js";
 import { testDeps, waitFor } from "./helpers.js";
 
 const AUTH = "test_auth_token";
@@ -36,9 +39,10 @@ async function fakeRealtime() {
   };
 }
 
-async function startServer(realtimeUrl: string) {
+async function startServer(realtimeUrl: string, auth?: Partial<ReturnType<typeof testDeps>["config"]>) {
   const deps = testDeps();
   deps.config.openAiApiKey = "sk-test";
+  Object.assign(deps.config, auth ?? {});
   deps.config.realtimeUrl = realtimeUrl;
   const { server, wss } = createServer(deps);
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
@@ -111,8 +115,8 @@ describe("speech-to-speech test line", () => {
 
     call.media(20);
     await waitFor(() => oai.of("input_audio_buffer.append").length === 1);
-    // Caller lookup finishes during the greeting and refreshes the instructions.
-    await waitFor(() => oai.of("session.update").length === 2);
+    // Today's openings reach the model: in the first settings, or in an update once loaded.
+    await waitFor(() => oai.of("session.update").some((e) => String(e.session.instructions).includes("[start=")));
 
     oai.send({ type: "response.output_audio.delta", response_id: "r1", item_id: "i1", delta: "AAAA" });
     await waitFor(() => call.got.some((m) => m.event === "media"));
@@ -213,5 +217,80 @@ describe("realtimeTools", () => {
     const t = realtimeTools().find((x) => x.name === "check_availability")!;
     expect(t.type).toBe("function");
     expect((t.parameters as { type: string }).type).toBe("object");
+  });
+});
+
+/** Stand-in for https://auth.openai.com/oauth/token. */
+async function fakeTokenEndpoint(expiresIn = 3600) {
+  const bodies: any[] = [];
+  const server = http.createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      bodies.push(JSON.parse(raw));
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ access_token: `oai-access-${bodies.length}`, expires_in: expiresIn, token_type: "Bearer" }));
+    });
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
+  closers.push(() => server.close());
+  return { url: `http://127.0.0.1:${(server.address() as AddressInfo).port}/oauth/token`, bodies };
+}
+
+function tokenFile(contents: string) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cfhair-oidc-"));
+  const file = path.join(dir, "token");
+  fs.writeFileSync(file, contents + "\n");
+  return file;
+}
+
+describe("OpenAI workload identity", () => {
+  it("exchanges Render's token and connects with the OpenAI access token, no API key", async () => {
+    const tokens = await fakeTokenEndpoint();
+    const oai = await fakeRealtime();
+    const { port } = await startServer(oai.url, {
+      openAiApiKey: "",
+      openAiIdentityProviderId: "idp_test",
+      openAiServiceAccountId: "user-svc",
+      openAiIdentityTokenFile: tokenFile("render.jwt.value"),
+      openAiTokenUrl: tokens.url,
+    });
+    const call = await twilioCall(port);
+    await waitFor(() => oai.of("response.create").length === 1);
+    expect(oai.seen.auth).toBe("Bearer oai-access-1");
+    expect(tokens.bodies[0]).toEqual({
+      grant_type: "urn:ietf:params:oauth:grant-type:token-exchange",
+      subject_token: "render.jwt.value",
+      subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
+      identity_provider_id: "idp_test",
+      service_account_id: "user-svc",
+    });
+    call.ws.close();
+  });
+
+  it("reuses the access token until it is close to expiring, re-reading the rotated file", async () => {
+    const tokens = await fakeTokenEndpoint(3600);
+    const file = tokenFile("first");
+    const auth = new OpenAiAuth({ apiKey: "", identityProviderId: "idp", serviceAccountId: "sa", tokenFile: file, tokenUrl: tokens.url });
+    expect(auth.mode()).toBe("federation");
+    expect(await auth.bearer()).toBe("oai-access-1");
+    expect(await auth.bearer()).toBe("oai-access-1");
+    expect(tokens.bodies).toHaveLength(1);
+
+    const short = await fakeTokenEndpoint(1); // expires at once: the next call exchanges again
+    fs.writeFileSync(file, "second");
+    const auth2 = new OpenAiAuth({ apiKey: "", identityProviderId: "idp", serviceAccountId: "sa", tokenFile: file, tokenUrl: short.url });
+    await auth2.bearer();
+    await new Promise((r) => setTimeout(r, 1100));
+    await auth2.bearer();
+    expect(short.bodies.map((b) => b.subject_token)).toEqual(["second", "second"]);
+  });
+
+  it("prefers workload identity over a leftover API key and reports what is missing", () => {
+    const full = new OpenAiAuth({ apiKey: "sk-old", identityProviderId: "idp", serviceAccountId: "sa", tokenFile: "/x", tokenUrl: "" });
+    expect(full.mode()).toBe("federation");
+    const partial = new OpenAiAuth({ apiKey: "", identityProviderId: "idp", serviceAccountId: "", tokenFile: "", tokenUrl: "" });
+    expect(partial.mode()).toBe("none");
+    expect(partial.missing()).toEqual(["OPENAI_SERVICE_ACCOUNT_ID", "OPENAI_IDENTITY_TOKEN_FILE (set by Render)"]);
   });
 });

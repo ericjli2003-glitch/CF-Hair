@@ -113,8 +113,13 @@ export interface AppConfig {
   /** On SIGTERM (a redeploy), how long live calls may continue before the process exits. */
   drainTimeoutMs: number;
   welcomeGreeting: string;
-  /** Speech-to-speech test line (src/s2s): OpenAI Realtime. Empty key turns /s2s/twiml off. */
+  /** Speech-to-speech test line (src/s2s): OpenAI Realtime. Needs an API key or workload identity. */
   openAiApiKey: string;
+  /** OpenAI workload identity federation (Render managed OIDC sets the token file). */
+  openAiIdentityProviderId: string;
+  openAiServiceAccountId: string;
+  openAiIdentityTokenFile: string;
+  openAiTokenUrl: string;
   realtimeUrl: string;
   realtimeModel: string;
   realtimeVoice: string;
@@ -179,7 +184,11 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s && s !== "off"),
-    openAiApiKey: env("OPENAI_API_KEY"),
+    openAiApiKey: env("OPENAI_API_KEY").trim(),
+    openAiIdentityProviderId: env("OPENAI_IDENTITY_PROVIDER_ID").trim(),
+    openAiServiceAccountId: env("OPENAI_SERVICE_ACCOUNT_ID").trim(),
+    openAiIdentityTokenFile: env("OPENAI_IDENTITY_TOKEN_FILE").trim(),
+    openAiTokenUrl: env("OPENAI_TOKEN_EXCHANGE_URL", "https://auth.openai.com/oauth/token"),
     realtimeUrl: env("OPENAI_REALTIME_URL", "wss://api.openai.com/v1/realtime"),
     realtimeModel: env("OPENAI_REALTIME_MODEL", "gpt-realtime-2.1"),
     realtimeVoice: env("OPENAI_REALTIME_VOICE", "marin"),

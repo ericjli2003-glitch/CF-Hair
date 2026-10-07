@@ -12,6 +12,7 @@ import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, 
 import { normalizeLanguage } from "./languages.js";
 import { handleS2sSocket } from "./s2s/realtime.js";
 import { s2sTwiml } from "./s2s/twiml.js";
+import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
 
 export const RELAY_PATH = "/relay";
 export const LISTEN_PATH = "/listen";
@@ -57,6 +58,7 @@ export function createServer(deps: SessionDeps) {
   const tokenSecret = cfg.validateTwilioSignature ? cfg.twilioAuthToken : "";
   const app = express();
   const registry = new CallRegistry();
+  const openAi = openAiAuthFromConfig(cfg);
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
   const directVoices = Object.fromEntries(
     cfg.directTtsLanguages
@@ -119,11 +121,13 @@ export function createServer(deps: SessionDeps) {
   // Speech-to-speech test line (OpenAI Realtime): point a second Twilio number's "A call comes in"
   // here to compare it with the main line. Off unless OPENAI_API_KEY is set.
   app.post("/s2s/twiml", verify, async (req, res) => {
-    if (!cfg.openAiApiKey) {
-      console.warn("[s2s] a call came in, but OPENAI_API_KEY is not set");
+    if (openAi.mode() === "none") {
+      console.warn("[s2s] a call came in, but OpenAI is not set up (OPENAI_API_KEY or workload identity)");
       res.type("text/xml").send(new twilio.twiml.VoiceResponse().say("This test line is not set up yet.").toString());
       return;
     }
+    // Log in to OpenAI now (cached after the first call), so the stream can connect at once.
+    void openAi.bearer().catch((err) => console.error(`[s2s] OpenAI login failed: ${(err as Error).message}`));
     const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
     const callSid = String(req.body?.CallSid ?? "");
     console.log(`[s2s call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}: opening in ${language}`);
@@ -180,8 +184,8 @@ export function createServer(deps: SessionDeps) {
       });
       return;
     }
-    if (url.pathname === S2S_PATH && cfg.openAiApiKey) {
-      wss.handleUpgrade(req, socket, head, (ws) => void handleS2sSocket(ws, deps, { tokenSecret }));
+    if (url.pathname === S2S_PATH && openAi.mode() !== "none") {
+      wss.handleUpgrade(req, socket, head, (ws) => void handleS2sSocket(ws, deps, { tokenSecret, auth: openAi }));
       return;
     }
     if (url.pathname !== RELAY_PATH) {
