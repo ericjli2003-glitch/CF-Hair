@@ -86,8 +86,9 @@ export function createServer(deps: SessionDeps) {
         ...relayOpts(req),
         startLanguage: language,
         opening,
-        // Only callers whose language is unknown need it identified from their audio.
-        listenUrl: opening === "welcome" && cfg.elevenLabsApiKey ? publicBase(cfg, req).replace(/^http/, "ws") + LISTEN_PATH : undefined,
+        // Every call that opens in English: a new caller, or a saved English caller who may answer in
+        // Chinese or Korean. Calls opening in a saved Chinese or Korean language do not need it.
+        listenUrl: language === "en-US" && cfg.elevenLabsApiKey ? publicBase(cfg, req).replace(/^http/, "ws") + LISTEN_PATH : undefined,
         greeting: openingGreeting(opening, language, cfg.welcomeGreeting, deps.languages),
       }),
     );

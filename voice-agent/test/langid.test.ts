@@ -60,13 +60,17 @@ function signedPost(port: number, path: string, params: Record<string, string>) 
 }
 
 describe("language identified from the call audio (ElevenLabs Scribe)", () => {
-  it("asks Twilio for an audio copy only for callers whose language is unknown", async () => {
+  it("asks Twilio for an audio copy for every call that opens in English", async () => {
     const scribe = await fakeScribe({ text: "x", language_code: "eng" });
-    const { port } = await startServer(scribe.url, new FakeLlm([]));
+    const { port, deps } = await startServer(scribe.url, new FakeLlm([]));
     const fresh = await (await signedPost(port, "/twiml", { CallSid: "CAnew", From: "+16045550901" })).text();
     expect(fresh).toMatch(/<Start><Stream url="ws:\/\/127\.0\.0\.1:\d+\/listen" track="inbound_track"><Parameter name="token" value="[^"]+"\/><\/Stream><\/Start><Connect/);
     const known = await (await signedPost(port, "/twiml", { CallSid: "CAknown", From: DEMO_PHONES.returningCantonese })).text();
     expect(known).not.toContain("<Stream");
+    // A saved English caller still gets it: they may answer in Chinese this time.
+    deps.mockApi!.callers.set("+16045550999", { phone: "+16045550999", preferredLanguage: "en-US", callCount: 2, lastCallAt: null, name: null });
+    const english = await (await signedPost(port, "/twiml", { CallSid: "CAen", From: "+16045550999" })).text();
+    expect(english).toContain("<Stream");
   });
 
   it("a new caller who answers in Cantonese is switched and answered, with no keypad", async () => {

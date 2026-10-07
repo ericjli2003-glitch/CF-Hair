@@ -508,7 +508,8 @@ export class CallSession {
     const target = lang;
     const run = async () => {
       await this.start();
-      if (this.ended || this.language !== DEFAULT_LANGUAGE || this.languageSource !== "default") return;
+      // Only while the call is still in English and nobody chose a language on this call.
+      if (this.ended || this.language !== DEFAULT_LANGUAGE || ["keypad", "asked"].includes(this.languageSource)) return;
       if (this.activeTurn) this.interrupt(null); // the English recognizer's guess at the same words
       this.heardCaller = true;
       this.clearSilenceCheck();

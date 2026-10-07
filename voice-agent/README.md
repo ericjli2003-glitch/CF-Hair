@@ -181,8 +181,9 @@ salon phrases ("men's cut", "women's cut") to bias recognition toward them.
 
 **A new caller's language is identified from their first sentence.** ConversationRelay hears a
 call in one language, and its only automatic detection (Deepgram "multi") covers neither Chinese
-nor Korean, so the call has to start in English. For callers whose language is not saved yet, the
-TwiML also asks Twilio for a copy of the caller's audio (`<Start><Stream>` to `/listen`). The
+nor Korean, so the call has to start in English. For every call that opens in English (new
+callers, and saved English callers who may answer in Chinese this time), the TwiML also asks Twilio
+for a copy of the caller's audio (`<Start><Stream>` to `/listen`). The
 server forwards it to ElevenLabs Scribe v2 Realtime (`src/langid/scribe.ts`: mu-law 8 kHz,
 voice-activity commits, language detection on). When the first sentence comes back, for example
 `yue` with 你好，我想約聽日剪頭髮, the call switches to Cantonese (voice and recognition), that
