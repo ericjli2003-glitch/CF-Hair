@@ -73,6 +73,10 @@ export interface RelayTwimlOptions {
   opening?: OpeningKind;
   /** Twilio ForwardedFrom on the inbound call, passed through to the session for the transfer guard. */
   forwardedFrom?: string;
+  /** Twilio's wait after the caller stops talking, 600 to 5000 ms (omitted: Twilio's default). */
+  speechTimeoutMs?: number;
+  /** Deepgram Flux end-of-turn confidence, 0.5 to 0.9 (only sent when the start language uses Flux). */
+  eotThreshold?: number;
   /** wss URL for a copy of the caller's audio (language identification); omitted when off. */
   listenUrl?: string;
   /** "multi" starts transcription in Deepgram automatic language detection mode. */
@@ -114,7 +118,9 @@ export function conversationRelayTwiml(o: RelayTwimlOptions): string {
     voice: sl.voice,
     dtmfDetection: true,
     hints: SPEECH_HINTS,
-  });
+    ...(o.speechTimeoutMs ? { speechTimeout: String(Math.min(5000, Math.max(600, o.speechTimeoutMs))) } : {}),
+    ...(o.eotThreshold && /^flux/.test(sl.speechModel) ? { eotThreshold: String(Math.min(0.9, Math.max(0.5, o.eotThreshold))) } : {}),
+  } as Parameters<typeof connect.conversationRelay>[0]);
   for (const code of LANGUAGE_CODES) {
     const l = o.languages[code];
     cr.language({

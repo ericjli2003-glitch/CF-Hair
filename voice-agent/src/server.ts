@@ -76,6 +76,8 @@ export function createServer(deps: SessionDeps) {
       actionUrl: `${base}/twiml/action`,
       languages: deps.languages,
       startTranscription: cfg.startTranscriptionLanguage,
+      speechTimeoutMs: cfg.speechTimeoutMs,
+      eotThreshold: cfg.eotThreshold,
       startSpeechModel: cfg.startSpeechModel,
       token: tokenSecret ? relayToken(tokenSecret, callSid) : "dev",
       forwardedFrom: req.body?.ForwardedFrom ? String(req.body.ForwardedFrom) : undefined,

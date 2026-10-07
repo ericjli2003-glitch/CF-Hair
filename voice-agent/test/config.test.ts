@@ -75,3 +75,20 @@ describe("ElevenLabs models Twilio does not accept", () => {
     expect(all["en-US"].voice).toBe("AAAAAAAAAAAAAAAAAAAA");
   });
 });
+
+describe("turn-taking settings", () => {
+  it("adds speechTimeout, and eotThreshold only when English uses Deepgram Flux", async () => {
+    const { conversationRelayTwiml } = await import("../src/relay/twiml.js");
+    const { relayLanguages } = await import("../src/languages.js");
+    const base = { wsUrl: "wss://x/relay", actionUrl: "https://x/a", greeting: "Hi, CF Hair Salon.", token: "t" };
+    const plain = conversationRelayTwiml({ ...base, languages: relayLanguages({}) });
+    expect(plain).not.toContain("speechTimeout");
+    const tuned = conversationRelayTwiml({ ...base, languages: relayLanguages({ CR_EN_US_SPEECH_MODEL: "flux" }), speechTimeoutMs: 700, eotThreshold: 0.7 });
+    expect(tuned).toMatch(/<ConversationRelay[^>]* speechModel="flux"/);
+    expect(tuned).toContain('speechTimeout="700"');
+    expect(tuned).toContain('eotThreshold="0.7"');
+    const notFlux = conversationRelayTwiml({ ...base, languages: relayLanguages({}), eotThreshold: 0.7, speechTimeoutMs: 100 });
+    expect(notFlux).not.toContain("eotThreshold");
+    expect(notFlux).toContain('speechTimeout="600"'); // clamped to Twilio's range
+  });
+});

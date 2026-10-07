@@ -14,6 +14,8 @@ export interface LlmStream extends AsyncIterable<StreamEvent> {
 /** The one thing the agent needs from Claude. Swapped for a scripted fake in tests. */
 export interface LlmClient {
   stream(params: StreamParams, opts: { signal: AbortSignal }): LlmStream;
+  /** Optional: a max_tokens 0 request that only writes the prompt cache (see CallSession.prewarm). */
+  warm?(params: StreamParams): Promise<LlmMessage["usage"] | null>;
 }
 
 export class AnthropicLlm implements LlmClient {
@@ -25,6 +27,13 @@ export class AnthropicLlm implements LlmClient {
   stream(params: StreamParams, opts: { signal: AbortSignal }): LlmStream {
     this.client ??= new Anthropic(); // created lazily so the server starts without a key
     return this.client.beta.messages.stream(params, { signal: opts.signal });
+  }
+
+  async warm(params: StreamParams): Promise<LlmMessage["usage"] | null> {
+    this.client ??= new Anthropic();
+    // max_tokens 0: the API only runs prefill and writes the cache; no output is generated or billed.
+    const msg = await this.client.beta.messages.create({ ...params, stream: false } as Anthropic.Beta.Messages.MessageCreateParamsNonStreaming);
+    return msg.usage;
   }
 }
 

@@ -106,6 +106,9 @@ class Turn {
   segments: Segment[] = [];
   inflight = "";
   firstSentAt = 0;
+  /** Prompt tokens read from cache and processed fresh, summed over the turn's model calls. */
+  cacheRead = 0;
+  uncached = 0;
   chars = 0;
   done: Promise<void> = Promise.resolve();
   interruptUtterance: string | null = null;
@@ -231,6 +234,31 @@ export class CallSession {
       bookingWebsiteSpoken: this.deps.config.bookingWebsiteSpoken,
       openings,
     });
+    this.prewarm();
+  }
+
+  /**
+   * While the greeting plays, write this call's prompt (tools, salon prompt, call context) to the
+   * cache with a max_tokens 0 request, so the caller's first reply only processes their own words.
+   * It also does the Claude login (token exchange) and opens the connection before it is needed.
+   */
+  private prewarm() {
+    if (!this.deps.llm.warm || this.ended) return;
+    const real = this.buildParams();
+    // Mark the end of the shared part (the call context) instead of automatic caching, which would
+    // key the entry to the placeholder message.
+    const system = (real.system as Anthropic.Beta.BetaTextBlockParam[]).map((b, i, all) =>
+      i === all.length - 1 ? { ...b, cache_control: { type: "ephemeral" as const } } : b,
+    );
+    const { cache_control: _auto, ...rest } = real;
+    void _auto;
+    const t0 = Date.now();
+    this.deps.llm
+      .warm({ ...rest, system, max_tokens: 0, messages: [{ role: "user", content: [{ type: "text", text: "warmup" }] }] })
+      .then((u) => {
+        if (u) console.log(`[call ${this.init.callSid}] prompt cache warmed in ${Date.now() - t0}ms (read ${u.cache_read_input_tokens ?? 0}, wrote ${u.cache_creation_input_tokens ?? 0} tokens)`);
+      })
+      .catch((err) => console.warn(`[call ${this.init.callSid}] cache warm-up failed: ${(err as Error).message}`));
   }
 
   private transferAvailable(): boolean {
@@ -737,7 +765,8 @@ export class CallSession {
       const first = turn.firstSentAt ? `${((turn.firstSentAt - startedAt) / 1000).toFixed(1)}s` : "none";
       console.log(
         `[call ${this.init.callSid}] reply: first words after ${first}, total ${((Date.now() - startedAt) / 1000).toFixed(1)}s, ` +
-          `${modelCalls} model call(s)${toolTimes.length ? `, tools: ${toolTimes.join(", ")}` : ""}${turn.signal.aborted ? " (interrupted)" : ""}`,
+          `${modelCalls} model call(s), cache read ${turn.cacheRead} / fresh ${turn.uncached} tokens` +
+          `${toolTimes.length ? `, tools: ${toolTimes.join(", ")}` : ""}${turn.signal.aborted ? " (interrupted)" : ""}`,
       );
       if (turn.signal.aborted) this.trimTurn(turn);
       this.activeTurn = null;
@@ -769,6 +798,8 @@ export class CallSession {
       }
       const message = await stream.finalMessage();
       this.log.addUsage(message.usage);
+      turn.cacheRead += message.usage.cache_read_input_tokens ?? 0;
+      turn.uncached += message.usage.input_tokens ?? 0;
       turn.inflight = "";
       return { kind: "ok", message, sent, rest: chunker.flush() };
     } catch (err) {

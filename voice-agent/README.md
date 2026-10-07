@@ -209,6 +209,16 @@ counts as heard. Expect a few hundred milliseconds more per Cantonese reply than
 voices. Needs `ELEVENLABS_API_KEY` with Text to Speech permission; Cantonese speech then uses the
 ElevenLabs account's credits. Remove the setting to go back to Twilio's voice.
 
+**Latency.** Each reply logs `first words after ...s` with its model calls, prompt tokens read from
+cache versus processed fresh, and tool timings. During the greeting the server sends a
+`max_tokens: 0` request with the call's real prompt, which writes the prompt cache and does the
+Claude login, so the first reply only processes the caller's words (`prompt cache warmed in ...`
+in the log). Twilio's own wait after the caller stops talking can be tuned without code:
+`CR_EN_US_SPEECH_MODEL=flux` (Deepgram Flux end-of-turn detection), `CR_EOT_THRESHOLD`
+(Flux only, 0.5 to 0.9) and `CR_SPEECH_TIMEOUT_MS` (600 to 5000). Shorter waits answer sooner but
+can cut off slow or accented speakers mid-sentence, so lower them in small steps and test with
+real callers. The biggest remaining lever is the model: `ANTHROPIC_MODEL=claude-haiku-4-5`.
+
 **Never silent when the caller is not understood.** A new caller who answers the English greeting
 in Mandarin, Cantonese or Korean often gets no words back from the English recognizer at all (its
 automatic language detection does not cover Chinese or Korean). So if nothing understandable

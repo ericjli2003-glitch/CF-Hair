@@ -88,6 +88,10 @@ export interface AppConfig {
   /** The online booking site the agent can point callers to, and how to say it on the phone. */
   bookingWebsite: string;
   bookingWebsiteSpoken: string;
+  /** ConversationRelay speechTimeout: silence (600 to 5000 ms) before a caller's words are sent; 0 leaves Twilio's default. */
+  speechTimeoutMs: number;
+  /** ConversationRelay eotThreshold for Deepgram Flux (0.5 sooner to 0.9 later); 0 leaves the default 0.8. */
+  eotThreshold: number;
   /** If the caller says nothing the phone can understand this long after the greeting, ask which language (0 turns it off). */
   silenceNudgeMs: number;
   /** ElevenLabs API key for Scribe language identification of new callers (empty turns it off). */
@@ -147,6 +151,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     phoneSmsOptIn: envBool("PHONE_SMS_OPTIN", false),
     logTranscripts: envBool("LOG_TRANSCRIPTS", false),
     silenceNudgeMs: envInt("SILENCE_NUDGE_MS", 5000),
+    speechTimeoutMs: envInt("CR_SPEECH_TIMEOUT_MS", 0),
+    eotThreshold: Number.parseFloat(env("CR_EOT_THRESHOLD", "0")) || 0,
     elevenLabsApiKey: env("LANGUAGE_ID", "on") === "off" ? "" : env("ELEVENLABS_API_KEY"),
     scribeRealtimeUrl: env("SCRIBE_REALTIME_URL", "wss://api.elevenlabs.io/v1/speech-to-text/realtime"),
     directTtsLanguages: env("ELEVENLABS_DIRECT_LANGUAGES")
