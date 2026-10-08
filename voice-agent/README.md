@@ -136,7 +136,7 @@ Main files:
 | `cancel_booking`, `reschedule_booking` | Require confirmation; flags short-notice cancellations |
 | `take_message` | `POST /api/messages`; if the API is down it is queued in `data/pending-messages.jsonl` |
 | `transfer_to_human` | Only while open, if `SALON_FORWARD_NUMBER` is set and the loop guard allows it; `end` with handoff data, then `<Dial>` |
-| `end_call` | Adds a friendly "bye bye" (拜拜, 안녕히 계세요) after the goodbye, listens briefly (`BYE_LISTEN_MS`, 2.5 s), says it once more if the caller says goodbye back, then hangs up. A real question in that pause gets a normal answer instead |
+| `end_call` | Adds one friendly "bye bye" (拜拜, 안녕히 계세요) after the goodbye (not if the goodbye already said bye), waits briefly (`BYE_LISTEN_MS`, 2.5 s), then hangs up. A real question in that pause gets a normal answer instead |
 | `set_language` | Switches voice and transcription and saves the caller's language (see below) |
 | `record_sms_consent` | Saves the answer to the one promotional text question (see [Promotional text opt-in](#promotional-text-opt-in)) |
 

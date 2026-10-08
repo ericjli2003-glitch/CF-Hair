@@ -41,14 +41,27 @@ describe("goodbye", () => {
     await s.close();
   });
 
-  it("answers the caller's own goodbye with one more bye bye, then hangs up", async () => {
+  it("says bye bye only once, even when the caller says goodbye back", async () => {
     const { s, said, isEnded, llm } = call("completed", "en-US", 400);
     await s.handlePrompt("That's all, thanks.");
     await s.handlePrompt("Okay, bye bye.");
-    await s.handlePrompt("Bye!"); // a third goodbye gets nothing more
-    expect(text(said).match(/Bye bye!/g)).toHaveLength(2);
-    expect(llm.requests).toHaveLength(1); // no model call for the goodbyes
+    expect(text(said).match(/Bye bye!/g)).toHaveLength(1);
+    expect(llm.requests).toHaveLength(1); // no model call for the caller's goodbye
     await waitFor(() => isEnded(), 3000);
+    await s.close();
+  });
+
+  it("does not add bye bye when the agent's own goodbye already said bye", async () => {
+    const llm = new FakeLlm([{ text: "OK, see you then. Bye!", tools: [{ name: "end_call", input: { reason: "completed" } }] }]);
+    const deps = testDeps({ llm });
+    const said: string[] = [];
+    const s = new CallSession(deps, { callSid: "CAbyeonce", from: "+16045550123", to: "+16044757705" }, {
+      sendText: (t) => void said.push(t),
+      setLanguage: () => {},
+      end: () => {},
+    });
+    await s.handlePrompt("That's all.");
+    expect(said.join("")).not.toContain("Bye bye");
     await s.close();
   });
 

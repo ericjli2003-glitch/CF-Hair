@@ -143,7 +143,7 @@ export class CallSession {
   private pendingTransfer: { reason: string; summary: string } | null = null;
   private endTimer: NodeJS.Timeout | null = null;
   /** After "bye bye": listening for the caller's goodbye, then saying it once more. */
-  private farewell: "none" | "listening" | "repeated" = "none";
+  private farewell: "none" | "listening" = "none";
   /** Fires when the caller has said nothing the phone could understand since the greeting. */
   private silenceTimer: NodeJS.Timeout | null = null;
   private heardCaller = false;
@@ -298,9 +298,9 @@ export class CallSession {
     }
     this.heardCaller = true;
     this.clearSilenceCheck();
-    // The caller says goodbye back after "bye bye": answer it once more and hang up, without a model call.
+    // The caller says goodbye back after "bye bye": nothing more to say; the call hangs up as planned.
     if (this.farewell !== "none" && isClosingWords(text)) {
-      this.sayByeAgain(text);
+      this.log.say("caller", text, { lang: this.language });
       return Promise.resolve();
     }
     if (this.activeTurn) this.interrupt(null); // caller spoke over a reply that had not started playing
@@ -929,27 +929,16 @@ export class CallSession {
     }
   }
 
-  /** The caller's goodbye after ours: one more "bye bye", then hang up once it has played. */
-  private sayByeAgain(heard: string) {
-    this.log.say("caller", heard, { lang: this.language });
-    if (this.farewell === "repeated" || !this.endTimer) return;
-    this.farewell = "repeated";
-    const lang = this.deps.languages[this.language];
-    this.channel.sendText(lang.byes, true, this.language);
-    this.log.say("agent", lang.byes, { lang: this.language });
-    clearTimeout(this.endTimer);
-    this.endTimer = setTimeout(() => this.endNow(), lang.byes.length * lang.msPerChar + this.deps.config.endCallGraceMs);
-  }
-
   private scheduleEndIfRequested(turn: Turn) {
     if (!this.pendingEnd && !this.pendingTransfer) return;
     const lang = this.deps.languages[this.language];
-    // A friendly "bye bye" before hanging up (拜拜！), as people do on the phone, then a short pause
-    // for the caller's own goodbye (answered once more, see sayByeAgain). Not for spam, technical
-    // failures or transfers.
+    // One friendly "bye bye" before hanging up (拜拜！), as people do on the phone, then a short pause
+    // in which a real question still gets an answer. Not for spam, technical failures or transfers,
+    // and not twice: skipped when the agent's own goodbye already said bye.
     const reason = this.pendingEnd?.reason ?? "";
     const friendly = !!this.pendingEnd && !this.pendingTransfer && reason !== "spam" && reason !== "technical_error";
-    if (friendly) {
+    const saidBye = /\bbye\b|拜拜|再见|再見|안녕히/i.test(turn.segments.map((x) => x.text).join(" ").slice(-60));
+    if (friendly && !saidBye) {
       this.speak(turn, lang.byes, true);
       this.log.say("agent", lang.byes, { lang: this.language });
       this.farewell = "listening";
