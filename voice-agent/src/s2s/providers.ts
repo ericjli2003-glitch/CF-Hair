@@ -156,6 +156,8 @@ export function azureProvider(cfg: AppConfig, speech: MiniMaxSpeech | null = nul
     forceInternal() {
       external = new Set();
     },
-    note: `- Each language has its own voice on this line, and the voice changes when the language does. When the caller speaks a different language from the current one, call set_language first, then reply in that language.`,
+    note: `- Each language has its own voice on this line, and the voice changes when the language does. When the caller speaks a different language from the current one, call set_language first, then reply in that language.
+- You read the caller through speech recognition, which writes Cantonese the same way as Mandarin (standard written Chinese). So never switch between Cantonese and Mandarin because of how the words look; only when the caller asks for the other one.
+- In Cantonese, write spoken Hong Kong Cantonese in traditional characters (係、唔、嘅、咗、啲、咩、而家、幾點), never standard written Chinese, because your words are read aloud exactly as written.`,
   };
 }

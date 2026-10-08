@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeUtterance, chineseVariant, languageEvidence, LanguageDetector } from "../src/agent/langdetect.js";
+import { analyzeUtterance, chineseVariant, languageEvidence, LanguageDetector, chineseSwitchOk } from "../src/agent/langdetect.js";
 import { CallSession, type CallChannel } from "../src/agent/session.js";
 import { languageWarnings, relayLanguages, type LanguageCode } from "../src/languages.js";
 import { conversationRelayTwiml } from "../src/relay/twiml.js";
@@ -268,5 +268,25 @@ describe("configuration", () => {
     expect(languageWarnings(forced, env).join(" ")).toMatch(/zh-HK/);
     expect(relayLanguages({ ...env, CR_ELEVENLABS_MODEL: "turbo_v2_5" })["en-US"].voice).toBe("abc123-turbo_v2_5");
     expect(relayLanguages({})["en-US"].ttsProvider).toBe("Google"); // default unchanged
+  });
+});
+
+describe("chineseSwitchOk", () => {
+  it("never moves a Cantonese call to Mandarin because the transcript reads like Mandarin", () => {
+    // How speech recognition writes Cantonese: standard written Chinese, full of 的 and 了.
+    expect(chineseSwitchOk("zh-HK", "zh-CN", "我想明天下午剪头发的")).toBe(false);
+    expect(chineseSwitchOk("zh-HK", "zh-CN", "我想讲普通话")).toBe(true);
+    expect(chineseSwitchOk("zh-HK", "zh-CN", "Can you speak Mandarin?")).toBe(true);
+  });
+
+  it("moves Mandarin to Cantonese on clear Cantonese words or when asked", () => {
+    expect(chineseSwitchOk("zh-CN", "zh-HK", "我想問下聽日有冇位")).toBe(true);
+    expect(chineseSwitchOk("zh-CN", "zh-HK", "廣東話")).toBe(true);
+    expect(chineseSwitchOk("zh-CN", "zh-HK", "我想剪头发")).toBe(false);
+  });
+
+  it("leaves switches to and from other languages alone", () => {
+    expect(chineseSwitchOk("en-US", "zh-CN", "我想剪头发的")).toBe(true);
+    expect(chineseSwitchOk("zh-HK", "en-US", "hello")).toBe(true);
   });
 });

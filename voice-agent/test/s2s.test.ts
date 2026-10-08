@@ -398,9 +398,24 @@ describe("Azure Voice Live line", () => {
     // From the caller's words (Cantonese)...
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮，有冇位呀？" });
     await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-HiuMaanNeural"));
-    // ...and from set_language (Mandarin).
+    // ...and from set_language (Mandarin), once the caller asks for it.
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u2", transcript: "Can you speak Mandarin?" });
     az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-CN" }) });
     await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-XiaoxiaoNeural"));
+    call.ws.close();
+  });
+
+  it("refuses set_language from Cantonese to Mandarin when the caller did not ask", async () => {
+    const { az, port } = await startAzure();
+    const call = await azureCall(port, "CA_az3");
+    await waitFor(() => az.of("response.create").length === 1);
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮，有冇位呀？" });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-HiuMaanNeural"));
+    // Cantonese as speech recognition writes it, then the model asks for Mandarin.
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u2", transcript: "我想剪头发的" });
+    az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-CN" }) });
+    await waitFor(() => az.of("conversation.item.create").some((e) => /Language not changed/.test(e.item?.output ?? "")));
+    expect(az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-XiaoxiaoNeural")).toBe(false);
     call.ws.close();
   });
 });

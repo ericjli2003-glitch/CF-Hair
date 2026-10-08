@@ -148,6 +148,21 @@ describe("MiniMax voice", () => {
     expect(mm.bodies.every((b) => b.language_boost === "Chinese,Yue")).toBe(true);
   });
 
+  it("keeps a Cantonese call in Cantonese when the transcript reads like Mandarin", async () => {
+    const mm = await fakeMiniMax();
+    const az = await fakeAzure();
+    const port = await start({ azureVoiceLiveEndpoint: az.base, azureVoiceLiveKey: "k", minimaxApiKey: "mm-key", minimaxBaseUrl: mm.base });
+    await call(port, "CA_mm6", "zh-HK");
+    await waitFor(() => az.events.some((e) => e.type === "response.create"));
+    const updates = () => az.events.filter((e) => e.type === "session.update").length;
+    const before = updates();
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想明天下午剪头发的" });
+    await new Promise((r) => setTimeout(r, 100));
+    expect(updates()).toBe(before);
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u2", transcript: "可以讲普通话吗" });
+    await waitFor(() => az.events.some((e) => e.type === "session.update" && e.session.voice?.name === "zh-CN-XiaoxiaoNeural"));
+  });
+
   it("swaps a voice the account does not have for one of that language", async () => {
     const mm = await fakeMiniMax();
     const speech = new MiniMaxSpeech({ apiKey: "mm-key", baseUrl: mm.base, groupId: "", model: "m", voices: { "en-US": "e", "zh-CN": "female-tianmei", "zh-HK": "Cantonese_Missing", "ko-KR": "k" }, speed: 1 });

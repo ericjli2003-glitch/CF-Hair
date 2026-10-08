@@ -140,6 +140,19 @@ export function chineseVariant(a: UtteranceAnalysis, providerLang?: string | nul
 }
 
 /**
+ * May a call switch between Cantonese and Mandarin on this utterance? Speech recognition often writes
+ * Cantonese as standard written Chinese (的, 了, 这), which reads as Mandarin, so a transcript alone
+ * is no proof. Only when the caller names the language, or (to Cantonese) uses unmistakably
+ * Cantonese words. Every other switch is allowed.
+ */
+export function chineseSwitchOk(from: LanguageCode, to: LanguageCode, text: string): boolean {
+  if (from === to || !from.startsWith("zh") || !to.startsWith("zh")) return true;
+  const a = analyzeUtterance(text);
+  if (a.explicitNative === to || a.explicitEnglish === to) return true;
+  return to === "zh-HK" && a.cantonese >= 2;
+}
+
+/**
  * Does the caller's last utterance justify switching to `target`? Used to vet Claude's
  * set_language calls, so the model cannot flip languages on "OK" or a name.
  */

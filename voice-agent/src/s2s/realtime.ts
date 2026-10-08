@@ -12,7 +12,7 @@ import { ApiUnavailableError } from "../api/types.js";
 import { DEFAULT_LANGUAGE, normalizeLanguage, type LanguageCode } from "../languages.js";
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
-import { analyzeUtterance, chineseVariant } from "../agent/langdetect.js";
+import { analyzeUtterance, chineseSwitchOk, chineseVariant } from "../agent/langdetect.js";
 import { isModelUnavailable, type RealtimeProvider } from "./providers.js";
 import { SentenceChunker } from "../agent/chunker.js";
 
@@ -628,6 +628,10 @@ export class RealtimeCall {
       callerPhone: isAnonymousCaller(this.from) ? null : toE164(this.from),
       currentLanguage: () => this.language,
       switchLanguage: async (code) => {
+        if (!chineseSwitchOk(this.language, code, this.lastCallerText)) {
+          this.tag(`kept ${this.language}: set_language ${code} without the caller asking for it`);
+          return { saved: "skipped" as const, refused: `the caller did not ask for ${code}; speech recognition writes Cantonese and Mandarin alike` };
+        }
         this.setLanguage(code, "set_language (speech to speech)");
         const saved = await this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, code);
         return { saved };
@@ -666,6 +670,8 @@ export class RealtimeCall {
     const a = analyzeUtterance(text);
     const lang: LanguageCode | null = a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : null;
     if (!lang || lang === this.language) return;
+    // Cantonese written down by speech recognition looks like Mandarin: never switch on that alone.
+    if (!chineseSwitchOk(this.language, lang, text)) return;
     this.setLanguage(lang, "heard in the caller's words");
     void this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, lang);
   }
