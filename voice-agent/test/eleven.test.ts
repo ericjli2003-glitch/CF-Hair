@@ -89,7 +89,8 @@ describe("ElevenLabs phone agent line", () => {
     expect(Object.keys(cc.language_presets).sort()).toEqual(["ko", "zh"]);
     expect(cc.language_presets.zh.overrides.tts.model_id).toBe("eleven_flash_v2_5");
     // English agents must use the English-only v2 models.
-    expect(cc.tts.model_id).toBe("eleven_flash_v2");
+    expect(cc.tts.model_id).toBe("eleven_turbo_v2");
+    expect(cc.tts.optimize_streaming_latency).toBe(1);
     const names = cc.agent.prompt.tools.map((t: { name: string }) => t.name);
     expect(names).toEqual(expect.arrayContaining(["check_availability", "book_appointment", "take_message", "set_language"]));
     expect(names).not.toContain("transfer_to_human");

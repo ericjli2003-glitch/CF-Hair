@@ -28,8 +28,7 @@ import { SPEECH_HINTS } from "../relay/twiml.js";
 
 export const AGENT_NAME = "CF Hair Salon phone agent (test)";
 
-/** ElevenLabs requires its English-only models (flash or turbo v2) for an English agent. */
-const MODEL_EN = "eleven_flash_v2";
+/** Other languages. English uses ELEVENLABS_AGENT_EN_MODEL: ElevenLabs requires its English-only models (flash or turbo v2) there. */
 const MODEL_FAST = "eleven_flash_v2_5";
 
 /** Salon words in Cantonese, Mandarin and Korean, to help speech recognition hear them right. */
@@ -147,10 +146,10 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
       // caller's language.
       turn: { turn_timeout: 7, turn_eagerness: "eager", speculative_turn: true, soft_timeout_config: { timeout_seconds: -1 } },
       tts: {
-        model_id: MODEL_EN,
+        model_id: deps.config.elevenAgentEnglishModel,
         ...(en ? { voice_id: en } : {}),
         agent_output_audio_format: "ulaw_8000",
-        optimize_streaming_latency: 3,
+        optimize_streaming_latency: deps.config.elevenAgentLatency,
       },
       conversation: { max_duration_seconds: 600 },
       language_presets: presets,
