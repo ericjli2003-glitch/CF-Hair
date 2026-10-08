@@ -131,7 +131,10 @@ describe("MiniMax voice", () => {
     const port = await start({ azureVoiceLiveEndpoint: az.base, azureVoiceLiveKey: "k", minimaxApiKey: "mm-key", minimaxBaseUrl: mm.base });
     const got = await call(port, "CA_mm3", "zh-HK");
     await waitFor(() => az.events.some((e) => e.type === "response.create"));
-    expect(az.events.find((e) => e.type === "session.update").session.modalities).toEqual(["text"]);
+    const session = az.events.find((e) => e.type === "session.update").session;
+    expect(session.modalities).toEqual(["text"]);
+    // Azure rejects its echo cancellation with text only (ec_not_supported, 2026-10-08).
+    expect(session.input_audio_echo_cancellation).toBeUndefined();
     az.send({ type: "response.text.delta", response_id: "r1", item_id: "i1", delta: "你好，CF Hair Salon。" });
     az.send({ type: "response.text.done", response_id: "r1", item_id: "i1", text: "你好，CF Hair Salon。" });
     await waitFor(() => got.some((m) => m.event === "media"));

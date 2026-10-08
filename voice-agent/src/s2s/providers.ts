@@ -140,7 +140,9 @@ export function azureProvider(cfg: AppConfig, speech: MiniMaxSpeech | null = nul
             interrupt_response: true,
           },
           input_audio_noise_reduction: { type: "azure_deep_noise_suppression" },
-          input_audio_echo_cancellation: { type: "server_echo_cancellation" },
+          // Azure refuses its echo cancellation while it writes text only (ec_not_supported), so a call
+          // that may switch to a MiniMax voice goes without; phones cancel their own echo anyway.
+          ...(external.size === 0 ? { input_audio_echo_cancellation: { type: "server_echo_cancellation" } } : {}),
           input_audio_transcription: { model: "azure-speech", language: AZURE_LOCALES },
           tools,
           tool_choice: "auto",
