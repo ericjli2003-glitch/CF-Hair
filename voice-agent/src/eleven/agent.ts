@@ -108,6 +108,8 @@ export function agentTools(opts: Pick<ElevenAgentOptions, "publicBaseUrl" | "too
     name: t.name,
     description: t.description ?? t.name,
     response_timeout_secs: 20,
+    // No "one moment" filler before a lookup; the answer follows straight away.
+    pre_tool_speech: "off",
     api_schema: {
       url: `${opts.publicBaseUrl}/eleven/tools/${t.name}`,
       method: "POST",

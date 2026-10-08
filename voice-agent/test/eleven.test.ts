@@ -95,6 +95,7 @@ describe("ElevenLabs phone agent line", () => {
     expect(names).not.toContain("transfer_to_human");
     const book = cc.agent.prompt.tools.find((t: { name: string }) => t.name === "book_appointment");
     expect(book.api_schema.url).toBe(`${PUBLIC}/eleven/tools/book_appointment`);
+    expect(book.pre_tool_speech).toBe("off");
     expect(book.api_schema.request_headers["x-cf-tool-key"]).toBe(toolKeyFor(AUTH));
     expect(book.api_schema.request_body_schema.properties.call_sid).toEqual({ type: "string", dynamic_variable: "call_sid" });
     expect(book.api_schema.request_body_schema.properties.service_id.description).toBeTruthy();
