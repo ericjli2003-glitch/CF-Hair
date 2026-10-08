@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 /** Stand-in for the ElevenLabs API: agents list/create/update and Twilio register-call. */
-async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean } = {}) {
+async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean; missingVoice?: string } = {}) {
   const seen: { method: string; path: string; key: string; body: any }[] = [];
   const server = http.createServer((req, res) => {
     let raw = "";
@@ -31,6 +31,9 @@ async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean 
       }
       if (req.url === "/v1/convai/agents/create" || req.url!.startsWith("/v1/convai/agents/agent_")) {
         if (opts.refuseCantonese && body?.conversation_config?.language_presets?.yue) return json(422, { detail: "Unsupported language: yue" });
+        if (opts.missingVoice && JSON.stringify(body).includes(opts.missingVoice)) {
+          return json(400, { detail: { type: "not_found", code: "voice_not_found", message: `A voice for the voice_id ${opts.missingVoice} was not found.` } });
+        }
         return json(200, { agent_id: opts.existing ? "agent_old" : "agent_new" });
       }
       if (req.url === "/v1/convai/twilio/register-call") {
@@ -159,6 +162,18 @@ describe("ElevenLabs phone agent line", () => {
     expect(o.agent.language).toBe("zh");
     expect(o.agent.first_message).toBe("你好，CF Hair Salon。");
     expect(o.tts.model_id).toBe("eleven_v4_turbo");
+  });
+
+  it("leaves out a voice that is not in the account instead of failing the agent", async () => {
+    const el = await fakeEleven({ missingVoice: "gAMZphRyrWJnLMDnom6H" });
+    const deps = testDeps();
+    deps.languages["en-US"] = { ...deps.languages["en-US"], voice: "gAMZphRyrWJnLMDnom6H-flash_v2_5" };
+    Object.assign(deps.config, { elevenAgentApiKey: "el-key", elevenLabsApiBase: el.base, publicBaseUrl: PUBLIC });
+    const { server } = createServer(deps);
+    closers.push(() => server.close());
+    await waitFor(() => el.seen.filter((s) => s.path === "/v1/convai/agents/create").length === 2);
+    const last = el.seen.filter((s) => s.path === "/v1/convai/agents/create")[1];
+    expect(last.body.conversation_config.tts.voice_id).toBeUndefined();
   });
 
   it("maps call languages to ElevenLabs agent languages", () => {

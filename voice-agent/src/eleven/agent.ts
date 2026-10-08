@@ -65,9 +65,12 @@ export function agentLanguage(code: LanguageCode, cantoneseCode: string): string
   return { "en-US": "en", "zh-CN": "zh", "zh-HK": cantoneseCode || "zh", "ko-KR": "ko" }[code];
 }
 
+/** Voices ElevenLabs could not find in the account (library voices not added to My Voices). */
+export const missingVoices = new Set<string>();
+
 function voiceIdFor(deps: SessionDeps, code: LanguageCode): string | null {
   const id = deps.languages[code].voice.split("-")[0];
-  return looksLikeElevenLabsVoice(id) ? id : null;
+  return looksLikeElevenLabsVoice(id) && !missingVoices.has(id) ? id : null;
 }
 
 function agentNote(deps: SessionDeps): string {
@@ -202,15 +205,29 @@ export async function upsertAgent(deps: SessionDeps, opts: ElevenAgentOptions): 
     const r = await el<{ agent_id: string }>(opts, "POST", "/v1/convai/agents/create", body);
     return r.agent_id;
   };
+  // A voice that is not in the account fails the whole agent: leave it out (ElevenLabs' default voice
+  // is used for that language) and say which one, so it can be added under My Voices.
+  const sendSkippingMissingVoices = async (withCantonese: boolean): Promise<string> => {
+    for (let i = 0; ; i++) {
+      try {
+        return await send(withCantonese);
+      } catch (err) {
+        const m = /voice_id (\w+) was not found/.exec((err as Error).message);
+        if (!m || i >= 4 || missingVoices.has(m[1])) throw err;
+        missingVoices.add(m[1]);
+        console.warn(`[eleven] voice ${m[1]} is not in this ElevenLabs account (add it under Voices > My Voices); using the default voice for now`);
+      }
+    }
+  };
   try {
-    return await send(true);
+    return await sendSkippingMissingVoices(true);
   } catch (err) {
     // If ElevenLabs does not take the Cantonese language code, keep the rest working.
     const status = (err as { status?: number }).status ?? 0;
     const aboutLanguage = new RegExp(`language|"${opts.cantoneseCode}"`, "i").test((err as Error).message);
     if (status >= 400 && status < 500 && opts.cantoneseCode && aboutLanguage) {
       console.warn(`[eleven] agent settings refused with Cantonese (${opts.cantoneseCode}); retrying without it: ${(err as Error).message}`);
-      return send(false);
+      return sendSkippingMissingVoices(false);
     }
     throw err;
   }
