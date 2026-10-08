@@ -45,6 +45,9 @@ server.listen(cfg.port, () => {
   );
   if (openAi.missing().length) console.warn(`  Warning: OpenAI workload identity is missing ${openAi.missing().join(", ")}`);
   console.log(
+    `  Azure Voice Live test line: ${cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? `on, POST /azure/twiml (${cfg.azureVoiceLiveModel}, voices ${Object.values(cfg.azureVoices).join(", ")})` : "off (set AZURE_VOICELIVE_ENDPOINT and AZURE_VOICELIVE_API_KEY)"}`,
+  );
+  console.log(
     `  ElevenLabs agent test line: ${cfg.elevenAgentApiKey && cfg.publicBaseUrl ? `on, POST /eleven/twiml (${cfg.elevenAgentLlm})` : "off (needs ELEVENLABS_API_KEY and the public URL)"}`,
   );
   console.log(`  Language ID for new callers: ${cfg.elevenLabsApiKey ? "ElevenLabs Scribe" : "off (set ELEVENLABS_API_KEY)"}`);

@@ -12,12 +12,13 @@ import { ApiUnavailableError } from "../api/types.js";
 import { DEFAULT_LANGUAGE, normalizeLanguage, type LanguageCode } from "../languages.js";
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
-import type { OpenAiAuth } from "./openai-auth.js";
+import { analyzeUtterance, chineseVariant } from "../agent/langdetect.js";
+import type { RealtimeProvider } from "./providers.js";
 
 /**
- * Speech-to-speech test line: the caller's audio goes straight to OpenAI's Realtime API, which
- * listens, thinks and speaks in one model, instead of Twilio speech recognition, Claude and a
- * text-to-speech voice. Same salon prompt, same booking tools and the same "never book in the
+ * Speech-to-speech test lines: the caller's audio goes straight to a realtime voice service (OpenAI's
+ * Realtime API, or Azure Voice Live with Azure neural voices; see providers.ts), which listens,
+ * thinks and speaks, instead of Twilio speech recognition, Claude and a text-to-speech voice. Same salon prompt, same booking tools and the same "never book in the
  * reply that is still asking" rule, so the two lines can be compared side by side.
  *
  * Twilio side: <Connect><Stream> (bidirectional Media Streams). Messages in: connected, start
@@ -45,7 +46,7 @@ export function realtimeTools() {
 }
 
 /** Overrides for the parts of the shared prompt that describe the Claude line's phone system. */
-function s2sNote(deps: SessionDeps): string {
+function s2sNote(deps: SessionDeps, provider: RealtimeProvider): string {
   const l = deps.languages;
   return `# This call: speech to speech
 You hear the caller's voice directly and speak with your own voice. There is no transcript, no speech recognition and no separate text to speech, so ignore the parts above about transcripts, the phone system switching languages, and ask_caller_language.
@@ -64,7 +65,8 @@ You hear the caller's voice directly and speak with your own voice. There is no 
 - You are a Hong Kong-Canadian receptionist who grew up in Hong Kong. In English, speak fluent, natural English with a light, friendly Hong Kong accent. In Cantonese, speak everyday Hong Kong Cantonese and mix in the English words Hong Kong people use, such as "book 個位", "OK 呀", "check 下", "cut 頭髮", "sorry 呀", "perm", "appointment". In Mandarin and Korean, speak normally.`
       : ""
   }
-- Live transfer is not available on this line; offer to take a message instead.
+${provider.note ? `${provider.note}
+` : ""}- Live transfer is not available on this line; offer to take a message instead.
 - Goodbyes: in this mode nobody adds a "bye" for you. When the call is done, say a short goodbye ending with "${l["en-US"].byes}" (Mandarin or Cantonese: "${l["zh-CN"].byes}", Korean: "${l["ko-KR"].byes}") and call end_call in the same reply.`;
 }
 
@@ -87,7 +89,7 @@ interface ResponseState {
 
 export interface S2sOptions {
   tokenSecret: string;
-  auth: OpenAiAuth;
+  provider: RealtimeProvider;
   /** For tests: how long to wait for the final playback mark before hanging up anyway. */
   hangupFallbackMs?: number;
   /** Called when the call cannot go on (OpenAI login or session failed), so Twilio can apologize. */
@@ -158,34 +160,40 @@ export class RealtimeCall {
   }
 
   private async connect() {
-    let bearer: string;
+    const p = this.opts.provider;
+    let target: { url: string; headers: Record<string, string> };
     try {
-      bearer = await this.opts.auth.bearer();
+      target = await p.connect();
     } catch (err) {
-      this.tag(`OpenAI login failed: ${(err as Error).message}`, "error");
+      this.tag(`${p.label} login failed: ${(err as Error).message}`, "error");
       this.fail();
       return;
     }
     if (this.closed) return;
-    const url = `${this.cfg.realtimeUrl}?model=${encodeURIComponent(this.cfg.realtimeModel)}`;
-    const oai = new WebSocket(url, { headers: { Authorization: `Bearer ${bearer}` } });
+    const oai = new WebSocket(target.url, { headers: target.headers });
     this.oai = oai;
     oai.on("open", () => {
       this.oaiOpen = true;
       this.configure();
     });
     oai.on("message", (raw) => this.onOpenAi(raw.toString()));
-    oai.on("error", (err) => this.tag(`OpenAI socket error: ${err.message}`, "error"));
+    oai.on("error", (err) => this.tag(`${p.label} socket error: ${err.message}`, "error"));
+    oai.on("unexpected-response", (_req, res) => {
+      let body = "";
+      res.on("data", (c: Buffer) => (body += c.toString()));
+      res.on("end", () => this.tag(`${p.label} refused the connection: ${res.statusCode} ${body.slice(0, 300)}`, "error"));
+      this.fail();
+    });
     oai.on("close", (code, reason) => {
       if (!this.closed) {
-        this.tag(`OpenAI closed the session (${code} ${reason.toString()})`, "error");
+        this.tag(`${p.label} closed the session (${code} ${reason.toString()})`, "error");
         this.fail();
       }
     });
   }
 
   private tag(msg: string, level: "log" | "warn" | "error" = "log") {
-    console[level](`[s2s call ${this.callSid || "?"}] ${msg}`);
+    console[level](`[${this.opts.provider.tag} call ${this.callSid || "?"}] ${msg}`);
     if (level === "error") this.log?.record.errors.push(msg);
   }
 
@@ -249,13 +257,13 @@ export class RealtimeCall {
       from: this.from,
       to: this.to,
       anonymous: isAnonymousCaller(this.from),
-      model: `openai:${this.cfg.realtimeModel}`,
+      model: `${this.opts.provider.tag === "s2s" ? "openai" : this.opts.provider.tag}:${this.opts.provider.model}`,
     });
     if (this.languageSource === "saved") {
       this.log.record.languages.push({ at: new Date().toISOString(), language: this.language, reason: "saved preference (call opened in it)" });
     }
     this.executor = new ToolExecutor(this.deps.api, this.deps.salon, this.hooks());
-    this.tag(`stream started (${this.cfg.realtimeModel}, voice ${this.cfg.realtimeVoice}), opening in ${this.language}`);
+    this.tag(`stream started (${this.opts.provider.model}, voice ${this.opts.provider.voiceFor(this.language)}), opening in ${this.language}`);
     this.configure();
     void this.loadContext();
   }
@@ -321,40 +329,14 @@ export class RealtimeCall {
       openings: extra.openings,
     });
     const base = this.deps.staticPrompt ?? staticSystemPrompt(this.deps.salon);
-    return `${base}\n\n${s2sNote(this.deps)}\n\n${context}`;
+    return `${base}\n\n${s2sNote(this.deps, this.opts.provider)}\n\n${context}`;
   }
 
   /** Sends the session settings once both sockets are ready, then has the model say the greeting. */
   private configure() {
     if (this.configured || !this.oaiOpen || !this.log) return;
     this.configured = true;
-    const reasoning = /^gpt-realtime-2/.test(this.cfg.realtimeModel) && this.cfg.realtimeReasoning !== "off";
-    const transcribe = this.cfg.realtimeTranscribeModel !== "off";
-    this.sendOai({
-      type: "session.update",
-      session: {
-        type: "realtime",
-        model: this.cfg.realtimeModel,
-        output_modalities: ["audio"],
-        instructions: this.instructions(this.context),
-        audio: {
-          input: {
-            format: { type: "audio/pcmu" },
-            turn_detection: {
-              type: "server_vad",
-              silence_duration_ms: this.cfg.realtimeSilenceMs,
-              create_response: true,
-              interrupt_response: true,
-            },
-            ...(transcribe ? { transcription: { model: this.cfg.realtimeTranscribeModel } } : {}),
-          },
-          output: { format: { type: "audio/pcmu" }, voice: this.cfg.realtimeVoice, speed: this.cfg.realtimeSpeed },
-        },
-        tools: realtimeTools(),
-        tool_choice: "auto",
-        ...(reasoning ? { reasoning: { effort: this.cfg.realtimeReasoning } } : {}),
-      },
-    });
+    this.sendOai(this.opts.provider.session({ instructions: this.instructions(this.context), language: this.language, tools: realtimeTools() }));
     for (const chunk of this.audioQueue) this.sendAudio(chunk);
     this.audioQueue = [];
     // The greeting, word for word, in the voice used for the rest of the call.
@@ -378,7 +360,7 @@ export class RealtimeCall {
     if (this.closed) return;
     this.tag(`caller and openings loaded in ${Date.now() - t0}ms`);
     // Not configured yet: configure() sends these instructions itself.
-    if (this.configured) this.sendOai({ type: "session.update", session: { type: "realtime", instructions: this.instructions(this.context) } });
+    if (this.configured) this.sendOai(this.opts.provider.instructions(this.instructions(this.context)));
   }
 
   private response(id: string): ResponseState {
@@ -399,7 +381,7 @@ export class RealtimeCall {
     }
     switch (e.type) {
       case "error":
-        this.tag(`OpenAI error: ${e.error?.code ?? ""} ${e.error?.message ?? ""} ${e.error?.param ? `(param ${e.error.param})` : ""}`.trim(), "error");
+        this.tag(`${this.opts.provider.label} error: ${e.error?.code ?? ""} ${e.error?.message ?? ""} ${e.error?.param ? `(param ${e.error.param})` : ""}`.trim(), "error");
         // Before any audio has played (bad settings, no credits) the caller would only hear silence.
         if (!this.heardAudio) this.fail();
         return;
@@ -419,9 +401,11 @@ export class RealtimeCall {
         this.lastCallerText = text;
         this.log?.say("caller", text);
         if (this.cfg.logTranscripts) this.tag(`heard: "${text}"`);
+        this.followCallerLanguage(text);
         return;
       }
-      case "response.output_audio.delta": {
+      case "response.output_audio.delta":
+      case "response.audio.delta": {
         const r = this.response(e.response_id);
         if (!r.firstAudioAt) {
           r.firstAudioAt = Date.now();
@@ -443,9 +427,11 @@ export class RealtimeCall {
         return;
       }
       case "response.output_audio_transcript.delta":
+      case "response.audio_transcript.delta":
         this.response(e.response_id).text += e.delta ?? "";
         return;
-      case "response.output_audio_transcript.done": {
+      case "response.output_audio_transcript.done":
+      case "response.audio_transcript.done": {
         const text = String(e.transcript ?? "").trim();
         if (text && e.response_id !== this.greetingResponseId) {
           this.log?.say("agent", text, { lang: this.language });
@@ -550,12 +536,7 @@ export class RealtimeCall {
       callerPhone: isAnonymousCaller(this.from) ? null : toE164(this.from),
       currentLanguage: () => this.language,
       switchLanguage: async (code) => {
-        if (code !== this.language) {
-          this.language = code;
-          this.languageSource = "detected";
-          this.log?.record.languages.push({ at: new Date().toISOString(), language: code, reason: "set_language (speech to speech)" });
-          this.tag(`language now ${code}`);
-        }
+        this.setLanguage(code, "set_language (speech to speech)");
         const saved = await this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, code);
         return { saved };
       },
@@ -571,6 +552,30 @@ export class RealtimeCall {
       sendMessage: (m) => this.postMessage(m),
       now: () => this.now(),
     };
+  }
+
+  /** Language change: noted for the call log and, where each language has its own voice (Azure), the voice. */
+  private setLanguage(code: LanguageCode, reason: string) {
+    if (code === this.language) return;
+    this.language = code;
+    this.languageSource = "detected";
+    this.log?.record.languages.push({ at: new Date().toISOString(), language: code, reason });
+    const update = this.opts.provider.languageVoice(code);
+    if (update) this.sendOai(update);
+    this.tag(`language now ${code}${update ? `, voice ${this.opts.provider.voiceFor(code)}` : ""}`);
+  }
+
+  /**
+   * Where the voice depends on the language (Azure), follow the caller from the transcript as a
+   * backup for set_language: Chinese characters or Korean script switch the voice at once.
+   */
+  private followCallerLanguage(text: string) {
+    if (!this.opts.provider.languageVoice(this.language)) return;
+    const a = analyzeUtterance(text);
+    const lang: LanguageCode | null = a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : null;
+    if (!lang || lang === this.language) return;
+    this.setLanguage(lang, "heard in the caller's words");
+    void this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, lang);
   }
 
   private async postMessage(m: { callerName: string; phone: string; message: string; urgency: "low" | "normal" | "high" }) {

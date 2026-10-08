@@ -328,3 +328,79 @@ describe("when the speech-to-speech call fails", () => {
     expect(await post("CA_other")).toBe('<?xml version="1.0" encoding="UTF-8"?><Response><Hangup/></Response>');
   });
 });
+
+describe("Azure Voice Live line", () => {
+  async function azureCall(port: number, callSid: string, startLanguage = "en-US") {
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/azure/media`);
+    const got: any[] = [];
+    ws.on("message", (raw) => got.push(JSON.parse(raw.toString())));
+    await new Promise<void>((r) => ws.once("open", () => r()));
+    ws.send(
+      JSON.stringify({
+        event: "start",
+        streamSid: "MZaz",
+        start: { streamSid: "MZaz", callSid, customParameters: { token: relayToken(AUTH, callSid), from: "+16045550199", startLanguage, opening: "welcome" } },
+      }),
+    );
+    return { ws, got };
+  }
+
+  async function startAzure() {
+    const az = await fakeRealtime();
+    const { port, deps } = await startServer("ws://unused", {
+      openAiApiKey: "",
+      azureVoiceLiveEndpoint: az.url.replace("ws://", "http://"),
+      azureVoiceLiveKey: "az-key",
+    });
+    return { az, port, deps };
+  }
+
+  it("answers /azure/twiml with a stream to /azure/media", async () => {
+    const { port } = await startAzure();
+    const params = { CallSid: "CA_az0", From: "+16045550199", To: "+12365550100" };
+    const url = `http://127.0.0.1:${port}/azure/twiml`;
+    const xml = await (
+      await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": twilio.getExpectedTwilioSignature(AUTH, url, params) },
+        body: new URLSearchParams(params),
+      })
+    ).text();
+    expect(xml).toContain(`<Stream url="ws://127.0.0.1:${port}/azure/media">`);
+  });
+
+  it("connects with the api key and sets up mu-law audio, an Azure voice and Azure turn detection", async () => {
+    const { az, port } = await startAzure();
+    const call = await azureCall(port, "CA_az1", "zh-HK");
+    await waitFor(() => az.of("response.create").length === 1);
+    expect(az.seen.url).toBe("/voice-live/realtime?api-version=2026-07-15&model=gpt-realtime");
+    const s = az.of("session.update")[0].session;
+    expect(s.input_audio_format).toBe("g711_ulaw");
+    expect(s.output_audio_format).toBe("g711_ulaw");
+    // A returning Cantonese caller starts with the Cantonese voice.
+    expect(s.voice).toEqual({ type: "azure-standard", name: "zh-HK-HiuMaanNeural" });
+    expect(s.turn_detection.type).toBe("azure_semantic_vad_multilingual");
+    expect(s.input_audio_noise_reduction).toEqual({ type: "azure_deep_noise_suppression" });
+    expect(s.input_audio_transcription.model).toBe("azure-speech");
+    expect(s.instructions).toContain("Each language has its own voice");
+    // Older event names carry the audio.
+    az.send({ type: "response.audio.delta", response_id: "r1", item_id: "i1", delta: "BBBB" });
+    await waitFor(() => call.got.some((m) => m.event === "media"));
+    expect(call.got.find((m) => m.event === "media").media.payload).toBe("BBBB");
+    call.ws.close();
+  });
+
+  it("switches to the matching Azure voice when the caller changes language", async () => {
+    const { az, port } = await startAzure();
+    const call = await azureCall(port, "CA_az2");
+    await waitFor(() => az.of("response.create").length === 1);
+    expect(az.of("session.update")[0].session.voice.name).toBe("en-HK-YanNeural");
+    // From the caller's words (Cantonese)...
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮，有冇位呀？" });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-HiuMaanNeural"));
+    // ...and from set_language (Mandarin).
+    az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-CN" }) });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-XiaoxiaoNeural"));
+    call.ws.close();
+  });
+});

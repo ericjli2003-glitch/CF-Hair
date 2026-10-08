@@ -17,6 +17,7 @@ the admin screen and the phone all see the same calendar.
 - [Why Twilio ConversationRelay and not ElevenLabs?](#why-twilio-conversationrelay-and-not-elevenlabs)
 - [Speech-to-speech test line (OpenAI Realtime)](#speech-to-speech-test-line-openai-realtime)
 - [ElevenLabs phone agent test line](#elevenlabs-phone-agent-test-line)
+- [Azure Voice Live test line](#azure-voice-live-test-line)
 - [Promotional text opt-in](#promotional-text-opt-in)
 - [Calls tab](#calls-tab)
 - [Twilio setup, step by step](#twilio-setup-step-by-step)
@@ -487,6 +488,35 @@ agents have no Cantonese language yet, so a returning Cantonese caller starts on
 setting with their Cantonese voice and Eleven v4 Turbo switched in for the call; a new caller who
 starts speaking Cantonese mid-call gets the Mandarin voice. If ElevenLabs adds a code for Cantonese,
 set it in `ELEVENLABS_AGENT_CANTONESE`.
+
+## Azure Voice Live test line
+
+A fourth line on Microsoft's Azure Voice Live API: a realtime model (`gpt-realtime` by default,
+`AZURE_VOICELIVE_MODEL`) hears the caller's audio directly, and Azure's neural voices speak, one per
+language, including proper Cantonese. It runs through the same bridge as the OpenAI line
+(`src/s2s/realtime.ts`, with `src/s2s/providers.ts` describing each service): same salon prompt,
+booking tools, caller memory, calendar, call logs and Calls tab, and the same "no booking in the
+reply that asks" rule. Azure adds noise suppression, echo cancellation and multilingual semantic
+turn detection (`AZURE_TURN_DETECTION`, default `azure_semantic_vad_multilingual`).
+
+Voices (change any in Render): `AZURE_VOICE_EN_US` `en-HK-YanNeural` (English with a Hong Kong
+accent; `en-US-AvaMultilingualNeural` for North American), `AZURE_VOICE_ZH_HK`
+`zh-HK-HiuMaanNeural` (Cantonese), `AZURE_VOICE_ZH_CN` `zh-CN-XiaoxiaoNeural` (Mandarin),
+`AZURE_VOICE_KO_KR` `ko-KR-SunHiNeural` (Korean); `AZURE_VOICE_RATE` for speed. A returning
+caller starts in their saved language's voice. When the caller switches language, the voice follows:
+the model calls set_language, and as a backup the server switches as soon as the transcript shows
+Chinese characters or Korean script (Cantonese words choose the Cantonese voice).
+
+Set up:
+1. Azure portal: create an **Azure AI Foundry** resource (Voice Live is part of it) in a region
+   that offers Voice Live, for example East US 2 or Sweden Central.
+2. On the resource, **Keys and Endpoint**: copy the endpoint (for example
+   `https://<name>.services.ai.azure.com`) and a key.
+3. Render > cf-hair-voice > Environment: `AZURE_VOICELIVE_ENDPOINT` and `AZURE_VOICELIVE_API_KEY`.
+   The startup log then shows `Azure Voice Live test line: on`.
+4. Twilio: a number's "A call comes in" to `https://<host>/azure/twiml` (POST).
+5. Logs are tagged `[azure call ...]`, with the same `reply: first audio ...` timing line as the
+   OpenAI line. A refused connection is logged as `Azure refused the connection: <status> <reason>`.
 
 ## Promotional text opt-in
 

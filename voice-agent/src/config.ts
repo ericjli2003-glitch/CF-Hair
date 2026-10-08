@@ -135,6 +135,17 @@ export interface AppConfig {
   realtimeSilenceMs: number;
   /** Background transcription of the caller for the call log ("off" turns it off). */
   realtimeTranscribeModel: string;
+  /** Azure Voice Live test line (src/s2s/providers.ts). On when the endpoint and key are set. */
+  azureVoiceLiveEndpoint: string;
+  azureVoiceLiveKey: string;
+  azureVoiceLiveModel: string;
+  azureVoiceLiveApiVersion: string;
+  /** Azure neural voice per call language. */
+  azureVoices: { "en-US": string; "zh-CN": string; "zh-HK": string; "ko-KR": string };
+  /** Speaking rate for Azure voices ("1" is normal, for example "1.1" is a little faster). */
+  azureVoiceRate: string;
+  azureTurnDetection: string;
+  azureSilenceMs: number;
   /** ElevenLabs phone agent test line (src/eleven). On when ELEVENLABS_API_KEY is set, unless ELEVENLABS_AGENT=off. */
   elevenAgentApiKey: string;
   elevenAgentLlm: string;
@@ -210,6 +221,20 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     realtimeReasoning: env("OPENAI_REASONING_EFFORT", "low"),
     realtimeSilenceMs: envInt("OPENAI_VAD_SILENCE_MS", 500),
     realtimeTranscribeModel: env("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
+    azureVoiceLiveEndpoint: env("AZURE_VOICELIVE_ENDPOINT").trim().replace(/\/+$/, ""),
+    azureVoiceLiveKey: env("AZURE_VOICELIVE_API_KEY").trim(),
+    azureVoiceLiveModel: env("AZURE_VOICELIVE_MODEL", "gpt-realtime"),
+    azureVoiceLiveApiVersion: env("AZURE_VOICELIVE_API_VERSION", "2026-07-15"),
+    azureVoices: {
+      // English with a Hong Kong accent by default, matching the salon's clients; en-US voices work too.
+      "en-US": env("AZURE_VOICE_EN_US", "en-HK-YanNeural"),
+      "zh-CN": env("AZURE_VOICE_ZH_CN", "zh-CN-XiaoxiaoNeural"),
+      "zh-HK": env("AZURE_VOICE_ZH_HK", "zh-HK-HiuMaanNeural"),
+      "ko-KR": env("AZURE_VOICE_KO_KR", "ko-KR-SunHiNeural"),
+    },
+    azureVoiceRate: env("AZURE_VOICE_RATE", "1"),
+    azureTurnDetection: env("AZURE_TURN_DETECTION", "azure_semantic_vad_multilingual"),
+    azureSilenceMs: envInt("AZURE_VAD_SILENCE_MS", 500),
     elevenAgentApiKey: env("ELEVENLABS_AGENT", "on") === "off" ? "" : env("ELEVENLABS_API_KEY").trim(),
     elevenAgentLlm: env("ELEVENLABS_AGENT_LLM", "claude-haiku-4-5"),
     elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", ""),

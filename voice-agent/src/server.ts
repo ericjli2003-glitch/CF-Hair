@@ -13,11 +13,13 @@ import { normalizeLanguage } from "./languages.js";
 import { handleS2sSocket } from "./s2s/realtime.js";
 import { s2sAfterTwiml, s2sTwiml } from "./s2s/twiml.js";
 import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
+import { azureProvider, openAiProvider, type RealtimeProvider } from "./s2s/providers.js";
 import { ElevenLine, toolKeyFor } from "./eleven/agent.js";
 
 export const RELAY_PATH = "/relay";
 export const LISTEN_PATH = "/listen";
 export const S2S_PATH = "/s2s/media";
+export const AZURE_PATH = "/azure/media";
 
 /** Last four digits only, so logs show which test phone called without storing full numbers. */
 function maskPhone(raw: unknown): string {
@@ -78,6 +80,8 @@ export function createServer(deps: SessionDeps) {
         )
       : null;
   eleven?.ready().catch(() => {}); // logged inside; retried on the first call
+  const openAiLine = openAi.mode() !== "none" ? openAiProvider(cfg, openAi) : null;
+  const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg) : null;
   /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
   const s2sFailed = new Map<string, number>();
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
@@ -139,31 +143,39 @@ export function createServer(deps: SessionDeps) {
     );
   });
 
-  // Speech-to-speech test line (OpenAI Realtime): point a second Twilio number's "A call comes in"
-  // here to compare it with the main line. Off unless OPENAI_API_KEY is set.
-  app.post("/s2s/twiml", verify, async (req, res) => {
-    if (openAi.mode() === "none") {
-      console.warn("[s2s] a call came in, but OpenAI is not set up (OPENAI_API_KEY or workload identity)");
-      res.type("text/xml").send(new twilio.twiml.VoiceResponse().say("This test line is not set up yet.").toString());
-      return;
-    }
-    // Log in to OpenAI now (cached after the first call), so the stream can connect at once.
-    void openAi.bearer().catch((err) => console.error(`[s2s] OpenAI login failed: ${(err as Error).message}`));
-    const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
-    const callSid = String(req.body?.CallSid ?? "");
-    console.log(`[s2s call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}: opening in ${language}`);
-    res.type("text/xml").send(
-      s2sTwiml({
-        wsUrl: publicBase(cfg, req).replace(/^http/, "ws") + S2S_PATH,
-        token: tokenSecret ? relayToken(tokenSecret, callSid) : "dev",
-        from: req.body?.From ? String(req.body.From) : undefined,
-        to: req.body?.To ? String(req.body.To) : undefined,
-        startLanguage: language,
-        opening: known ? "returning" : "welcome",
-        afterUrl: `${publicBase(cfg, req)}/s2s/after`,
-      }),
-    );
-  });
+  // Speech-to-speech test lines: point a Twilio number's "A call comes in" at /s2s/twiml (OpenAI
+  // Realtime, needs OPENAI_API_KEY or workload identity) or /azure/twiml (Azure Voice Live, needs
+  // AZURE_VOICELIVE_ENDPOINT and AZURE_VOICELIVE_API_KEY) to compare them with the main line.
+  const realtimeTwiml = (tag: string, provider: RealtimeProvider | null, mediaPath: string, warm?: () => void) =>
+    async (req: Request, res: Response) => {
+      if (!provider) {
+        console.warn(`[${tag}] a call came in, but this line is not set up`);
+        res.type("text/xml").send(new twilio.twiml.VoiceResponse().say("This test line is not set up yet.").toString());
+        return;
+      }
+      warm?.();
+      const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
+      const callSid = String(req.body?.CallSid ?? "");
+      console.log(`[${tag} call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}: opening in ${language}`);
+      res.type("text/xml").send(
+        s2sTwiml({
+          wsUrl: publicBase(cfg, req).replace(/^http/, "ws") + mediaPath,
+          token: tokenSecret ? relayToken(tokenSecret, callSid) : "dev",
+          from: req.body?.From ? String(req.body.From) : undefined,
+          to: req.body?.To ? String(req.body.To) : undefined,
+          startLanguage: language,
+          opening: known ? "returning" : "welcome",
+          afterUrl: `${publicBase(cfg, req)}/s2s/after`,
+        }),
+      );
+    };
+  // Log in to OpenAI when the call comes in (cached after the first call), so the stream connects at once.
+  app.post(
+    "/s2s/twiml",
+    verify,
+    realtimeTwiml("s2s", openAiLine, S2S_PATH, () => void openAi.bearer().catch((err) => console.error(`[s2s] OpenAI login failed: ${(err as Error).message}`))),
+  );
+  app.post("/azure/twiml", verify, realtimeTwiml("azure", azureLine, AZURE_PATH));
 
   // The stream ended: apologize if the call failed (OpenAI login or session), then hang up.
   app.post("/s2s/after", verify, (req, res) => {
@@ -243,16 +255,19 @@ export function createServer(deps: SessionDeps) {
       });
       return;
     }
-    if (url.pathname === S2S_PATH && openAi.mode() !== "none") {
-      wss.handleUpgrade(req, socket, head, (ws) => void handleS2sSocket(ws, deps, {
+    const realtime = url.pathname === S2S_PATH ? openAiLine : url.pathname === AZURE_PATH ? azureLine : null;
+    if (realtime) {
+      wss.handleUpgrade(req, socket, head, (ws) =>
+        void handleS2sSocket(ws, deps, {
           tokenSecret,
-          auth: openAi,
+          provider: realtime,
           onFailure: (sid) => {
             const cutoff = Date.now() - 600_000;
             for (const [k, t] of s2sFailed) if (t < cutoff) s2sFailed.delete(k);
             if (sid) s2sFailed.set(sid, Date.now());
           },
-        }));
+        }),
+      );
       return;
     }
     if (url.pathname !== RELAY_PATH) {
