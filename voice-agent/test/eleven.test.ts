@@ -186,3 +186,29 @@ describe("ElevenLabs phone agent line", () => {
     expect(agentLanguage("ko-KR", "yue")).toBe("ko");
   });
 });
+
+describe("one number: Cantonese callers to Azure, everyone else to ElevenLabs", () => {
+  const route = (port: number, params: Record<string, string>) =>
+    fetch(`http://127.0.0.1:${port}/route/twiml`, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded", "x-twilio-signature": twilio.getExpectedTwilioSignature(AUTH, `${PUBLIC}/route/twiml`, params) },
+      body: new URLSearchParams(params),
+    }).then((r) => r.text());
+
+  it("sends a caller saved as Cantonese to the Azure line and others to the ElevenLabs agent", async () => {
+    const el = await fakeEleven();
+    const { port } = await start(el.base, { azureVoiceLiveEndpoint: "https://az.test", azureVoiceLiveKey: "az-key" });
+    // The mock booking API has this number saved as a returning Cantonese caller.
+    const cantonese = await route(port, { CallSid: "CA_r1", From: "+16045550188", To: "+12365550100" });
+    expect(cantonese).toContain(`<Stream url="wss://voice.test/azure/media">`);
+    expect(cantonese).toContain('<Parameter name="startLanguage" value="zh-HK"/>');
+    const english = await route(port, { CallSid: "CA_r2", From: "+16045550777", To: "+12365550100" });
+    expect(english).toContain("wss://api.elevenlabs.io/x");
+  });
+
+  it("sends everyone to ElevenLabs when the Azure line is not set up", async () => {
+    const el = await fakeEleven();
+    const { port } = await start(el.base);
+    expect(await route(port, { CallSid: "CA_r3", From: "+16045550188", To: "+12365550100" })).toContain("wss://api.elevenlabs.io/x");
+  });
+});

@@ -18,6 +18,7 @@ the admin screen and the phone all see the same calendar.
 - [Speech-to-speech test line (OpenAI Realtime)](#speech-to-speech-test-line-openai-realtime)
 - [ElevenLabs phone agent test line](#elevenlabs-phone-agent-test-line)
 - [Azure Voice Live test line](#azure-voice-live-test-line)
+- [One number: Cantonese to Azure, everyone else to ElevenLabs](#one-number-cantonese-to-azure-everyone-else-to-elevenlabs)
 - [Promotional text opt-in](#promotional-text-opt-in)
 - [Calls tab](#calls-tab)
 - [Twilio setup, step by step](#twilio-setup-step-by-step)
@@ -521,6 +522,16 @@ Set up:
    it. For `gpt-realtime` itself, create the Foundry resource in a region that offers it.
 6. Logs are tagged `[azure call ...]`, with the same `reply: first audio ...` timing line as the
    OpenAI line. A refused connection is logged as `Azure refused the connection: <status> <reason>`.
+
+## One number: Cantonese to Azure, everyone else to ElevenLabs
+
+`POST /route/twiml` combines the two lines that sounded best in testing. It looks up the caller's
+saved language first: callers saved as Cantonese go to the Azure line (Cantonese voice
+`zh-HK-HiuMaanNeural`), everyone else to the ElevenLabs agent (best English and Mandarin voices).
+A new caller who speaks Cantonese on the ElevenLabs line is saved as Cantonese (the agent calls
+set_language with zh-HK), so their next call goes to Azure. If one of the two lines is not set up,
+the other takes every call. Point the number's "A call comes in" to `https://<host>/route/twiml`.
+The log shows one line per call: `[route call ...] ***1234 saved as zh-HK: Azure`.
 
 ## Promotional text opt-in
 

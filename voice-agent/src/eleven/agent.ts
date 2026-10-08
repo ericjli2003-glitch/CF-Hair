@@ -78,6 +78,7 @@ function agentNote(deps: SessionDeps): string {
   return `# This call: ElevenLabs phone agent
 You hear the caller through speech recognition and speak with your own voice.
 - Language: answer in the language the caller speaks (English, Mandarin, Cantonese or Korean). If they speak another of these, switch with the language detection tool, and also call set_language once so it is remembered for their next call. There is no ask_caller_language or keypad here.
+- If the caller speaks Cantonese, call set_language with zh-HK right away, even if you keep going on this call, so their next call is answered by a Cantonese voice. Reply in Cantonese as best you can.
 - Live transfer is not available on this line; offer to take a message instead.
 - Never call book_appointment, cancel_booking or reschedule_booking in the same reply that asks the caller to confirm. Ask, stop, and only act after they say yes.
 - Goodbyes: when the call is done, say a short goodbye ending with "${l["en-US"].byes}" (Mandarin or Cantonese: "${l["zh-CN"].byes}", Korean: "${l["ko-KR"].byes}"), then use end_call.

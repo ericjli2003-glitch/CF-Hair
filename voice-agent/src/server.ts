@@ -7,7 +7,7 @@ import type { SessionDeps } from "./agent/session.js";
 import { handleRelaySocket } from "./relay/handler.js";
 import { CallRegistry, handleListenSocket } from "./relay/listen.js";
 import { DirectTts } from "./tts/direct.js";
-import { isLanguageCode, looksLikeElevenLabsVoice } from "./languages.js";
+import { isLanguageCode, looksLikeElevenLabsVoice, type LanguageCode } from "./languages.js";
 import { actionTwiml, conversationRelayTwiml, dialStatusTwiml, openingGreeting, relayToken } from "./relay/twiml.js";
 import { normalizeLanguage } from "./languages.js";
 import { handleS2sSocket } from "./s2s/realtime.js";
@@ -147,14 +147,14 @@ export function createServer(deps: SessionDeps) {
   // Realtime, needs OPENAI_API_KEY or workload identity) or /azure/twiml (Azure Voice Live, needs
   // AZURE_VOICELIVE_ENDPOINT and AZURE_VOICELIVE_API_KEY) to compare them with the main line.
   const realtimeTwiml = (tag: string, provider: RealtimeProvider | null, mediaPath: string, warm?: () => void) =>
-    async (req: Request, res: Response) => {
+    async (req: Request, res: Response, looked?: { language: LanguageCode; known: boolean }) => {
       if (!provider) {
         console.warn(`[${tag}] a call came in, but this line is not set up`);
         res.type("text/xml").send(new twilio.twiml.VoiceResponse().say("This test line is not set up yet.").toString());
         return;
       }
       warm?.();
-      const { language, known } = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
+      const { language, known } = looked ?? (await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs));
       const callSid = String(req.body?.CallSid ?? "");
       console.log(`[${tag} call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}: opening in ${language}`);
       res.type("text/xml").send(
@@ -170,12 +170,12 @@ export function createServer(deps: SessionDeps) {
       );
     };
   // Log in to OpenAI when the call comes in (cached after the first call), so the stream connects at once.
-  app.post(
-    "/s2s/twiml",
-    verify,
-    realtimeTwiml("s2s", openAiLine, S2S_PATH, () => void openAi.bearer().catch((err) => console.error(`[s2s] OpenAI login failed: ${(err as Error).message}`))),
+  const openAiTwiml = realtimeTwiml("s2s", openAiLine, S2S_PATH, () =>
+    void openAi.bearer().catch((err) => console.error(`[s2s] OpenAI login failed: ${(err as Error).message}`)),
   );
-  app.post("/azure/twiml", verify, realtimeTwiml("azure", azureLine, AZURE_PATH));
+  app.post("/s2s/twiml", verify, (req, res) => openAiTwiml(req, res));
+  const azureTwiml = realtimeTwiml("azure", azureLine, AZURE_PATH);
+  app.post("/azure/twiml", verify, (req, res) => azureTwiml(req, res));
 
   // The stream ended: apologize if the call failed (OpenAI login or session), then hang up.
   app.post("/s2s/after", verify, (req, res) => {
@@ -185,7 +185,7 @@ export function createServer(deps: SessionDeps) {
   });
 
   // ElevenLabs phone agent test line: point a Twilio number's "A call comes in" here.
-  app.post("/eleven/twiml", verify, async (req, res) => {
+  const elevenTwiml = async (req: Request, res: Response) => {
     const sorry = (msg: string) => {
       const vr = new twilio.twiml.VoiceResponse();
       vr.say(msg);
@@ -205,6 +205,19 @@ export function createServer(deps: SessionDeps) {
       console.error(`[eleven call ${callSid}] could not start: ${(err as Error).message}`);
       sorry("Sorry, this test line is not working right now. Please try again later.");
     }
+  };
+  app.post("/eleven/twiml", verify, elevenTwiml);
+
+  // One number for everyone: callers saved as Cantonese go to the Azure line (proper Cantonese
+  // voice); everyone else to the ElevenLabs agent (best English and Mandarin voices). A new caller
+  // who speaks Cantonese is saved as Cantonese during the call (set_language) and routed to Azure
+  // from their next call. Without one of the two lines, the other takes every call.
+  app.post("/route/twiml", verify, async (req, res) => {
+    const looked = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
+    const toAzure = !!azureLine && (looked.language === "zh-HK" || !eleven);
+    console.log(`[route call ${String(req.body?.CallSid ?? "?")}] ${maskPhone(req.body?.From)} saved as ${looked.language}: ${toAzure ? "Azure" : "ElevenLabs"}`);
+    if (toAzure) return azureTwiml(req, res, looked);
+    return elevenTwiml(req, res);
   });
 
   // Booking tools for the ElevenLabs agent (its webhook tools), with the same code as the main line.
