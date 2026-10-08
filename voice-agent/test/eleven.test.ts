@@ -100,6 +100,9 @@ describe("ElevenLabs phone agent line", () => {
     expect(book.api_schema.request_body_schema.properties.call_sid).toEqual({ type: "string", dynamic_variable: "call_sid" });
     expect(book.api_schema.request_body_schema.properties.service_id.description).toBeTruthy();
     expect(cc.agent.prompt.built_in_tools.end_call.params.system_tool_type).toBe("end_call");
+    // No English filler lines on a Chinese or Korean call.
+    expect(cc.turn.soft_timeout_config).toEqual({ timeout_seconds: -1 });
+    expect(cc.agent.prompt.built_in_tools.language_detection.pre_tool_speech).toBe("off");
   });
 
   it("updates the existing agent instead of making a second one, and drops Cantonese if refused", async () => {

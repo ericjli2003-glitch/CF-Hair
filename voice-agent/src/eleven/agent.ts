@@ -142,7 +142,9 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
     tags: ["cf-hair"],
     conversation_config: {
       asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: [...SPEECH_HINTS.split(","), ...MULTILINGUAL_HINTS] },
-      turn: { turn_timeout: 7, turn_eagerness: "eager", speculative_turn: true },
+      // No canned English fillers ("Alright, I'll jump in") while the model thinks: they ignore the
+      // caller's language.
+      turn: { turn_timeout: 7, turn_eagerness: "eager", speculative_turn: true, soft_timeout_config: { timeout_seconds: -1 } },
       tts: {
         model_id: MODEL_EN,
         ...(en ? { voice_id: en } : {}),
@@ -160,10 +162,16 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
           temperature: 0.3,
           tools: agentTools(opts),
           built_in_tools: {
-            end_call: { name: "end_call", description: "End the call after the goodbye has been said.", params: { system_tool_type: "end_call" } },
+            end_call: {
+              name: "end_call",
+              description: "End the call after the goodbye has been said.",
+              pre_tool_speech: "off",
+              params: { system_tool_type: "end_call" },
+            },
             language_detection: {
               name: "language_detection",
               description: "Switch to the language the caller is speaking: English, Mandarin, Cantonese or Korean.",
+              pre_tool_speech: "off",
               params: { system_tool_type: "language_detection" },
             },
           },
