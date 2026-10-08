@@ -134,7 +134,8 @@ export interface AppConfig {
   /** ElevenLabs phone agent test line (src/eleven). On when ELEVENLABS_API_KEY is set, unless ELEVENLABS_AGENT=off. */
   elevenAgentApiKey: string;
   elevenAgentLlm: string;
-  /** ElevenLabs' code for Cantonese in agents; "" treats Cantonese callers with the Mandarin settings. */
+  /** ElevenLabs' code for Cantonese in agents. Empty (default): agents have no Cantonese language yet, so Cantonese
+   *  callers run on the Mandarin ("zh") settings with the Cantonese voice and Eleven v4 Turbo. */
   elevenAgentCantoneseCode: string;
   /** Detect the caller's language from transcripts and switch automatically. */
   autoDetectLanguage: boolean;
@@ -205,7 +206,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     realtimeTranscribeModel: env("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),
     elevenAgentApiKey: env("ELEVENLABS_AGENT", "on") === "off" ? "" : env("ELEVENLABS_API_KEY").trim(),
     elevenAgentLlm: env("ELEVENLABS_AGENT_LLM", "claude-haiku-4-5"),
-    elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", "yue"),
+    elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", ""),
     welcomeGreeting: env(
       "WELCOME_GREETING",
       "Hi, CF Hair Salon.",

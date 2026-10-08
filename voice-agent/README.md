@@ -481,9 +481,12 @@ the ElevenLabs dashboard. Calls and their transcripts show in ElevenLabs under A
 Set up: the `ELEVENLABS_API_KEY` needs the **ElevenLabs Agents** permission (Write) as well as Text
 to Speech and Speech to Text. The startup log shows `[eleven] agent ready: agent_...` or why it
 failed. Then point a Twilio number's "A call comes in" to `https://<host>/eleven/twiml` (POST).
-`ELEVENLABS_AGENT=off` turns the line off. If ElevenLabs refuses the Cantonese language code
-(`ELEVENLABS_AGENT_CANTONESE`, default `yue`), the agent is saved without it and Cantonese callers
-get the Mandarin settings with the Cantonese voice.
+`ELEVENLABS_AGENT=off` turns the line off. English uses ElevenLabs' English-only Flash v2 (their
+rule for English agents, and their fastest model); Mandarin and Korean use Flash v2.5. ElevenLabs
+agents have no Cantonese language yet, so a returning Cantonese caller starts on the Mandarin ("zh")
+setting with their Cantonese voice and Eleven v4 Turbo switched in for the call; a new caller who
+starts speaking Cantonese mid-call gets the Mandarin voice. If ElevenLabs adds a code for Cantonese,
+set it in `ELEVENLABS_AGENT_CANTONESE`.
 
 ## Promotional text opt-in
 

@@ -45,9 +45,9 @@ async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean 
   return { base: `http://127.0.0.1:${(server.address() as AddressInfo).port}`, seen };
 }
 
-async function start(base: string) {
+async function start(base: string, extra: Record<string, unknown> = {}) {
   const deps = testDeps();
-  Object.assign(deps.config, { elevenAgentApiKey: "el-key", elevenLabsApiBase: base, publicBaseUrl: PUBLIC });
+  Object.assign(deps.config, { elevenAgentApiKey: "el-key", elevenLabsApiBase: base, publicBaseUrl: PUBLIC, ...extra });
   const { server } = createServer(deps);
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
   closers.push(() => server.close());
@@ -82,8 +82,11 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.llm).toBe("claude-haiku-4-5");
     expect(cc.agent.prompt.prompt).toContain("{{call_context}}");
     expect(cc.agent.prompt.prompt).toContain("Henderson Place");
-    expect(Object.keys(cc.language_presets).sort()).toEqual(["ko", "yue", "zh"]);
-    expect(cc.language_presets.yue.overrides.tts.model_id).toBe("eleven_v4_turbo");
+    // ElevenLabs agents have no Cantonese language: Mandarin and Korean presets only.
+    expect(Object.keys(cc.language_presets).sort()).toEqual(["ko", "zh"]);
+    expect(cc.language_presets.zh.overrides.tts.model_id).toBe("eleven_flash_v2_5");
+    // English agents must use the English-only v2 models.
+    expect(cc.tts.model_id).toBe("eleven_flash_v2");
     const names = cc.agent.prompt.tools.map((t: { name: string }) => t.name);
     expect(names).toEqual(expect.arrayContaining(["check_availability", "book_appointment", "take_message", "set_language"]));
     expect(names).not.toContain("transfer_to_human");
@@ -97,7 +100,7 @@ describe("ElevenLabs phone agent line", () => {
 
   it("updates the existing agent instead of making a second one, and drops Cantonese if refused", async () => {
     const el = await fakeEleven({ existing: true, refuseCantonese: true });
-    await start(el.base);
+    await start(el.base, { elevenAgentCantoneseCode: "yue" });
     await waitFor(() => el.seen.filter((s) => s.method === "PATCH").length === 2);
     const patches = el.seen.filter((s) => s.method === "PATCH");
     expect(patches[0].path).toBe("/v1/convai/agents/agent_old");
@@ -145,6 +148,17 @@ describe("ElevenLabs phone agent line", () => {
       body: JSON.stringify({ call_sid: "CA_el2", call_key: "forged" }),
     });
     expect(forged.status).toBe(403);
+  });
+
+  it("opens a returning Cantonese caller on the Mandarin setting with the Cantonese voice model", async () => {
+    const el = await fakeEleven();
+    const { port } = await start(el.base);
+    await incoming(port, { CallSid: "CA_el_yue", From: "+16045550188", To: "+12365550100" });
+    const reg = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!;
+    const o = reg.body.conversation_initiation_client_data.conversation_config_override;
+    expect(o.agent.language).toBe("zh");
+    expect(o.agent.first_message).toBe("你好，CF Hair Salon。");
+    expect(o.tts.model_id).toBe("eleven_v4_turbo");
   });
 
   it("maps call languages to ElevenLabs agent languages", () => {

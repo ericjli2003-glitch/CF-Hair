@@ -28,6 +28,8 @@ import { SPEECH_HINTS } from "../relay/twiml.js";
 
 export const AGENT_NAME = "CF Hair Salon phone agent (test)";
 
+/** ElevenLabs requires its English-only models (flash or turbo v2) for an English agent. */
+const MODEL_EN = "eleven_flash_v2";
 const MODEL_FAST = "eleven_flash_v2_5";
 
 /** Salon words in Cantonese, Mandarin and Korean, to help speech recognition hear them right. */
@@ -117,7 +119,9 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
   const en = voiceIdFor(deps, "en-US");
   const presets: Record<string, unknown> = {};
   for (const code of LANGUAGE_CODES) {
-    if (code === "en-US" || (code === "zh-HK" && !withCantonese)) continue;
+    // Without a Cantonese language code, Cantonese shares "zh" with Mandarin: the Mandarin preset stays,
+    // and a Cantonese caller gets their voice and Eleven v4 Turbo when the call starts (register()).
+    if (code === "en-US" || (code === "zh-HK" && (!withCantonese || !opts.cantoneseCode))) continue;
     const lang = agentLanguage(code, opts.cantoneseCode);
     const voice = voiceIdFor(deps, code);
     presets[lang] = {
@@ -135,7 +139,7 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, withCan
       asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: [...SPEECH_HINTS.split(","), ...MULTILINGUAL_HINTS] },
       turn: { turn_timeout: 7, turn_eagerness: "eager", speculative_turn: true },
       tts: {
-        model_id: MODEL_FAST,
+        model_id: MODEL_EN,
         ...(en ? { voice_id: en } : {}),
         agent_output_audio_format: "ulaw_8000",
         optimize_streaming_latency: 3,
