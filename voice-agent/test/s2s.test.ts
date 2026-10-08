@@ -404,3 +404,41 @@ describe("Azure Voice Live line", () => {
     call.ws.close();
   });
 });
+
+describe("Azure model not offered in the region", () => {
+  it("switches to the next model in the same call, and starts later calls with it", async () => {
+    // Stand-in Azure: refuses gpt-realtime like a region without it, accepts the next model.
+    const wss = new WebSocketServer({ port: 0, host: "127.0.0.1" });
+    await new Promise<void>((r) => wss.once("listening", () => r()));
+    closers.push(() => wss.close());
+    const urls: string[] = [];
+    const events: any[] = [];
+    wss.on("connection", (ws, req) => {
+      urls.push(req.url ?? "");
+      ws.on("message", (raw) => {
+        const m = JSON.parse(raw.toString());
+        events.push({ url: req.url, ...m });
+        if (m.type === "session.update" && req.url?.endsWith("model=gpt-realtime")) {
+          ws.send(JSON.stringify({ type: "error", error: { code: "invalid_model", message: "Model gpt-realtime is not supported in this region." } }));
+        }
+      });
+    });
+    const base = `http://127.0.0.1:${(wss.address() as AddressInfo).port}`;
+    const { port } = await startServer("ws://unused", { openAiApiKey: "", azureVoiceLiveEndpoint: base, azureVoiceLiveKey: "az-key" });
+    const connect = async (callSid: string) => {
+      const ws = new WebSocket(`ws://127.0.0.1:${port}/azure/media`);
+      await new Promise<void>((r) => ws.once("open", () => r()));
+      ws.send(JSON.stringify({ event: "start", streamSid: "MZf", start: { streamSid: "MZf", callSid, customParameters: { token: relayToken(AUTH, callSid), from: "+16045550199", opening: "welcome" } } }));
+      return ws;
+    };
+    const first = await connect("CA_fb1");
+    await waitFor(() => events.some((e) => e.type === "response.create" && e.url.includes("model=gpt-realtime-mini")));
+    expect(urls[0].endsWith("model=gpt-realtime")).toBe(true);
+    expect(urls[1]).toContain("model=gpt-realtime-mini");
+    first.close();
+    const second = await connect("CA_fb2");
+    await waitFor(() => urls.length === 3);
+    expect(urls[2]).toContain("model=gpt-realtime-mini");
+    second.close();
+  });
+});

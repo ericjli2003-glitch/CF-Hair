@@ -13,7 +13,7 @@ import { DEFAULT_LANGUAGE, normalizeLanguage, type LanguageCode } from "../langu
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
 import { analyzeUtterance, chineseVariant } from "../agent/langdetect.js";
-import type { RealtimeProvider } from "./providers.js";
+import { isModelUnavailable, type RealtimeProvider } from "./providers.js";
 
 /**
  * Speech-to-speech test lines: the caller's audio goes straight to a realtime voice service (OpenAI's
@@ -121,6 +121,7 @@ export class RealtimeCall {
   private audioMs = 0;
   private sent: SentChunk[] = [];
   private configured = false;
+  private greetingLogged = false;
   private failed = false;
   /** Some model audio has been sent to the caller. */
   private heardAudio = false;
@@ -190,6 +191,24 @@ export class RealtimeCall {
         this.fail();
       }
     });
+  }
+
+  /** Drop the service connection and start a new one (after switching models). */
+  private reconnect() {
+    const old = this.oai;
+    this.oai = null;
+    if (old) {
+      old.removeAllListeners();
+      old.on("error", () => {});
+      old.close();
+    }
+    this.oaiOpen = false;
+    this.configured = false;
+    this.greetingResponseId = null;
+    this.responses.clear();
+    this.audioMs = 0;
+    this.sent = [];
+    void this.connect();
   }
 
   private tag(msg: string, level: "log" | "warn" | "error" = "log") {
@@ -344,7 +363,8 @@ export class RealtimeCall {
       type: "response.create",
       response: { instructions: `Say exactly this greeting and nothing else: "${this.greeting}"`, tool_choice: "none" },
     });
-    this.log.say("agent", this.greeting, { lang: this.language });
+    if (!this.greetingLogged) this.log.say("agent", this.greeting, { lang: this.language });
+    this.greetingLogged = true;
   }
 
   /** Caller lookup and openings load while the greeting plays, then the instructions are updated. */
@@ -382,6 +402,16 @@ export class RealtimeCall {
     switch (e.type) {
       case "error":
         this.tag(`${this.opts.provider.label} error: ${e.error?.code ?? ""} ${e.error?.message ?? ""} ${e.error?.param ? `(param ${e.error.param})` : ""}`.trim(), "error");
+        // The model is not offered here (an Azure region without it): try the next model in this same call.
+        if (!this.heardAudio && isModelUnavailable(e.error) && this.opts.provider.fallback) {
+          const next = this.opts.provider.fallback();
+          if (next) {
+            this.tag(`${this.opts.provider.label} does not offer that model here; switching to ${next} (later calls start with it)`, "warn");
+            if (this.log) this.log.record.model = `${this.opts.provider.tag}:${next}`;
+            this.reconnect();
+            return;
+          }
+        }
         // Before any audio has played (bad settings, no credits) the caller would only hear silence.
         if (!this.heardAudio) this.fail();
         return;

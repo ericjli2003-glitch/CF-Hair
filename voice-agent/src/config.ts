@@ -139,6 +139,8 @@ export interface AppConfig {
   azureVoiceLiveEndpoint: string;
   azureVoiceLiveKey: string;
   azureVoiceLiveModel: string;
+  /** Tried in turn if Azure does not offer azureVoiceLiveModel in the resource's region. */
+  azureVoiceLiveFallbacks: string[];
   azureVoiceLiveApiVersion: string;
   /** Azure neural voice per call language. */
   azureVoices: { "en-US": string; "zh-CN": string; "zh-HK": string; "ko-KR": string };
@@ -224,6 +226,10 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     azureVoiceLiveEndpoint: env("AZURE_VOICELIVE_ENDPOINT").trim().replace(/\/+$/, ""),
     azureVoiceLiveKey: env("AZURE_VOICELIVE_API_KEY").trim(),
     azureVoiceLiveModel: env("AZURE_VOICELIVE_MODEL", "gpt-realtime"),
+    azureVoiceLiveFallbacks: env("AZURE_VOICELIVE_FALLBACK_MODELS", "gpt-realtime-mini,gpt-4.1-mini,gpt-4o-mini")
+      .split(",")
+      .map((m) => m.trim())
+      .filter((m) => m && m !== "off"),
     azureVoiceLiveApiVersion: env("AZURE_VOICELIVE_API_VERSION", "2026-07-15"),
     azureVoices: {
       // English with a Hong Kong accent by default, matching the salon's clients; en-US voices work too.

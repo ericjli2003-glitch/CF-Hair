@@ -515,7 +515,11 @@ Set up:
 3. Render > cf-hair-voice > Environment: `AZURE_VOICELIVE_ENDPOINT` and `AZURE_VOICELIVE_API_KEY`.
    The startup log then shows `Azure Voice Live test line: on`.
 4. Twilio: a number's "A call comes in" to `https://<host>/azure/twiml` (POST).
-5. Logs are tagged `[azure call ...]`, with the same `reply: first audio ...` timing line as the
+5. If Azure does not offer the model in the resource's region (`invalid_model ... not supported in
+   this region`), the line switches to the next model in `AZURE_VOICELIVE_FALLBACK_MODELS`
+   (default `gpt-realtime-mini,gpt-4.1-mini,gpt-4o-mini`) in the same call, and later calls start with
+   it. For `gpt-realtime` itself, create the Foundry resource in a region that offers it.
+6. Logs are tagged `[azure call ...]`, with the same `reply: first audio ...` timing line as the
    OpenAI line. A refused connection is logged as `Azure refused the connection: <status> <reason>`.
 
 ## Promotional text opt-in

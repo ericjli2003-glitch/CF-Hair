@@ -30,6 +30,17 @@ export interface RealtimeProvider {
   languageVoice(lang: LanguageCode): Record<string, unknown> | null;
   /** Extra guidance for the model on this provider. */
   note: string;
+  /**
+   * The current model is not offered here (for example not in this Azure region): switch to the next
+   * one to try and return it, or null when there is none. Remembered for later calls.
+   */
+  fallback?(): string | null;
+}
+
+/** An error that means the requested model is not available (wrong region, not offered). */
+export function isModelUnavailable(err: { code?: string; message?: string } | undefined): boolean {
+  if (!err) return false;
+  return err.code === "invalid_model" || /not supported in this region|model[^.]*not (found|available|supported)/i.test(err.message ?? "");
 }
 
 export function openAiProvider(cfg: AppConfig, auth: OpenAiAuth): RealtimeProvider {
@@ -76,12 +87,22 @@ export function openAiProvider(cfg: AppConfig, auth: OpenAiAuth): RealtimeProvid
 const AZURE_LOCALES = "en-US,zh-HK,zh-CN,ko-KR";
 
 export function azureProvider(cfg: AppConfig): RealtimeProvider {
+  // The chosen model first, then the fallbacks, used in turn when Azure says one is not offered.
+  const models = [...new Set([cfg.azureVoiceLiveModel, ...cfg.azureVoiceLiveFallbacks])];
+  let current = 0;
   const voiceFor = (lang: LanguageCode) => cfg.azureVoices[lang];
   const voice = (lang: LanguageCode) => ({ type: "azure-standard", name: voiceFor(lang), ...(cfg.azureVoiceRate !== "1" ? { rate: cfg.azureVoiceRate } : {}) });
   return {
     tag: "azure",
     label: "Azure",
-    model: cfg.azureVoiceLiveModel,
+    get model() {
+      return models[current];
+    },
+    fallback() {
+      if (current + 1 >= models.length) return null;
+      current++;
+      return models[current];
+    },
     voiceFor,
     async connect() {
       const url = new URL(cfg.azureVoiceLiveEndpoint);
@@ -89,7 +110,7 @@ export function azureProvider(cfg: AppConfig): RealtimeProvider {
       url.pathname = "/voice-live/realtime";
       url.search = "";
       url.searchParams.set("api-version", cfg.azureVoiceLiveApiVersion);
-      url.searchParams.set("model", cfg.azureVoiceLiveModel);
+      url.searchParams.set("model", models[current]);
       return { url: url.toString(), headers: { "api-key": cfg.azureVoiceLiveKey } };
     },
     session({ instructions, language, tools }) {
