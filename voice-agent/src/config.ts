@@ -125,6 +125,10 @@ export interface AppConfig {
   realtimeUrl: string;
   realtimeModel: string;
   realtimeVoice: string;
+  /** "hong-kong": English with a light Hong Kong accent and Cantonese mixed with English, like Hong Kong locals. "neutral": none. */
+  realtimeAccent: "hong-kong" | "neutral";
+  /** Speaking speed for the OpenAI voice, 0.25 to 1.5 (1 is natural). */
+  realtimeSpeed: number;
   /** Reasoning effort for the gpt-realtime-2 family ("off" sends none). */
   realtimeReasoning: string;
   /** Silence that ends the caller's turn, in ms (OpenAI server VAD). */
@@ -201,6 +205,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     realtimeUrl: env("OPENAI_REALTIME_URL", "wss://api.openai.com/v1/realtime"),
     realtimeModel: env("OPENAI_REALTIME_MODEL", "gpt-realtime-2.1"),
     realtimeVoice: env("OPENAI_REALTIME_VOICE", "marin"),
+    realtimeAccent: env("OPENAI_VOICE_ACCENT", "hong-kong") === "neutral" ? "neutral" : "hong-kong",
+    realtimeSpeed: Math.min(1.5, Math.max(0.25, Number.parseFloat(env("OPENAI_REALTIME_SPEED", "1")) || 1)),
     realtimeReasoning: env("OPENAI_REASONING_EFFORT", "low"),
     realtimeSilenceMs: envInt("OPENAI_VAD_SILENCE_MS", 500),
     realtimeTranscribeModel: env("OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"),

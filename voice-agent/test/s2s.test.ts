@@ -102,7 +102,10 @@ describe("speech-to-speech test line", () => {
     expect(oai.seen.url).toContain("model=gpt-realtime-2.1");
     const s = oai.of("session.update")[0].session;
     expect(s.audio.input.format).toEqual({ type: "audio/pcmu" });
-    expect(s.audio.output).toEqual({ format: { type: "audio/pcmu" }, voice: "marin" });
+    expect(s.audio.output).toEqual({ format: { type: "audio/pcmu" }, voice: "marin", speed: 1 });
+    expect(s.instructions).toContain("Voice and delivery");
+    expect(s.instructions).toContain("light, friendly Hong Kong accent");
+    expect(s.instructions).toContain("book 個位");
     expect(s.audio.input.turn_detection.type).toBe("server_vad");
     expect(s.reasoning).toEqual({ effort: "low" });
     const names = s.tools.map((t: { name: string }) => t.name);
