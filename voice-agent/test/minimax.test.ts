@@ -22,6 +22,11 @@ async function fakeMiniMax(opts: { fail?: boolean } = {}) {
     let raw = "";
     req.on("data", (c) => (raw += c));
     req.on("end", () => {
+      if (req.url?.startsWith("/v1/get_voice")) {
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ system_voice: [{ voice_id: "female-tianmei" }, { voice_id: "Cantonese_PlayfulMan" }, { voice_id: "Cantonese_KindWoman" }], voice_cloning: [], base_resp: { status_code: 0 } }));
+        return;
+      }
       bodies.push(JSON.parse(raw));
       auth.push(String(req.headers.authorization));
       res.writeHead(200, { "content-type": "text/event-stream" });
@@ -118,6 +123,28 @@ describe("MiniMax voice", () => {
     await waitFor(() => got.some((m) => m.event === "media"));
     await waitFor(() => mm.bodies.map((b) => b.text).join("") === "您好，CF Hair Salon。");
     expect(Buffer.from(got.find((m) => m.event === "media").media.payload, "base64").length).toBeGreaterThan(0);
+  });
+
+  it("speaks a Cantonese caller's replies with MiniMax too, boosted for Cantonese", async () => {
+    const mm = await fakeMiniMax();
+    const az = await fakeAzure();
+    const port = await start({ azureVoiceLiveEndpoint: az.base, azureVoiceLiveKey: "k", minimaxApiKey: "mm-key", minimaxBaseUrl: mm.base });
+    const got = await call(port, "CA_mm3", "zh-HK");
+    await waitFor(() => az.events.some((e) => e.type === "response.create"));
+    expect(az.events.find((e) => e.type === "session.update").session.modalities).toEqual(["text"]);
+    az.send({ type: "response.text.delta", response_id: "r1", item_id: "i1", delta: "你好，CF Hair Salon。" });
+    az.send({ type: "response.text.done", response_id: "r1", item_id: "i1", text: "你好，CF Hair Salon。" });
+    await waitFor(() => got.some((m) => m.event === "media"));
+    await waitFor(() => mm.bodies.map((b) => b.text).join("") === "你好，CF Hair Salon。");
+    expect(mm.bodies.every((b) => b.language_boost === "Chinese,Yue")).toBe(true);
+  });
+
+  it("swaps a voice the account does not have for one of that language", async () => {
+    const mm = await fakeMiniMax();
+    const speech = new MiniMaxSpeech({ apiKey: "mm-key", baseUrl: mm.base, groupId: "", model: "m", voices: { "en-US": "e", "zh-CN": "female-tianmei", "zh-HK": "Cantonese_Missing", "ko-KR": "k" }, speed: 1 });
+    await speech.checkVoices(["zh-CN", "zh-HK"]);
+    expect(speech.voiceFor("zh-CN")).toBe("female-tianmei");
+    expect(speech.voiceFor("zh-HK")).toBe("Cantonese_KindWoman");
   });
 
   it("falls back to the Azure voice and repeats the reply if MiniMax fails", async () => {

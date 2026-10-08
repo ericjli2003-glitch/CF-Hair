@@ -256,12 +256,12 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     minimaxVoices: {
       "en-US": env("MINIMAX_VOICE_EN_US", "English_radiant_girl"),
       "zh-CN": env("MINIMAX_VOICE_ZH_CN", "female-tianmei"),
-      "zh-HK": env("MINIMAX_VOICE_ZH_HK", "female-tianmei"),
+      "zh-HK": env("MINIMAX_VOICE_ZH_HK", "Cantonese_GentleLady"),
       "ko-KR": env("MINIMAX_VOICE_KO_KR", "female-tianmei"),
     },
     minimaxSpeed: Math.min(2, Math.max(0.5, Number.parseFloat(env("MINIMAX_SPEED", "1")) || 1)),
-    // Mandarin by default; add zh-HK (Cantonese) or others to compare with the Azure voices.
-    minimaxLanguages: env("MINIMAX_LANGUAGES", "zh-CN")
+    // Mandarin and Cantonese by default; set to zh-CN for Azure's own Cantonese voice instead.
+    minimaxLanguages: env("MINIMAX_LANGUAGES", "zh-CN,zh-HK")
       .split(",")
       .map((x) => x.trim())
       .filter((x): x is "en-US" | "zh-CN" | "zh-HK" | "ko-KR" => ["en-US", "zh-CN", "zh-HK", "ko-KR"].includes(x)),

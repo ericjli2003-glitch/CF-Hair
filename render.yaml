@@ -74,7 +74,7 @@ services:
         sync: false
       - key: AZURE_VOICELIVE_API_KEY
         sync: false
-      # MiniMax voices (Mandarin by default) on the Azure line.
+      # MiniMax voices (Mandarin and Cantonese by default) on the Azure line.
       - key: MINIMAX_API_KEY
         sync: false
       # The owner's mobile or a second line in E.164, never the salon's main number.

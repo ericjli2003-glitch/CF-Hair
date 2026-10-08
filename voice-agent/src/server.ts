@@ -92,6 +92,7 @@ export function createServer(deps: SessionDeps) {
         speed: cfg.minimaxSpeed,
       })
     : null;
+  minimax?.checkVoices(cfg.minimaxLanguages).catch((e) => console.warn(`MiniMax voice check skipped: ${(e as Error).message}`));
   const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg, minimax) : null;
   /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
   const s2sFailed = new Map<string, number>();

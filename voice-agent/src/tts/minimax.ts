@@ -25,17 +25,72 @@ export interface MiniMaxOptions {
 /** MiniMax language_boost per call language. */
 const BOOST: Record<LanguageCode, string> = { "en-US": "English", "zh-CN": "Chinese", "zh-HK": "Chinese,Yue", "ko-KR": "Korean" };
 
+/** How MiniMax names its system voices per language, to find one when the configured voice is missing. */
+const VOICE_NAMES: Record<LanguageCode, RegExp> = {
+  "en-US": /^English_/,
+  "zh-CN": /^(Chinese \(Mandarin\)_|female-|male-)/,
+  "zh-HK": /^Cantonese_/,
+  "ko-KR": /^Korean_/,
+};
+const FEMALE = /lady|woman|girl|female|\(F\)|（F）/i;
+
+interface VoiceList {
+  system_voice?: { voice_id: string }[] | null;
+  voice_cloning?: { voice_id: string }[] | null;
+  voice_generation?: { voice_id: string }[] | null;
+}
+
 export class MiniMaxSpeech {
-  constructor(readonly opts: MiniMaxOptions) {}
+  private readonly voices: Record<LanguageCode, string>;
+
+  constructor(readonly opts: MiniMaxOptions) {
+    this.voices = { ...opts.voices };
+  }
 
   voiceFor(lang: LanguageCode): string {
-    return this.opts.voices[lang];
+    return this.voices[lang];
+  }
+
+  private url(path: string): string {
+    const q = this.opts.groupId ? `?GroupId=${encodeURIComponent(this.opts.groupId)}` : "";
+    return `${this.opts.baseUrl}${path}${q}`;
+  }
+
+  /**
+   * Checks the voices for `langs` against the account's voice list (POST /v1/get_voice) and, for one
+   * that is not there, uses a system voice for that language instead (a female one when there is
+   * one), so a wrong voice id does not cost the call its MiniMax voice. Keeps the configured voices
+   * if the list cannot be read.
+   */
+  async checkVoices(langs: LanguageCode[]): Promise<void> {
+    const r = await fetch(this.url("/v1/get_voice"), {
+      method: "POST",
+      headers: { Authorization: `Bearer ${this.opts.apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ voice_type: "all" }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!r.ok) throw new Error(`MiniMax voice list ${r.status}`);
+    const list = (await r.json()) as VoiceList;
+    const system = (list.system_voice ?? []).map((v) => v.voice_id);
+    const all = new Set([...system, ...(list.voice_cloning ?? []).map((v) => v.voice_id), ...(list.voice_generation ?? []).map((v) => v.voice_id)]);
+    if (!all.size) throw new Error("MiniMax voice list is empty");
+    for (const lang of langs) {
+      if (all.has(this.voices[lang])) continue;
+      const fits = system.filter((id) => VOICE_NAMES[lang].test(id));
+      const pick = fits.find((id) => FEMALE.test(id)) ?? fits[0];
+      if (!pick) {
+        console.warn(`MiniMax: voice ${this.voices[lang]} for ${lang} is not in this account, and no ${lang} system voice was found`);
+        continue;
+      }
+      console.warn(`MiniMax: voice ${this.voices[lang]} for ${lang} is not in this account; using ${pick}`);
+      this.voices[lang] = pick;
+    }
+    console.log(`MiniMax voices: ${langs.map((l) => `${l} ${this.voices[l]}`).join(", ")}`);
   }
 
   /** Streams one sentence as mu-law 8 kHz audio chunks. Throws on an API error. */
   async *mulaw(text: string, lang: LanguageCode, signal: AbortSignal): AsyncGenerator<Buffer> {
-    const q = this.opts.groupId ? `?GroupId=${encodeURIComponent(this.opts.groupId)}` : "";
-    const r = await fetch(`${this.opts.baseUrl}/v1/t2a_v2${q}`, {
+    const r = await fetch(this.url("/v1/t2a_v2"), {
       method: "POST",
       headers: { Authorization: `Bearer ${this.opts.apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
