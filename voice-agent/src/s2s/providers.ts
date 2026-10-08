@@ -1,6 +1,7 @@
 import type { AppConfig } from "../config.js";
 import type { LanguageCode } from "../languages.js";
 import type { OpenAiAuth } from "./openai-auth.js";
+import type { MiniMaxSpeech } from "../tts/minimax.js";
 
 /**
  * The speech-to-speech services the bridge in realtime.ts can talk to. Both speak the Realtime
@@ -35,6 +36,14 @@ export interface RealtimeProvider {
    * one to try and return it, or null when there is none. Remembered for later calls.
    */
   fallback?(): string | null;
+  /**
+   * Languages spoken by an outside voice (MiniMax) instead of the service: the model writes text and
+   * the bridge streams it through `speech`.
+   */
+  speech?: MiniMaxSpeech | null;
+  speaksExternally?(lang: LanguageCode): boolean;
+  /** After an outside-voice failure: the service's own voices from now on. */
+  forceInternal?(): void;
 }
 
 /** An error that means the requested model is not available (wrong region, not offered). */
@@ -86,12 +95,14 @@ export function openAiProvider(cfg: AppConfig, auth: OpenAiAuth): RealtimeProvid
 /** Transcription locales for Azure Speech: auto-detected among the salon's four languages. */
 const AZURE_LOCALES = "en-US,zh-HK,zh-CN,ko-KR";
 
-export function azureProvider(cfg: AppConfig): RealtimeProvider {
+export function azureProvider(cfg: AppConfig, speech: MiniMaxSpeech | null = null): RealtimeProvider {
+  let external = new Set<LanguageCode>(speech ? cfg.minimaxLanguages : []);
+  const outside = (lang: LanguageCode) => external.has(lang);
   // The chosen model first, then the fallbacks, used in turn when Azure says one is not offered.
   const models = [...new Set([cfg.azureVoiceLiveModel, ...cfg.azureVoiceLiveFallbacks])];
   let current = 0;
-  const voiceFor = (lang: LanguageCode) => cfg.azureVoices[lang];
-  const voice = (lang: LanguageCode) => ({ type: "azure-standard", name: voiceFor(lang), ...(cfg.azureVoiceRate !== "1" ? { rate: cfg.azureVoiceRate } : {}) });
+  const voiceFor = (lang: LanguageCode) => (outside(lang) && speech ? `MiniMax ${speech.voiceFor(lang)}` : cfg.azureVoices[lang]);
+  const voice = (lang: LanguageCode) => ({ type: "azure-standard", name: cfg.azureVoices[lang], ...(cfg.azureVoiceRate !== "1" ? { rate: cfg.azureVoiceRate } : {}) });
   return {
     tag: "azure",
     label: "Azure",
@@ -117,7 +128,7 @@ export function azureProvider(cfg: AppConfig): RealtimeProvider {
       return {
         type: "session.update",
         session: {
-          modalities: ["text", "audio"],
+          modalities: outside(language) ? ["text"] : ["text", "audio"],
           instructions,
           voice: voice(language),
           input_audio_format: "g711_ulaw",
@@ -137,7 +148,12 @@ export function azureProvider(cfg: AppConfig): RealtimeProvider {
       };
     },
     instructions: (text) => ({ type: "session.update", session: { instructions: text } }),
-    languageVoice: (lang) => ({ type: "session.update", session: { voice: voice(lang) } }),
+    languageVoice: (lang) => ({ type: "session.update", session: { modalities: outside(lang) ? ["text"] : ["text", "audio"], voice: voice(lang) } }),
+    speech,
+    speaksExternally: (lang) => outside(lang),
+    forceInternal() {
+      external = new Set();
+    },
     note: `- Each language has its own voice on this line, and the voice changes when the language does. When the caller speaks a different language from the current one, call set_language first, then reply in that language.`,
   };
 }

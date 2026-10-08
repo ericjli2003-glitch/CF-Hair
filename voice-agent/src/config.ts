@@ -148,6 +148,14 @@ export interface AppConfig {
   azureVoiceRate: string;
   azureTurnDetection: string;
   azureSilenceMs: number;
+  /** MiniMax voices (src/tts/minimax.ts) for the languages in minimaxLanguages, on the Azure line. */
+  minimaxApiKey: string;
+  minimaxBaseUrl: string;
+  minimaxGroupId: string;
+  minimaxModel: string;
+  minimaxVoices: { "en-US": string; "zh-CN": string; "zh-HK": string; "ko-KR": string };
+  minimaxSpeed: number;
+  minimaxLanguages: ("en-US" | "zh-CN" | "zh-HK" | "ko-KR")[];
   /** ElevenLabs phone agent test line (src/eleven). On when ELEVENLABS_API_KEY is set, unless ELEVENLABS_AGENT=off. */
   elevenAgentApiKey: string;
   elevenAgentLlm: string;
@@ -241,6 +249,22 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     azureVoiceRate: env("AZURE_VOICE_RATE", "1"),
     azureTurnDetection: env("AZURE_TURN_DETECTION", "azure_semantic_vad_multilingual"),
     azureSilenceMs: envInt("AZURE_VAD_SILENCE_MS", 500),
+    minimaxApiKey: env("MINIMAX_API_KEY").trim(),
+    minimaxBaseUrl: env("MINIMAX_BASE_URL", "https://api-uw.minimax.io").replace(/\/+$/, ""),
+    minimaxGroupId: env("MINIMAX_GROUP_ID").trim(),
+    minimaxModel: env("MINIMAX_MODEL", "speech-2.8-turbo"),
+    minimaxVoices: {
+      "en-US": env("MINIMAX_VOICE_EN_US", "English_radiant_girl"),
+      "zh-CN": env("MINIMAX_VOICE_ZH_CN", "female-tianmei"),
+      "zh-HK": env("MINIMAX_VOICE_ZH_HK", "female-tianmei"),
+      "ko-KR": env("MINIMAX_VOICE_KO_KR", "female-tianmei"),
+    },
+    minimaxSpeed: Math.min(2, Math.max(0.5, Number.parseFloat(env("MINIMAX_SPEED", "1")) || 1)),
+    // Mandarin by default; add zh-HK (Cantonese) or others to compare with the Azure voices.
+    minimaxLanguages: env("MINIMAX_LANGUAGES", "zh-CN")
+      .split(",")
+      .map((x) => x.trim())
+      .filter((x): x is "en-US" | "zh-CN" | "zh-HK" | "ko-KR" => ["en-US", "zh-CN", "zh-HK", "ko-KR"].includes(x)),
     elevenAgentApiKey: env("ELEVENLABS_AGENT", "on") === "off" ? "" : env("ELEVENLABS_API_KEY").trim(),
     elevenAgentLlm: env("ELEVENLABS_AGENT_LLM", "claude-haiku-4-5"),
     elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", ""),

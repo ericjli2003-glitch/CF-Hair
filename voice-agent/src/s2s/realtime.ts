@@ -14,6 +14,7 @@ import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
 import { analyzeUtterance, chineseVariant } from "../agent/langdetect.js";
 import { isModelUnavailable, type RealtimeProvider } from "./providers.js";
+import { SentenceChunker } from "../agent/chunker.js";
 
 /**
  * Speech-to-speech test lines: the caller's audio goes straight to a realtime voice service (OpenAI's
@@ -121,6 +122,9 @@ export class RealtimeCall {
   private audioMs = 0;
   private sent: SentChunk[] = [];
   private configured = false;
+  /** Outside-voice (MiniMax) playback per response. */
+  private speaking = new Map<string, SpokenReply>();
+  private outsideVoiceOff = false;
   private greetingLogged = false;
   private failed = false;
   /** Some model audio has been sent to the caller. */
@@ -435,25 +439,23 @@ export class RealtimeCall {
         return;
       }
       case "response.output_audio.delta":
-      case "response.audio.delta": {
+      case "response.audio.delta":
+        this.playAudio(e.response_id, e.item_id, e.delta);
+        return;
+      // Text replies for a language spoken by an outside voice (MiniMax).
+      case "response.text.delta": {
         const r = this.response(e.response_id);
-        if (!r.firstAudioAt) {
-          r.firstAudioAt = Date.now();
-          if (this.callerStoppedAt) {
-            const fromSpeech = (r.firstAudioAt - this.callerStoppedAt) / 1000;
-            const fromTurn = (r.firstAudioAt - this.turnDetectedAt) / 1000;
-            this.tag(`reply: first audio ${fromSpeech.toFixed(2)}s after the caller stopped talking (${fromTurn.toFixed(2)}s after the turn was detected)`);
-            this.callerStoppedAt = 0;
-          }
+        r.text += e.delta ?? "";
+        this.spoken(e.response_id, e.item_id).push(e.delta ?? "");
+        return;
+      }
+      case "response.text.done": {
+        this.spoken(e.response_id, e.item_id).finish();
+        const text = String(e.text ?? "").trim();
+        if (text && e.response_id !== this.greetingResponseId) {
+          this.log?.say("agent", text, { lang: this.language });
+          if (this.cfg.logTranscripts) this.tag(`said: "${text}"`);
         }
-        if (this.lastAssistantItem !== e.item_id) {
-          this.lastAssistantItem = e.item_id;
-          this.responseStartTs = this.latestMediaTs;
-        }
-        this.heardAudio = true;
-        this.sendTwilio({ event: "media", media: { payload: e.delta } });
-        this.sendTwilio({ event: "mark", mark: { name: "audio" } });
-        this.marksOutstanding++;
         return;
       }
       case "response.output_audio_transcript.delta":
@@ -477,12 +479,66 @@ export class RealtimeCall {
     }
   }
 
+  /** One chunk of reply audio (base64 mu-law) to the caller, with the timing and playback marks. */
+  private playAudio(responseId: string, itemId: string, payload: string) {
+    const r = this.response(responseId);
+    if (!r.firstAudioAt) {
+      r.firstAudioAt = Date.now();
+      if (this.callerStoppedAt) {
+        const fromSpeech = (r.firstAudioAt - this.callerStoppedAt) / 1000;
+        const fromTurn = (r.firstAudioAt - this.turnDetectedAt) / 1000;
+        this.tag(`reply: first audio ${fromSpeech.toFixed(2)}s after the caller stopped talking (${fromTurn.toFixed(2)}s after the turn was detected)`);
+        this.callerStoppedAt = 0;
+      }
+    }
+    if (this.lastAssistantItem !== itemId) {
+      this.lastAssistantItem = itemId;
+      this.responseStartTs = this.latestMediaTs;
+    }
+    this.heardAudio = true;
+    this.sendTwilio({ event: "media", media: { payload } });
+    this.sendTwilio({ event: "mark", mark: { name: "audio" } });
+    this.marksOutstanding++;
+  }
+
+  /** The outside-voice playback for a text reply, created on its first text. */
+  private spoken(responseId: string, itemId: string): SpokenReply {
+    let sp = this.speaking.get(responseId);
+    if (!sp) {
+      const speech = this.opts.provider.speech!;
+      const lang = this.language;
+      sp = new SpokenReply(
+        (sentence, signal) => speech.mulaw(sentence, lang, signal),
+        (chunk) => this.playAudio(responseId, itemId, chunk.toString("base64")),
+        (err) => this.outsideVoiceFailed(err),
+      );
+      this.speaking.set(responseId, sp);
+    }
+    return sp;
+  }
+
+  /** MiniMax failed: switch to the service's own voice for the rest of the call and say the reply again. */
+  private outsideVoiceFailed(err: Error) {
+    this.tag(`MiniMax voice failed: ${err.message}; using the ${this.opts.provider.label} voice instead`, "error");
+    if (this.outsideVoiceOff) return;
+    this.outsideVoiceOff = true;
+    this.opts.provider.forceInternal?.();
+    const update = this.opts.provider.languageVoice(this.language);
+    if (update) this.sendOai(update);
+    this.sendOai({ type: "response.create", response: { instructions: "Say your last reply to the caller again, exactly as before." } });
+  }
+
   /** The caller started talking: stop what is playing and keep only what they heard. */
   private onBargeIn() {
     this.cancelPendingEnd();
+    for (const sp of this.speaking.values()) sp.stop();
+    this.speaking.clear();
     if (this.marksOutstanding > 0 && this.lastAssistantItem && this.responseStartTs !== null) {
       const heardMs = Math.max(0, this.latestMediaTs - this.responseStartTs);
-      this.sendOai({ type: "conversation.item.truncate", item_id: this.lastAssistantItem, content_index: 0, audio_end_ms: heardMs });
+      // Only spoken audio can be truncated; a text reply (outside voice) stays as written.
+      if (!this.opts.provider.speaksExternally?.(this.language)) {
+        this.sendOai({ type: "conversation.item.truncate", item_id: this.lastAssistantItem, content_index: 0, audio_end_ms: heardMs });
+      }
       this.sendTwilio({ event: "clear" });
       this.log?.trimLastAgentLine("(cut off by the caller)");
     }
@@ -529,6 +585,9 @@ export class RealtimeCall {
   private async onResponseDone(resp: { id?: string; status?: string; usage?: { input_tokens?: number; output_tokens?: number; input_token_details?: { cached_tokens?: number } } }) {
     const r = this.response(resp.id ?? "");
     await Promise.all(r.tools);
+    // An outside voice may still be speaking this reply: hang-ups wait for it.
+    await this.speaking.get(r.id)?.done();
+    this.speaking.delete(r.id);
     this.responses.delete(r.id);
     if (resp.usage && this.log) {
       this.log.addUsage({
@@ -656,6 +715,94 @@ export class RealtimeCall {
       this.tag(`failed to write log: ${(err as Error).message}`, "error");
     }
   }
+}
+
+/**
+ * A text reply spoken by an outside voice: sentences go to the voice as soon as the model writes
+ * them (all fetched at once, played in order), so speech starts after the first few words.
+ */
+class SpokenReply {
+  private readonly chunker = new SentenceChunker();
+  private readonly abort = new AbortController();
+  private chain: Promise<void> = Promise.resolve();
+  private failed = false;
+
+  constructor(
+    private readonly synth: (sentence: string, signal: AbortSignal) => AsyncGenerator<Buffer>,
+    private readonly play: (chunk: Buffer) => void,
+    private readonly onError: (err: Error) => void,
+  ) {}
+
+  push(delta: string) {
+    for (const sentence of this.chunker.push(delta)) this.enqueue(sentence);
+  }
+
+  finish() {
+    const rest = this.chunker.flush();
+    if (rest.trim()) this.enqueue(rest);
+  }
+
+  stop() {
+    this.abort.abort();
+  }
+
+  done(): Promise<void> {
+    return this.chain;
+  }
+
+  private enqueue(sentence: string) {
+    if (!sentence.trim()) return;
+    const clip = prefetch(this.synth(sentence, this.abort.signal));
+    this.chain = this.chain.then(async () => {
+      if (this.abort.signal.aborted || this.failed) return;
+      try {
+        for await (const chunk of clip()) {
+          if (this.abort.signal.aborted) return;
+          this.play(chunk);
+        }
+      } catch (err) {
+        if (this.abort.signal.aborted) return;
+        this.failed = true;
+        this.onError(err as Error);
+      }
+    });
+  }
+}
+
+/** Starts reading a stream now and replays it later, so the next sentence loads while one plays. */
+function prefetch(gen: AsyncGenerator<Buffer>): () => AsyncGenerator<Buffer> {
+  const chunks: Buffer[] = [];
+  let finished = false;
+  let error: unknown = null;
+  const waiter: { wake: (() => void) | null } = { wake: null };
+  void (async () => {
+    try {
+      for await (const c of gen) {
+        chunks.push(c);
+        waiter.wake?.();
+      }
+    } catch (err) {
+      error = err;
+    } finally {
+      finished = true;
+      waiter.wake?.();
+    }
+  })();
+  return async function* () {
+    let i = 0;
+    for (;;) {
+      if (i < chunks.length) {
+        yield chunks[i++];
+        continue;
+      }
+      if (finished) {
+        if (error) throw error;
+        return;
+      }
+      await new Promise<void>((r) => (waiter.wake = r));
+      waiter.wake = null;
+    }
+  };
 }
 
 function safeJson(s: string): unknown {

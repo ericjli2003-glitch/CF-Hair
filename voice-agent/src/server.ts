@@ -14,6 +14,7 @@ import { handleS2sSocket } from "./s2s/realtime.js";
 import { s2sAfterTwiml, s2sTwiml } from "./s2s/twiml.js";
 import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
 import { azureProvider, openAiProvider, type RealtimeProvider } from "./s2s/providers.js";
+import { MiniMaxSpeech } from "./tts/minimax.js";
 import { ElevenLine, toolKeyFor } from "./eleven/agent.js";
 
 export const RELAY_PATH = "/relay";
@@ -81,7 +82,17 @@ export function createServer(deps: SessionDeps) {
       : null;
   eleven?.ready().catch(() => {}); // logged inside; retried on the first call
   const openAiLine = openAi.mode() !== "none" ? openAiProvider(cfg, openAi) : null;
-  const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg) : null;
+  const minimax = cfg.minimaxApiKey
+    ? new MiniMaxSpeech({
+        apiKey: cfg.minimaxApiKey,
+        baseUrl: cfg.minimaxBaseUrl,
+        groupId: cfg.minimaxGroupId,
+        model: cfg.minimaxModel,
+        voices: cfg.minimaxVoices,
+        speed: cfg.minimaxSpeed,
+      })
+    : null;
+  const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg, minimax) : null;
   /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
   const s2sFailed = new Map<string, number>();
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
@@ -209,12 +220,15 @@ export function createServer(deps: SessionDeps) {
   app.post("/eleven/twiml", verify, elevenTwiml);
 
   // One number for everyone: callers saved as Cantonese go to the Azure line (proper Cantonese
-  // voice); everyone else to the ElevenLabs agent (best English and Mandarin voices). A new caller
+  // voice), and Mandarin callers too when MiniMax speaks Mandarin there; everyone else to the
+  // ElevenLabs agent (best English voice). A new caller
   // who speaks Cantonese is saved as Cantonese during the call (set_language) and routed to Azure
   // from their next call. Without one of the two lines, the other takes every call.
   app.post("/route/twiml", verify, async (req, res) => {
     const looked = await deps.callers.openingLanguage(req.body?.From, cfg.openingLookupTimeoutMs);
-    const toAzure = !!azureLine && (looked.language === "zh-HK" || !eleven);
+    // Mandarin too when MiniMax speaks Mandarin on the Azure line.
+    const mandarinOnAzure = looked.language === "zh-CN" && !!azureLine?.speaksExternally?.("zh-CN");
+    const toAzure = !!azureLine && (looked.language === "zh-HK" || mandarinOnAzure || !eleven);
     console.log(`[route call ${String(req.body?.CallSid ?? "?")}] ${maskPhone(req.body?.From)} saved as ${looked.language}: ${toAzure ? "Azure" : "ElevenLabs"}`);
     if (toAzure) return azureTwiml(req, res, looked);
     return elevenTwiml(req, res);

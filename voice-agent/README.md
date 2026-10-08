@@ -18,6 +18,7 @@ the admin screen and the phone all see the same calendar.
 - [Speech-to-speech test line (OpenAI Realtime)](#speech-to-speech-test-line-openai-realtime)
 - [ElevenLabs phone agent test line](#elevenlabs-phone-agent-test-line)
 - [Azure Voice Live test line](#azure-voice-live-test-line)
+- [MiniMax voices for Mandarin (and optionally Cantonese)](#minimax-voices-for-mandarin-and-optionally-cantonese)
 - [One number: Cantonese to Azure, everyone else to ElevenLabs](#one-number-cantonese-to-azure-everyone-else-to-elevenlabs)
 - [Promotional text opt-in](#promotional-text-opt-in)
 - [Calls tab](#calls-tab)
@@ -522,6 +523,23 @@ Set up:
    it. For `gpt-realtime` itself, create the Foundry resource in a region that offers it.
 6. Logs are tagged `[azure call ...]`, with the same `reply: first audio ...` timing line as the
    OpenAI line. A refused connection is logged as `Azure refused the connection: <status> <reason>`.
+
+## MiniMax voices for Mandarin (and optionally Cantonese)
+
+MiniMax, a Chinese AI lab, has some of the most natural Mandarin and Cantonese voices. On the
+Azure line, languages listed in `MINIMAX_LANGUAGES` (default `zh-CN`, Mandarin) are spoken by
+MiniMax instead of Azure: the model writes its reply as text, and each sentence streams to MiniMax
+as soon as it is written (`src/tts/minimax.ts`, 8 kHz PCM converted to the phone's mu-law), so the
+voice starts after the first few words. Interruptions stop it at once. If MiniMax fails, the call
+switches to the Azure voice and says the reply again. With MiniMax set up, `/route/twiml` sends
+callers saved as Mandarin to the Azure line too.
+
+Set `MINIMAX_API_KEY` in Render (MiniMax platform > API keys). Voices: `MINIMAX_VOICE_ZH_CN`
+(default `female-tianmei`), `MINIMAX_VOICE_ZH_HK`, `MINIMAX_VOICE_EN_US`; copy voice IDs from
+MiniMax's voice library. `MINIMAX_MODEL` (default `speech-2.8-turbo`), `MINIMAX_SPEED`,
+`MINIMAX_BASE_URL` (default `https://api-uw.minimax.io`; `https://api.minimax.io` for the global
+endpoint), `MINIMAX_GROUP_ID` (only for older accounts). Add `zh-HK` to `MINIMAX_LANGUAGES` to
+compare MiniMax's Cantonese with Azure's.
 
 ## One number: Cantonese to Azure, everyone else to ElevenLabs
 
