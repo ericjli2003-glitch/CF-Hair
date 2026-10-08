@@ -108,6 +108,7 @@ export class MiniMaxSpeech {
     const decoder = new TextDecoder();
     let buf = "";
     let odd: Buffer | null = null; // a PCM byte left over between chunks
+    let streamed = false;
     for await (const part of r.body as unknown as AsyncIterable<Uint8Array>) {
       buf += decoder.decode(part, { stream: true });
       let nl: number;
@@ -115,11 +116,14 @@ export class MiniMaxSpeech {
         const line = buf.slice(0, nl).trim();
         buf = buf.slice(nl + 1);
         if (!line.startsWith("data:")) continue;
-        const data = JSON.parse(line.slice(5).trim()) as { data?: { audio?: string }; base_resp?: { status_code?: number; status_msg?: string } };
+        const data = JSON.parse(line.slice(5).trim()) as { data?: { audio?: string; status?: number }; base_resp?: { status_code?: number; status_msg?: string } };
         const code = data.base_resp?.status_code ?? 0;
         if (code !== 0) throw new Error(`MiniMax error ${code}: ${data.base_resp?.status_msg ?? ""}`);
         const hex = data.data?.audio;
         if (!hex) continue;
+        // The last event (status 2) can repeat the whole sentence's audio; never play it twice.
+        if (data.data?.status === 2 && streamed) continue;
+        streamed = true;
         let pcm: Buffer = Buffer.from(hex, "hex");
         if (odd) {
           pcm = Buffer.concat([odd, pcm]);

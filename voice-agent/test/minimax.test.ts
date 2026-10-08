@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 /** Stand-in for MiniMax t2a_v2: streams PCM as hex in "data:" lines, or an error. */
-async function fakeMiniMax(opts: { fail?: boolean } = {}) {
+async function fakeMiniMax(opts: { fail?: boolean; delayMs?: (text: string) => number; level?: (text: string) => number } = {}) {
   const bodies: any[] = [];
   const auth: string[] = [];
   const server = http.createServer((req, res) => {
@@ -34,10 +34,16 @@ async function fakeMiniMax(opts: { fail?: boolean } = {}) {
         res.end(`data: ${JSON.stringify({ base_resp: { status_code: 2013, status_msg: "invalid voice" } })}\n`);
         return;
       }
+      const text = String(bodies[bodies.length - 1].text);
+      const level = opts.level?.(text);
       const pcm = Buffer.alloc(320);
-      for (let i = 0; i < 160; i++) pcm.writeInt16LE(i % 2 ? 1000 : -1000, i * 2);
-      res.write(`data: ${JSON.stringify({ data: { audio: pcm.subarray(0, 161).toString("hex"), status: 1 }, base_resp: { status_code: 0 } })}\n`);
-      res.end(`data: ${JSON.stringify({ data: { audio: pcm.subarray(161).toString("hex"), status: 1 }, base_resp: { status_code: 0 } })}\n`);
+      for (let i = 0; i < 160; i++) pcm.writeInt16LE(level ?? (i % 2 ? 1000 : -1000), i * 2);
+      setTimeout(() => {
+        res.write(`data: ${JSON.stringify({ data: { audio: pcm.subarray(0, 161).toString("hex"), status: 1 }, base_resp: { status_code: 0 } })}\n`);
+        res.write(`data: ${JSON.stringify({ data: { audio: pcm.subarray(161).toString("hex"), status: 1 }, base_resp: { status_code: 0 } })}\n`);
+        // The final event repeats the whole audio, as MiniMax does without exclude_aggregated_audio.
+        res.end(`data: ${JSON.stringify({ data: { audio: pcm.toString("hex"), status: 2 }, base_resp: { status_code: 0 } })}\n`);
+      }, opts.delayMs?.(text) ?? 0);
     });
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
@@ -148,6 +154,28 @@ describe("MiniMax voice", () => {
     await speech.checkVoices(["zh-CN", "zh-HK"]);
     expect(speech.voiceFor("zh-CN")).toBe("female-tianmei");
     expect(speech.voiceFor("zh-HK")).toBe("Cantonese_KindWoman");
+  });
+
+  it("plays replies one after another, never mixed, even when a later one loads first", async () => {
+    // The first reply's audio arrives late (a slow sentence); the next reply's is ready at once.
+    const mm = await fakeMiniMax({ delayMs: (t) => (t.includes("一") ? 300 : 0), level: (t) => (t.includes("一") ? 1000 : -1000) });
+    const az = await fakeAzure();
+    const port = await start({ azureVoiceLiveEndpoint: az.base, azureVoiceLiveKey: "k", minimaxApiKey: "mm-key", minimaxBaseUrl: mm.base });
+    const got = await call(port, "CA_mm5", "zh-HK");
+    await waitFor(() => az.events.some((e) => e.type === "response.create"));
+    for (const [id, text] of [["r1", "第一句。"], ["r2", "第二句。"]]) {
+      az.send({ type: "response.created", response: { id } });
+      az.send({ type: "response.text.delta", response_id: id, item_id: `i_${id}`, delta: text });
+      az.send({ type: "response.text.done", response_id: id, item_id: `i_${id}`, text });
+    }
+    await waitFor(() => got.filter((m) => m.event === "media").length >= 4);
+    await new Promise((r) => setTimeout(r, 100));
+    const bytes = Buffer.concat(got.filter((m) => m.event === "media").map((m) => Buffer.from(m.media.payload, "base64")));
+    // 160 samples per sentence, the repeated final audio left out; all of the first before the second.
+    expect(bytes.length).toBe(320);
+    expect(bytes.subarray(0, 160).every((b) => b === bytes[0])).toBe(true);
+    expect(bytes.subarray(160).every((b) => b === bytes[160])).toBe(true);
+    expect(bytes[0]).not.toBe(bytes[160]);
   });
 
   it("falls back to the Azure voice and repeats the reply if MiniMax fails", async () => {

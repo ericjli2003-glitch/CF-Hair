@@ -124,6 +124,8 @@ export class RealtimeCall {
   private configured = false;
   /** Outside-voice (MiniMax) playback per response. */
   private speaking = new Map<string, SpokenReply>();
+  /** One playback line for the whole call, so replies spoken by an outside voice never overlap. */
+  private readonly voiceLine: VoiceLine = { chain: Promise.resolve() };
   private outsideVoiceOff = false;
   private greetingLogged = false;
   private failed = false;
@@ -508,6 +510,7 @@ export class RealtimeCall {
       const speech = this.opts.provider.speech!;
       const lang = this.language;
       sp = new SpokenReply(
+        this.voiceLine,
         (sentence, signal) => speech.mulaw(sentence, lang, signal),
         (chunk) => this.playAudio(responseId, itemId, chunk.toString("base64")),
         (err) => this.outsideVoiceFailed(err),
@@ -717,17 +720,25 @@ export class RealtimeCall {
   }
 }
 
+/** The call's single playback order for outside-voice audio, shared by all its replies. */
+interface VoiceLine {
+  chain: Promise<void>;
+}
+
 /**
  * A text reply spoken by an outside voice: sentences go to the voice as soon as the model writes
- * them (all fetched at once, played in order), so speech starts after the first few words.
+ * them (all fetched at once, played in order), so speech starts after the first few words. Replies
+ * queue on the call's one VoiceLine: a reply written while the last one still streams (for example
+ * after a tool call) waits its turn instead of mixing its audio into the other's.
  */
 class SpokenReply {
   private readonly chunker = new SentenceChunker();
   private readonly abort = new AbortController();
-  private chain: Promise<void> = Promise.resolve();
+  private last: Promise<void> = Promise.resolve();
   private failed = false;
 
   constructor(
+    private readonly line: VoiceLine,
     private readonly synth: (sentence: string, signal: AbortSignal) => AsyncGenerator<Buffer>,
     private readonly play: (chunk: Buffer) => void,
     private readonly onError: (err: Error) => void,
@@ -747,13 +758,13 @@ class SpokenReply {
   }
 
   done(): Promise<void> {
-    return this.chain;
+    return this.last;
   }
 
   private enqueue(sentence: string) {
     if (!sentence.trim()) return;
     const clip = prefetch(this.synth(sentence, this.abort.signal));
-    this.chain = this.chain.then(async () => {
+    this.last = this.line.chain = this.line.chain.then(async () => {
       if (this.abort.signal.aborted || this.failed) return;
       try {
         for await (const chunk of clip()) {
