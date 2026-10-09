@@ -247,16 +247,37 @@ export function createServer(deps: SessionDeps) {
       return sorry("This test line is not set up yet.");
     }
     const callSid = String(req.body?.CallSid ?? "");
+    // Twilio asking again about a call that already had its conversation means that conversation
+    // ended (the agent hung up): end the call, never start over from the greeting.
+    if (callSid && eleven.hasCall(callSid)) {
+      console.log(`[eleven call ${callSid}] conversation over; hanging up`);
+      const vr = new twilio.twiml.VoiceResponse();
+      vr.hangup();
+      return void res.type("text/xml").send(vr.toString());
+    }
     console.log(`[eleven call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}`);
     try {
       const twiml = await eleven.register({ callSid, from: String(req.body?.From ?? ""), to: String(req.body?.To ?? "") });
-      res.type("text/xml").send(twiml);
+      res.type("text/xml").send(endWithHangup(twiml, callSid));
     } catch (err) {
       console.error(`[eleven call ${callSid}] could not start: ${(err as Error).message}`);
       sorry("Sorry, this test line is not working right now. Please try again later.");
     }
   };
   app.post("/eleven/twiml", verify, elevenTwiml);
+
+  /**
+   * ElevenLabs' TwiML connects the call to the agent. When the agent ends the conversation the
+   * stream closes and Twilio runs the next verb: make that a hang-up, so nothing (a redirect, a
+   * retry of this webhook) can start the call over.
+   */
+  function endWithHangup(twiml: string, callSid: string): string {
+    const verbs = [...twiml.matchAll(/<([A-Z][A-Za-z]*)/g)].map((m) => m[1]).filter((v) => v !== "Response");
+    if (/<Redirect/i.test(twiml)) console.warn(`[eleven call ${callSid}] ElevenLabs' TwiML has a Redirect (${verbs.join(", ")}); it is replaced by a hang-up`);
+    const cleaned = twiml.replace(/<Redirect[^>]*>[\s\S]*?<\/Redirect>|<Redirect[^>]*\/>/gi, "");
+    if (/<Hangup\s*\/?>/i.test(cleaned)) return cleaned;
+    return /<\/Response>/i.test(cleaned) ? cleaned.replace(/<\/Response>/i, "<Hangup/></Response>") : cleaned;
+  }
 
   // One number for everyone: callers saved as Cantonese go to the Azure line (proper Cantonese
   // voice), and Mandarin callers too when MiniMax speaks Mandarin there; everyone else to the

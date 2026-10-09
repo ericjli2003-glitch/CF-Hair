@@ -430,6 +430,11 @@ export class ElevenLine {
     return this.agentId;
   }
 
+  /** This call already had its conversation registered with ElevenLabs. */
+  hasCall(callSid: string): boolean {
+    return this.calls.has(callSid);
+  }
+
   callKey(callSid: string): string {
     return crypto.createHmac("sha256", this.secret || "cf-hair").update(`eleven:${callSid}`).digest("base64url");
   }

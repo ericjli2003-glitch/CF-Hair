@@ -166,6 +166,20 @@ describe("ElevenLabs phone agent line", () => {
     expect(reg.body.conversation_initiation_client_data.conversation_config_override.agent).toEqual({ language: "en", first_message: "Hi, CF Hair Salon. 你好！" });
   });
 
+  it("hangs up when the conversation ends instead of starting the call over", async () => {
+    const el = await fakeEleven();
+    const { port } = await start(el.base);
+    const params = { CallSid: "CA_el_end", From: "+16045550192", To: "+12365550100" };
+    const first = await (await incoming(port, params)).text();
+    // After the stream closes, Twilio hangs up.
+    expect(first).toMatch(/<\/Connect><Hangup\/><\/Response>/);
+    // Asked again about the same call: a hang-up, not a second conversation.
+    const again = await (await incoming(port, params)).text();
+    expect(again).toContain("<Hangup/>");
+    expect(again).not.toContain("<Connect>");
+    expect(el.seen.filter((s) => s.path === "/v1/convai/twilio/register-call").length).toBe(1);
+  });
+
   it("runs the booking tools for the agent, and refuses calls without the keys", async () => {
     const el = await fakeEleven();
     const { port } = await start(el.base);
