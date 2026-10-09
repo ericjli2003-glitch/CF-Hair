@@ -113,6 +113,9 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.prompt).toContain("How does three o'clock sound?");
     expect(cc.agent.prompt.prompt).toContain("三点钟怎么样？");
     expect(cc.agent.prompt.prompt).toContain("係咪幫Eric約呀？");
+    expect(cc.agent.prompt.prompt).toContain("您想什么时候过来？");
+    expect(cc.agent.prompt.prompt).toContain("你想幾時過嚟呀？");
+    expect(cc.agent.prompt.prompt).toContain("男士剪髮，三點鐘。係咪幫Eric約呀？");
     expect(cc.agent.prompt.prompt).toContain("Once a caller speaks Mandarin, every reply is Mandarin");
     // The time comes first, before men's or women's.
     expect(cc.agent.prompt.prompt).toContain('1. Time first: unless the caller already said when, your first question is always "When would you like to come in?"');
