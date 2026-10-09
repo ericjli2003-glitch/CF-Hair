@@ -190,6 +190,28 @@ describe("ElevenLabs phone agent line", () => {
     expect(o.tts.model_id).toBe("eleven_v4_turbo");
   });
 
+  it("keeps Mandarin once chosen: a first slip to Cantonese is refused, asking again goes through", async () => {
+    const el = await fakeEleven();
+    const { port } = await start(el.base);
+    await incoming(port, { CallSid: "CA_el_lock", From: "+16045550190", To: "+12365550100" });
+    const reg = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!;
+    const callKey = reg.body.conversation_initiation_client_data.dynamic_variables.call_key;
+    const setLanguage = async (language: string) =>
+      (await (
+        await fetch(`http://127.0.0.1:${port}/eleven/tools/set_language`, {
+          method: "POST",
+          headers: { "content-type": "application/json", "x-cf-tool-key": toolKeyFor(AUTH) },
+          body: JSON.stringify({ call_sid: "CA_el_lock", call_key: callKey, caller_phone: "+16045550190", language }),
+        })
+      ).json()) as any;
+    expect((await setLanguage("zh-CN")).ok).toBe(true);
+    const slip = await setLanguage("zh-HK");
+    expect(slip.ok).not.toBe(true);
+    expect(JSON.stringify(slip)).toContain("settled at the start");
+    expect((await setLanguage("zh-HK")).ok).toBe(true); // asked again: the caller means it
+    expect((await setLanguage("en-US")).ok).toBe(true); // English is never held back
+  });
+
   it("opens a returning Cantonese caller in Cantonese (yue) with Eleven v4 Turbo", async () => {
     const el = await fakeEleven();
     const { port } = await start(el.base);

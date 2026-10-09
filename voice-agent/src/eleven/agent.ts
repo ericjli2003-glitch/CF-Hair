@@ -118,6 +118,7 @@ function agentNote(deps: SessionDeps): string {
 You hear the caller through speech recognition and speak with your own voice.
 - Language: always answer in the language the caller speaks (English, Mandarin, Cantonese or Korean). When they speak another of these, use the language detection tool, and call set_language once so their next call opens in it. Do both silently: never say that you are switching, never name the language ("let me switch to Cantonese"), just carry on in their language. There is no ask_caller_language or keypad here.
 - Your greeting ends with 你好 so Chinese speakers can answer in Chinese; it does not mean the caller speaks Chinese. Answer in whatever language they reply in.
+- Mandarin and Cantonese are decided once, from how the caller speaks in their first turns. After that, never move between them (with language detection or set_language) unless the caller asks for the other one in words, such as 講廣東話 or 说普通话. A Mandarin speaker's word that looks Cantonese, or the other way round, is not a reason to switch.
 - Stay in the caller's language for the whole call, even after a tool result, a long pause or a booking. Once a caller speaks Cantonese, every reply is Cantonese: never drift into Mandarin or English. Once a caller speaks Mandarin, every reply is Mandarin: never drift into Cantonese or English. The same for English. Change only when the caller changes.
 - Men's or women's: speech recognition often confuses "men's" and "women's" (one sounds inside the other). Never change the service the caller chose on your own, and never assume it from the name on file or the voice. In the quick check before booking, say it in a way that cannot be misheard: "A men's cut, for a man, at three?" or "A women's cut, for a woman, at three?". If the caller corrects it, use their correction.
 - Live transfer is not available on this line; offer to take a message instead.
@@ -231,7 +232,8 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
             },
             language_detection: {
               name: "language_detection",
-              description: "Switch to the language the caller is speaking: English, Mandarin, Cantonese or Korean.",
+              description:
+                "Switch to the language the caller is speaking: English, Mandarin, Cantonese or Korean. Use it in the caller's first turns. Once the call is in Mandarin or Cantonese, never use it to move between those two because of a word, an accent or a short reply; only if the caller asks for the other one in words (講廣東話, 说普通话).",
               pre_tool_speech: "off",
               // Only in the caller's first two turns, so a word in another language later on does not
               // flip the call (ElevenLabs' "Only at start of conversation").
@@ -361,6 +363,10 @@ interface ElevenCall {
   phone: string | null;
   language: LanguageCode;
   created: number;
+  /** A Chinese language chosen during this call (not the saved one the call opened in). */
+  chineseChosen?: LanguageCode;
+  /** A switch to the other Chinese, refused once: asked again, it goes through. */
+  chineseSwitchAsked?: LanguageCode;
 }
 
 export class ElevenLine {
@@ -488,7 +494,8 @@ export class ElevenLine {
     const t0 = Date.now();
     const res = await call.executor.run(name, input);
     call.log.tool({ name, input, result: safeJson(res.content), isError: res.isError, ms: Date.now() - t0 });
-    console.log(`[eleven call ${callSid}] tool ${name}${res.isError ? " (error)" : ""} in ${Date.now() - t0}ms`);
+    const arg = name === "set_language" ? ` ${String(input.language ?? "")}${res.isError ? " refused" : ""}` : "";
+    console.log(`[eleven call ${callSid}] tool ${name}${arg}${res.isError && !arg ? " (error)" : ""} in ${Date.now() - t0}ms`);
     return { status: 200, body: safeJson(res.content) };
   }
 
@@ -501,6 +508,20 @@ export class ElevenLine {
       },
       currentLanguage: () => call.language,
       switchLanguage: async (code) => {
+        // Mandarin and Cantonese are told apart once, early in the call. After that the model tends to
+        // drift between them; a switch to the other one goes through only if it is asked for again
+        // (the caller insisting, or asking in words), not on the first slip.
+        const chinese = (c: LanguageCode) => c === "zh-CN" || c === "zh-HK";
+        if (chinese(code) && call.chineseChosen && call.chineseChosen !== code && call.chineseSwitchAsked !== code) {
+          call.chineseSwitchAsked = code;
+          const now = deps.languages[call.chineseChosen].englishName;
+          return {
+            saved: "skipped",
+            refused: `this call is in ${now}. Mandarin and Cantonese were settled at the start; switch only if the caller asks for the other one in words (then call set_language again)`,
+          };
+        }
+        if (chinese(code)) call.chineseChosen = code;
+        call.chineseSwitchAsked = undefined;
         call.language = code;
         return { saved: await deps.callers.saveLanguage(call.phone, code) };
       },
