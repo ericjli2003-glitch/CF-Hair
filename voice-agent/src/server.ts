@@ -16,6 +16,7 @@ import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
 import { azureProvider, openAiProvider, type RealtimeProvider } from "./s2s/providers.js";
 import { MiniMaxSpeech } from "./tts/minimax.js";
 import { ElevenSpeech } from "./tts/elevenlabs.js";
+import { AudioLanguageId } from "./langid/audio-model.js";
 import { VoiceWithBackup, type OutsideVoice } from "./tts/outside.js";
 import { ElevenLine, toolKeyFor } from "./eleven/agent.js";
 
@@ -121,6 +122,12 @@ export function createServer(deps: SessionDeps) {
     console.log(`  Azure line voices for ${cfg.minimaxLanguages.join(", ")}: ${outside ? `${outside.label} (${cfg.minimaxLanguages.map((l) => outside.voiceFor(l)).join(", ")})` : "Azure's own"}`);
   }
   const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg, outside) : null;
+  // Hears each caller sentence on the Azure line and names its language (Cantonese vs Mandarin by ear).
+  const audioLanguageId =
+    azureLine && openAi.mode() !== "none" && cfg.languageIdModels.length
+      ? new AudioLanguageId({ auth: openAi, apiBase: cfg.openAiApiBase, models: cfg.languageIdModels })
+      : null;
+  if (azureLine) console.log(`  Azure line language check: ${audioLanguageId ? `OpenAI ${cfg.languageIdModels.join(" or ")}, every caller sentence` : "off (needs OpenAI access; LANGUAGE_ID_MODEL)"}`);
   /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
   const s2sFailed = new Map<string, number>();
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).
@@ -316,6 +323,7 @@ export function createServer(deps: SessionDeps) {
         void handleS2sSocket(ws, deps, {
           tokenSecret,
           provider: realtime,
+          audioLanguageId: realtime === azureLine ? audioLanguageId : null,
           onFailure: (sid) => {
             const cutoff = Date.now() - 600_000;
             for (const [k, t] of s2sFailed) if (t < cutoff) s2sFailed.delete(k);

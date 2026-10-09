@@ -190,11 +190,11 @@ export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null
       external = new Set();
     },
     get note() {
-      const voices = `- Each language has its own voice on this line, and the voice changes when the language does. When the caller speaks a different language from the current one, call set_language first, then reply in that language.`;
+      const voices = `- Each language has its own voice on this line, and the phone system hears which language the caller speaks and changes the voice for you. Never say that you are switching languages and never name the caller's language ("let me switch to Cantonese"); just reply in the language they speak. If they ask for a language, call set_language silently and answer in it.`;
       const cantonese = `- In Cantonese, write spoken Hong Kong Cantonese in traditional characters (係、唔、嘅、咗、啲、咩、而家、幾點), never standard written Chinese, because your words are read aloud exactly as written.`;
       return /realtime/i.test(models[current])
         ? `${voices}
-- You hear the caller's voice: tell Mandarin from Cantonese by how they sound, not by any transcript, and call set_language as soon as the caller's language differs from the call's (for example a Mandarin speaker on a call that is in Cantonese).
+- You hear the caller's voice: tell Mandarin from Cantonese by how they sound, not by any transcript, and reply in the one they speak, even if the call opened in the other.
 ${cantonese}`
         : `${voices}
 - You read the caller through speech recognition, which writes Cantonese the same way as Mandarin (standard written Chinese). So never switch between Cantonese and Mandarin because of how the words look; only when the caller asks for the other one.

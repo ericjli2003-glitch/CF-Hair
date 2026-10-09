@@ -480,6 +480,37 @@ describe("Azure Voice Live line", () => {
     call.ws.close();
   });
 
+  it("follows the language the audio check hears in each caller sentence", async () => {
+    // Stand-in OpenAI audio model: hears Mandarin.
+    const asked: any[] = [];
+    const oa = http.createServer((req, res) => {
+      let raw = "";
+      req.on("data", (c) => (raw += c));
+      req.on("end", () => {
+        asked.push({ url: req.url, body: JSON.parse(raw) });
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end(JSON.stringify({ choices: [{ message: { content: "mandarin" } }] }));
+      });
+    });
+    await new Promise<void>((r) => oa.listen(0, "127.0.0.1", () => r()));
+    closers.push(() => oa.close());
+    const { az, port } = await startAzure({ openAiApiKey: "oa-key", openAiApiBase: `http://127.0.0.1:${(oa.address() as AddressInfo).port}` });
+    const call = await azureCall(port, "CA_az10", "zh-HK");
+    await waitFor(() => az.of("response.create").length === 1);
+    az.send({ type: "input_audio_buffer.speech_started", audio_start_ms: 0 });
+    for (let i = 0; i < 60; i++) call.ws.send(JSON.stringify({ event: "media", streamSid: "MZaz", media: { payload: Buffer.alloc(160, 0x55).toString("base64"), timestamp: String(i * 20) } }));
+    await waitFor(() => az.of("input_audio_buffer.append").length >= 60);
+    az.send({ type: "input_audio_buffer.speech_stopped", audio_end_ms: 1200 });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-YunxiNeural"));
+    await waitFor(() => az.of("conversation.item.create").some((e) => e.item?.role === "system" && /now in Mandarin/.test(e.item.content?.[0]?.text ?? "")));
+    expect(asked[0].url).toBe("/v1/chat/completions");
+    expect(asked[0].body.model).toBe("gpt-audio-mini");
+    const audio = asked[0].body.messages[1].content[0].input_audio;
+    expect(audio.format).toBe("wav");
+    expect(Buffer.from(audio.data, "base64").subarray(0, 4).toString()).toBe("RIFF");
+    call.ws.close();
+  });
+
   it("waits for the caller's transcript before judging set_language", async () => {
     const { az, port } = await startAzure();
     const call = await azureCall(port, "CA_az5", "zh-CN");

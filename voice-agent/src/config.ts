@@ -101,6 +101,12 @@ export interface AppConfig {
   scribeRealtimeUrl: string;
   /** Speech-to-speech lines with a voice per language (Azure): caller sentences ElevenLabs Scribe listens to for the spoken language. 0 turns it off. */
   s2sLanguageIdSentences: number;
+  /**
+   * OpenAI audio models that hear each caller sentence on the Azure line and name its language
+   * (src/langid/audio-model.ts), tried in order. Empty (LANGUAGE_ID_MODEL=off) turns it off.
+   */
+  languageIdModels: string[];
+  openAiApiBase: string;
   /** Languages spoken with ElevenLabs directly instead of through Twilio (for example zh-HK). */
   directTtsLanguages: string[];
   /** ElevenLabs model for direct speech (Twilio does not accept v4 models). */
@@ -223,6 +229,11 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     elevenLabsApiKey: env("LANGUAGE_ID", "on") === "off" ? "" : env("ELEVENLABS_API_KEY"),
     scribeRealtimeUrl: env("SCRIBE_REALTIME_URL", "wss://api.elevenlabs.io/v1/speech-to-text/realtime"),
     s2sLanguageIdSentences: Math.max(0, envInt("LANGUAGE_ID_SENTENCES", 3)),
+    languageIdModels: env("LANGUAGE_ID_MODEL", "gpt-audio-mini,gpt-4o-mini-audio-preview")
+      .split(",")
+      .map((m) => m.trim())
+      .filter((m) => m && m !== "off"),
+    openAiApiBase: env("OPENAI_API_BASE", "https://api.openai.com").replace(/\/+$/, ""),
     directTtsLanguages: env("ELEVENLABS_DIRECT_LANGUAGES")
       .split(",")
       .map((s) => s.trim())

@@ -529,6 +529,14 @@ Set up:
 
 ## Cantonese or Mandarin, from the sound of the voice
 
+**Audio check (default with OpenAI access).** Each caller sentence on the Azure line (0.7 s or
+longer) goes to an OpenAI audio model (`LANGUAGE_ID_MODEL`, default `gpt-audio-mini`, then
+`gpt-4o-mini-audio-preview`; `off` turns it off) that answers English, Mandarin, Cantonese, Korean or
+unclear (`src/langid/audio-model.ts`). When it hears another language than the call's, the call
+follows: voice, a note to the model, and the saved preference. The model never announces a switch.
+With OpenAI workload identity, the service account needs access to chat completions as well as
+Realtime. Scribe (below) is then off.
+
 Speech recognition writes Cantonese and Mandarin the same way (standard written Chinese), so the
 Azure line cannot tell them apart from the transcript. With `ELEVENLABS_API_KEY` set, ElevenLabs
 Scribe also listens to the caller's first sentences (`LANGUAGE_ID_SENTENCES`, default 3; 0 turns it

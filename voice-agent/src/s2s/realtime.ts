@@ -14,6 +14,7 @@ import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
 import { analyzeUtterance, chineseSwitchOk, chineseVariant } from "../agent/langdetect.js";
 import { ScribeLanguageId, type Detection } from "../langid/scribe.js";
+import type { AudioLanguageId } from "../langid/audio-model.js";
 import { isModelUnavailable, isSetupRejected, type RealtimeProvider } from "./providers.js";
 import { SentenceChunker } from "../agent/chunker.js";
 
@@ -53,7 +54,7 @@ function s2sNote(deps: SessionDeps, provider: RealtimeProvider): string {
   return `# This call: speech to speech
 You hear the caller's voice directly and speak with your own voice. There is no transcript, no speech recognition and no separate text to speech, so ignore the parts above about transcripts, the phone system switching languages, and ask_caller_language.
 - Accents: listen for what the caller most likely means in a salon call, as described above.
-- Language: always answer in the language the caller is speaking now (English, Mandarin, Cantonese or Korean), even when the call opened in another one: a returning caller may answer a Cantonese greeting in English. Every reply stays in that language, times, prices and confirmations included. When the caller speaks a different language from the call's, or asks for one, switch to it at once and also call set_language once so it is remembered for their next call. Cantonese means spoken Cantonese, not Mandarin.
+- Language: always answer in the language the caller is speaking now (English, Mandarin, Cantonese or Korean), even when the call opened in another one: a returning caller may answer a Cantonese greeting in English. Every reply stays in that language, times, prices and confirmations included. When the caller speaks a different language from the call's, or asks for one, switch to it at once and call set_language once, silently: never say that you are switching or name the language. Cantonese means spoken Cantonese, not Mandarin.
 - Keep replies short (one short sentence), but say them like a real person at the front desk, not a recording.
 
 # Voice and delivery
@@ -96,6 +97,8 @@ export interface S2sOptions {
   hangupFallbackMs?: number;
   /** Called when the call cannot go on (OpenAI login or session failed), so Twilio can apologize. */
   onFailure?: (callSid: string) => void;
+  /** Hears each caller sentence and names its language; the call follows it (Azure line). */
+  audioLanguageId?: AudioLanguageId | null;
 }
 
 export function handleS2sSocket(twilioWs: WebSocket, deps: SessionDeps, opts: S2sOptions): RealtimeCall {
@@ -162,6 +165,11 @@ export class RealtimeCall {
   /** Spoken-language identification (ElevenLabs Scribe) for the caller's first sentences. */
   private langId: ScribeLanguageId | null = null;
   private langIdHeard = 0;
+  /** The caller's recent audio, as sent to the service (for the audio language check). */
+  private callerAudio: { endMs: number; buf: Buffer }[] = [];
+  private turnStartMs = 0;
+  private languageCheckBusy = false;
+  private languageChecks = 0;
   /** Resolves when the Calls record has been posted or queued (tests). */
   reported: Promise<void> = Promise.resolve();
 
@@ -227,6 +235,7 @@ export class RealtimeCall {
     this.responses.clear();
     this.audioMs = 0;
     this.sent = [];
+    this.callerAudio = [];
     this.transcriptsPending = 0;
     for (const w of this.transcriptWaiters.splice(0)) w();
     void this.connect();
@@ -318,8 +327,9 @@ export class RealtimeCall {
    */
   private listenForLanguage() {
     if (this.closed || !this.cfg.elevenLabsApiKey || !this.opts.provider.languageVoice(this.language)) return;
-    // A model that hears the caller knows the language better than Scribe on phone audio.
-    if (this.opts.provider.hearsCaller?.() ?? true) return;
+    // A model that hears the caller, or the audio language check, knows the language better than
+    // Scribe on phone audio.
+    if (this.opts.audioLanguageId || (this.opts.provider.hearsCaller?.() ?? true)) return;
     if (this.langIdHeard >= this.cfg.s2sLanguageIdSentences) return;
     this.langId = new ScribeLanguageId(
       { url: this.cfg.scribeRealtimeUrl, apiKey: this.cfg.elevenLabsApiKey, vadSilenceSecs: 0.4 },
@@ -329,6 +339,33 @@ export class RealtimeCall {
         this.tag(`spoken language ID stopped: ${reason}`, "warn");
       },
     );
+  }
+
+  /**
+   * One caller sentence (audio between the service's speech_started and speech_stopped) goes to the
+   * audio language check; when it hears another language than the call's, the call follows: voice,
+   * a note to the model, and the saved preference. The model never has to announce a switch.
+   */
+  private checkSpokenLanguage(startMs: number, endMs: number) {
+    const id = this.opts.audioLanguageId;
+    if (!id || this.closed || this.languageCheckBusy || this.languageChecks >= 30) return;
+    if (endMs - startMs < 700) return; // "OK", "嗯": too short to tell
+    const from = Math.max(startMs, endMs - 8000) - 100;
+    const audio = Buffer.concat(this.callerAudio.filter((c) => c.endMs > from && c.endMs <= endMs + 100).map((c) => c.buf));
+    if (audio.length < 4000) return;
+    this.languageCheckBusy = true;
+    this.languageChecks++;
+    const t0 = Date.now();
+    id.identify(audio)
+      .then(({ language, answer }) => {
+        if (this.closed) return;
+        this.tag(`heard ${answer} (audio check, ${Date.now() - t0}ms)`);
+        if (language && language !== this.language) this.followTo(language, `spoken language: ${answer} (audio check)`);
+      })
+      .catch((err) => this.tag(`audio language check failed: ${(err as Error).message}`, "warn"))
+      .finally(() => {
+        this.languageCheckBusy = false;
+      });
   }
 
   private onSpokenLanguage(d: Detection) {
@@ -376,6 +413,10 @@ export class RealtimeCall {
     this.sendOai({ type: "input_audio_buffer.append", audio: chunk.payload });
     // mu-law at 8 kHz: one byte per sample, 8 bytes per ms.
     this.audioMs += Buffer.byteLength(chunk.payload, "base64") / 8;
+    if (this.opts.audioLanguageId) {
+      this.callerAudio.push({ endMs: this.audioMs, buf: Buffer.from(chunk.payload, "base64") });
+      if (this.callerAudio.length > 1500) this.callerAudio.splice(0, 500); // about 30 s kept
+    }
     this.sent.push({ audioMs: this.audioMs, at: chunk.at });
     if (this.sent.length > 3000) this.sent.splice(0, 1000); // about a minute of history is plenty
   }
@@ -493,8 +534,10 @@ export class RealtimeCall {
         this.greetingResponseId ??= e.response?.id ?? null;
         return;
       case "input_audio_buffer.speech_started":
+        if (typeof e.audio_start_ms === "number") this.turnStartMs = e.audio_start_ms;
         return this.onBargeIn();
       case "input_audio_buffer.speech_stopped":
+        if (typeof e.audio_end_ms === "number") this.checkSpokenLanguage(this.turnStartMs, e.audio_end_ms);
         this.callerTurns++;
         this.turnDetectedAt = Date.now();
         this.callerStoppedAt = typeof e.audio_end_ms === "number" ? this.wallTimeAt(e.audio_end_ms) : this.turnDetectedAt;
@@ -765,7 +808,7 @@ export class RealtimeCall {
     const english = a.latinWords >= 3 && a.han + a.hangul + a.kana === 0 ? "en-US" : null;
     // Which Chinese it is: a model that hears the caller decides (it calls set_language); the text
     // only guesses, and Mandarin and Cantonese are written alike.
-    const hears = this.opts.provider.hearsCaller?.() ?? true;
+    const hears = !!this.opts.audioLanguageId || (this.opts.provider.hearsCaller?.() ?? true);
     const chinese = a.han > 0 && !hears ? chineseVariant(a, null) : null;
     const lang: LanguageCode | null = asked ?? (a.hangul > 0 ? "ko-KR" : a.han > 0 ? chinese : english);
     if (!lang || lang === this.language) return;
