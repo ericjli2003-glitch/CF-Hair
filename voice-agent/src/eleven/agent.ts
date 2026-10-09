@@ -426,8 +426,9 @@ export class ElevenLine {
         : Promise.resolve(null),
     ]);
     const language = caller.preferredLanguage;
-    const known = caller.preferredLanguage !== "en-US" || caller.callCount > 0;
-    const greeting = known ? deps.languages[language].greeting : newCallerGreeting(deps.config.welcomeGreeting, this.settings);
+    // Every call that opens in English ends its greeting with 你好, returning English callers too (a
+    // shared phone, a family member who speaks Chinese); a caller saved as Chinese hears their own.
+    const greeting = language === "en-US" ? newCallerGreeting(deps.config.welcomeGreeting, this.settings) : deps.languages[language].greeting;
     this.track(p.callSid, p.from, p.to, language);
     const context = callContext({
       salon: deps.salon,

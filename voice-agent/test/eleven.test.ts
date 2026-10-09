@@ -212,6 +212,15 @@ describe("ElevenLabs phone agent line", () => {
     expect((await setLanguage("en-US")).ok).toBe(true); // English is never held back
   });
 
+  it("greets a returning English caller with 你好 too", async () => {
+    const el = await fakeEleven();
+    const { port, deps } = await start(el.base);
+    await deps.callers.beginCall("+16045550191"); // has called before
+    await incoming(port, { CallSid: "CA_el_ret", From: "+16045550191", To: "+12365550100" });
+    const o = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!.body.conversation_initiation_client_data.conversation_config_override;
+    expect(o.agent).toEqual({ language: "en", first_message: "Hi, CF Hair Salon. 你好！" });
+  });
+
   it("opens a returning Cantonese caller in Cantonese (yue) with Eleven v4 Turbo", async () => {
     const el = await fakeEleven();
     const { port } = await start(el.base);
