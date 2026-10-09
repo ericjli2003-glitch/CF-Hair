@@ -527,6 +527,14 @@ Set up:
 6. Logs are tagged `[azure call ...]`, with the same `reply: first audio ...` timing line as the
    OpenAI line. A refused connection is logged as `Azure refused the connection: <status> <reason>`.
 
+## Cantonese or Mandarin, from the sound of the voice
+
+Speech recognition writes Cantonese and Mandarin the same way (standard written Chinese), so the
+Azure line cannot tell them apart from the transcript. With `ELEVENLABS_API_KEY` set, ElevenLabs
+Scribe also listens to the caller's first sentences (`LANGUAGE_ID_SENTENCES`, default 3; 0 turns it
+off) and the call moves to the language it hears (`yue` is Cantonese), voice and replies included,
+without the caller asking. The number is saved with that language for the next call.
+
 ## MiniMax voices for Mandarin and Cantonese
 
 **Default since Oct 9: the ElevenLabs voice.** When `ELEVENLABS_API_KEY` is set and the agent has an

@@ -99,6 +99,8 @@ export interface AppConfig {
   /** ElevenLabs API key for Scribe language identification of new callers (empty turns it off). */
   elevenLabsApiKey: string;
   scribeRealtimeUrl: string;
+  /** Speech-to-speech lines with a voice per language (Azure): caller sentences ElevenLabs Scribe listens to for the spoken language. 0 turns it off. */
+  s2sLanguageIdSentences: number;
   /** Languages spoken with ElevenLabs directly instead of through Twilio (for example zh-HK). */
   directTtsLanguages: string[];
   /** ElevenLabs model for direct speech (Twilio does not accept v4 models). */
@@ -220,6 +222,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     eotThreshold: Number.parseFloat(env("CR_EOT_THRESHOLD", "0")) || 0,
     elevenLabsApiKey: env("LANGUAGE_ID", "on") === "off" ? "" : env("ELEVENLABS_API_KEY"),
     scribeRealtimeUrl: env("SCRIBE_REALTIME_URL", "wss://api.elevenlabs.io/v1/speech-to-text/realtime"),
+    s2sLanguageIdSentences: Math.max(0, envInt("LANGUAGE_ID_SENTENCES", 3)),
     directTtsLanguages: env("ELEVENLABS_DIRECT_LANGUAGES")
       .split(",")
       .map((s) => s.trim())

@@ -13,6 +13,7 @@ import { DEFAULT_LANGUAGE, normalizeLanguage, type LanguageCode } from "../langu
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
 import { analyzeUtterance, chineseSwitchOk, chineseVariant } from "../agent/langdetect.js";
+import { ScribeLanguageId, type Detection } from "../langid/scribe.js";
 import { isModelUnavailable, isSetupRejected, type RealtimeProvider } from "./providers.js";
 import { SentenceChunker } from "../agent/chunker.js";
 
@@ -158,6 +159,9 @@ export class RealtimeCall {
   /** Caller turns committed but not transcribed yet, and who waits for them (set_language). */
   private transcriptsPending = 0;
   private transcriptWaiters: (() => void)[] = [];
+  /** Spoken-language identification (ElevenLabs Scribe) for the caller's first sentences. */
+  private langId: ScribeLanguageId | null = null;
+  private langIdHeard = 0;
   /** Resolves when the Calls record has been posted or queued (tests). */
   reported: Promise<void> = Promise.resolve();
 
@@ -255,6 +259,7 @@ export class RealtimeCall {
         if (!this.log || !m.media?.payload) return;
         this.latestMediaTs = Number(m.media.timestamp ?? this.latestMediaTs) || this.latestMediaTs;
         const chunk = { payload: m.media.payload, at: Date.now() };
+        this.langId?.sendAudio(m.media.payload);
         if (this.configured && this.oaiOpen) this.sendAudio(chunk);
         else if (this.audioQueue.length < 250) this.audioQueue.push(chunk); // about 5 s
         return;
@@ -302,6 +307,46 @@ export class RealtimeCall {
     this.tag(`stream started (${this.opts.provider.model}, voice ${this.opts.provider.voiceFor(this.language)}), opening in ${this.language}`);
     this.configure();
     void this.loadContext();
+    this.listenForLanguage();
+  }
+
+  /**
+   * Speech recognition writes Cantonese and Mandarin alike, so the language comes from the sound:
+   * ElevenLabs Scribe hears the caller's first sentences (up to LANGUAGE_ID_SENTENCES) and the call
+   * moves to the language it hears, without the caller asking. Only where each language has its own
+   * voice (Azure).
+   */
+  private listenForLanguage() {
+    if (this.closed || !this.cfg.elevenLabsApiKey || !this.opts.provider.languageVoice(this.language)) return;
+    if (this.langIdHeard >= this.cfg.s2sLanguageIdSentences) return;
+    this.langId = new ScribeLanguageId(
+      { url: this.cfg.scribeRealtimeUrl, apiKey: this.cfg.elevenLabsApiKey, vadSilenceSecs: 0.4 },
+      (d) => this.onSpokenLanguage(d),
+      (reason) => {
+        this.langId = null;
+        this.tag(`spoken language ID stopped: ${reason}`, "warn");
+      },
+    );
+  }
+
+  private onSpokenLanguage(d: Detection) {
+    this.langId = null;
+    this.langIdHeard++;
+    const lang = normalizeLanguage(d.languageCode);
+    this.tag(`heard ${d.languageCode ?? "?"} (Scribe): "${d.text.slice(0, 80)}"`);
+    // A couple of words ("OK", "喂") say little; wait for a real sentence.
+    const a = analyzeUtterance(d.text);
+    if (lang && lang !== this.language && (a.han >= 2 || a.hangul >= 2 || a.latinWords >= 2)) {
+      this.setLanguage(lang, `spoken language ${d.languageCode} (Scribe)`);
+      void this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, lang);
+      const name = this.deps.languages[lang].englishName;
+      const how = lang === "zh-HK" ? " (spoken Hong Kong Cantonese, in traditional characters)" : "";
+      this.sendOai({
+        type: "conversation.item.create",
+        item: { type: "message", role: "system", content: [{ type: "input_text", text: `The caller speaks ${name}. Reply only in ${name}${how} from now on.` }] },
+      });
+    }
+    this.listenForLanguage();
   }
 
   private sendTwilio(msg: Record<string, unknown>) {
@@ -761,6 +806,8 @@ export class RealtimeCall {
   async close(endedBy: "caller" | "agent"): Promise<void> {
     if (this.closed) return;
     this.closed = true;
+    this.langId?.close();
+    this.langId = null;
     if (this.hangupTimer) clearTimeout(this.hangupTimer);
     if (this.oai?.readyState === WebSocket.OPEN || this.oai?.readyState === WebSocket.CONNECTING) this.oai.close();
     if (!this.log) return;

@@ -415,6 +415,37 @@ describe("Azure Voice Live line", () => {
     call.ws.close();
   });
 
+  it("moves a Mandarin call to Cantonese when the caller just speaks Cantonese (Scribe hears it)", async () => {
+    // Stand-in Scribe: the first audio it gets is a Cantonese sentence.
+    const scribe = new WebSocketServer({ port: 0, host: "127.0.0.1" });
+    await new Promise<void>((r) => scribe.once("listening", () => r()));
+    closers.push(() => scribe.close());
+    let sessions = 0;
+    scribe.on("connection", (ws) => {
+      sessions++;
+      if (sessions > 1) return;
+      ws.once("message", () => {
+        ws.send(JSON.stringify({ message_type: "committed_transcript", text: "我想聽日剪頭髮" }));
+        ws.send(JSON.stringify({ message_type: "committed_transcript_with_timestamps", text: "我想聽日剪頭髮", language_code: "yue" }));
+      });
+    });
+    const az = await fakeRealtime();
+    const { port } = await startServer("ws://unused", {
+      openAiApiKey: "",
+      azureVoiceLiveEndpoint: az.url.replace("ws://", "http://"),
+      azureVoiceLiveKey: "az-key",
+      elevenLabsApiKey: "el-key",
+      scribeRealtimeUrl: `ws://127.0.0.1:${(scribe.address() as AddressInfo).port}`,
+    });
+    const call = await azureCall(port, "CA_az6", "zh-CN");
+    await waitFor(() => az.of("response.create").length === 1);
+    call.ws.send(JSON.stringify({ event: "media", streamSid: "MZaz", media: { payload: Buffer.alloc(160, 0x7f).toString("base64"), timestamp: "20" } }));
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-WanLungNeural"));
+    await waitFor(() => az.of("conversation.item.create").some((e) => e.item?.role === "system" && /Cantonese/.test(e.item.content?.[0]?.text ?? "")));
+    await waitFor(() => sessions === 2); // keeps listening to the next sentence
+    call.ws.close();
+  });
+
   it("waits for the caller's transcript before judging set_language", async () => {
     const { az, port } = await startAzure();
     const call = await azureCall(port, "CA_az5", "zh-CN");
