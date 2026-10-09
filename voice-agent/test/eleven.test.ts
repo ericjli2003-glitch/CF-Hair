@@ -116,7 +116,9 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.tools.map((t: { name: string }) => t.name)).toContain("end_call");
     // No greeting in the language presets: a switch mid-call must not replay one.
     expect(cc.language_presets.zh.overrides.agent).toEqual({ language: "zh" });
-    expect(cc.agent.prompt.prompt).toContain("A men's cut at three for Eric. Shall I book it?");
+    expect(cc.agent.prompt.prompt).toContain("A men's cut at three for Eric, OK?");
+    expect(cc.agent.prompt.prompt).not.toContain("Shall I book");
+    expect(cc.agent.prompt.prompt).toContain("Never say that the call is ending or has ended");
     // The name is asked once at most, and the first time offered is checked first.
     expect(cc.agent.prompt.prompt).toContain("Ask about the name once at most");
     expect(cc.agent.prompt.prompt).toContain("call check_availability for that service and day before you say anything about a time");

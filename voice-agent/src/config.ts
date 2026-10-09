@@ -319,7 +319,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     elevenDetectOnlyAtStart: env("ELEVENLABS_DETECT_ONLY_AT_START", "on") !== "off",
     elevenAgentEagerness: env("ELEVENLABS_AGENT_TURN_EAGERNESS", "normal"),
     elevenSilenceHangupSecs: Math.max(0, envInt("ELEVENLABS_SILENCE_HANGUP_SECS", 15)),
-    elevenHangupDelayMs: Math.max(0, envInt("ELEVENLABS_HANGUP_DELAY_MS", 6000)),
+    // Long enough for the goodbye to play, short enough that nothing after it is heard.
+    elevenHangupDelayMs: Math.max(0, envInt("ELEVENLABS_HANGUP_DELAY_MS", 3500)),
     twilioApiBase: env("TWILIO_API_BASE", "https://api.twilio.com").replace(/\/+$/, ""),
     elevenAgentLatency: Math.min(4, Math.max(0, envInt("ELEVENLABS_AGENT_LATENCY", 1))),
     welcomeGreeting: env(

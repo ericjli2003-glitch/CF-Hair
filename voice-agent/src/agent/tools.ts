@@ -352,7 +352,8 @@ export class ToolExecutor {
       }
       case "end_call":
         this.hooks.requestEnd(d.reason);
-        return json({ ok: true, instruction: "The call will end after your goodbye is spoken. Do not say anything else." });
+        // Nothing more is said: no "the call has ended" after the goodbye.
+        return json({ ok: true, instruction: "Done. Say nothing more at all: reply with an empty message. Never mention that the call is ending or has ended." });
       case "record_sms_consent":
         return this.recordSmsConsent(d.accepted);
       case "ask_caller_language": {
