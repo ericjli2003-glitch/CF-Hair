@@ -191,6 +191,9 @@ export interface AppConfig {
   elevenAgentEagerness: string;
   /** ElevenLabs ends the call after this many seconds of silence (a backstop after a goodbye); 0 is off. */
   elevenSilenceHangupSecs: number;
+  /** After the agent's end_call, the server hangs up the Twilio call this many ms later (the goodbye plays first). */
+  elevenHangupDelayMs: number;
+  twilioApiBase: string;
   /** ElevenLabs streaming latency optimization, 0 (best sound) to 4 (fastest). */
   elevenAgentLatency: number;
   /** Detect the caller's language from transcripts and switch automatically. */
@@ -316,6 +319,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     elevenDetectOnlyAtStart: env("ELEVENLABS_DETECT_ONLY_AT_START", "on") !== "off",
     elevenAgentEagerness: env("ELEVENLABS_AGENT_TURN_EAGERNESS", "normal"),
     elevenSilenceHangupSecs: Math.max(0, envInt("ELEVENLABS_SILENCE_HANGUP_SECS", 15)),
+    elevenHangupDelayMs: Math.max(0, envInt("ELEVENLABS_HANGUP_DELAY_MS", 6000)),
+    twilioApiBase: env("TWILIO_API_BASE", "https://api.twilio.com").replace(/\/+$/, ""),
     elevenAgentLatency: Math.min(4, Math.max(0, envInt("ELEVENLABS_AGENT_LATENCY", 1))),
     welcomeGreeting: env(
       "WELCOME_GREETING",

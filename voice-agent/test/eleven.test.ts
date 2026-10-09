@@ -111,8 +111,15 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.prompt).toContain("好呀，聽日幾點方便呀？");
     expect(cc.agent.prompt.prompt).toContain("never name the language");
     expect(cc.agent.first_message).toBe("Hi, CF Hair Salon. 你好！");
-    expect(cc.agent.prompt.built_in_tools.end_call.description).toContain("same reply as your goodbye");
-    expect(cc.agent.prompt.prompt).toContain("A men's cut at three. Is this for Eric?");
+    // With the Twilio token, end_call is this server's tool (it hangs up the call itself).
+    expect(cc.agent.prompt.built_in_tools.end_call).toBeUndefined();
+    expect(cc.agent.prompt.tools.map((t: { name: string }) => t.name)).toContain("end_call");
+    // No greeting in the language presets: a switch mid-call must not replay one.
+    expect(cc.language_presets.zh.overrides.agent).toEqual({ language: "zh" });
+    expect(cc.agent.prompt.prompt).toContain("A men's cut at three for Eric. Shall I book it?");
+    // The name is asked once at most, and the first time offered is checked first.
+    expect(cc.agent.prompt.prompt).toContain("Ask about the name once at most");
+    expect(cc.agent.prompt.prompt).toContain("call check_availability for that service and day before you say anything about a time");
     expect(cc.agent.prompt.prompt).not.toContain("for a man, at three");
     // Full questions for the time and the name, in every language.
     expect(cc.agent.prompt.prompt).toContain("How does three o'clock sound?");
@@ -135,7 +142,6 @@ describe("ElevenLabs phone agent line", () => {
     expect(book.api_schema.request_headers["x-cf-tool-key"]).toBe(toolKeyFor(AUTH));
     expect(book.api_schema.request_body_schema.properties.call_sid).toEqual({ type: "string", dynamic_variable: "call_sid" });
     expect(book.api_schema.request_body_schema.properties.service_id.description).toBeTruthy();
-    expect(cc.agent.prompt.built_in_tools.end_call.params.system_tool_type).toBe("end_call");
     // No English filler lines on a Chinese or Korean call.
     expect(cc.turn.soft_timeout_config).toEqual({ timeout_seconds: -1 });
     expect(cc.agent.prompt.built_in_tools.language_detection.pre_tool_speech).toBe("off");
@@ -164,6 +170,45 @@ describe("ElevenLabs phone agent line", () => {
     expect(vars.call_context).toContain("Current date and time");
     // New callers hear 你好 after the English greeting, so Chinese speakers answer in Chinese.
     expect(reg.body.conversation_initiation_client_data.conversation_config_override.agent).toEqual({ language: "en", first_message: "Hi, CF Hair Salon. 你好！" });
+  });
+
+  it("keeps ElevenLabs' own end_call when there is no Twilio token", async () => {
+    const el = await fakeEleven();
+    await start(el.base, { twilioAuthToken: "" });
+    await waitFor(() => el.seen.some((s) => s.path === "/v1/convai/agents/create"));
+    const cc = el.seen.find((s) => s.path === "/v1/convai/agents/create")!.body.conversation_config;
+    expect(cc.agent.prompt.built_in_tools.end_call.params.system_tool_type).toBe("end_call");
+    expect(cc.agent.prompt.tools.map((t: { name: string }) => t.name)).not.toContain("end_call");
+  });
+
+  it("hangs up the Twilio call itself after the agent's end_call", async () => {
+    // Stand-in Twilio REST API.
+    const hangups: { url: string; body: string; auth: string }[] = [];
+    const tw = http.createServer((req, res) => {
+      let raw = "";
+      req.on("data", (c) => (raw += c));
+      req.on("end", () => {
+        hangups.push({ url: req.url!, body: raw, auth: String(req.headers.authorization) });
+        res.writeHead(200, { "content-type": "application/json" });
+        res.end("{}");
+      });
+    });
+    await new Promise<void>((r) => tw.listen(0, "127.0.0.1", () => r()));
+    closers.push(() => tw.close());
+    const el = await fakeEleven();
+    const { port } = await start(el.base, { twilioApiBase: `http://127.0.0.1:${(tw.address() as AddressInfo).port}`, elevenHangupDelayMs: 30 });
+    await incoming(port, { CallSid: "CA_el_hang", From: "+16045550193", To: "+12365550100", AccountSid: "AC123" });
+    const reg = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!;
+    const callKey = reg.body.conversation_initiation_client_data.dynamic_variables.call_key;
+    await fetch(`http://127.0.0.1:${port}/eleven/tools/end_call`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-cf-tool-key": toolKeyFor(AUTH) },
+      body: JSON.stringify({ call_sid: "CA_el_hang", call_key: callKey, caller_phone: "+16045550193", reason: "completed" }),
+    });
+    await waitFor(() => hangups.length === 1);
+    expect(hangups[0].url).toBe("/2010-04-01/Accounts/AC123/Calls/CA_el_hang.json");
+    expect(hangups[0].body).toBe("Status=completed");
+    expect(hangups[0].auth).toBe(`Basic ${Buffer.from(`AC123:${AUTH}`).toString("base64")}`);
   });
 
   it("hangs up when the conversation ends instead of starting the call over", async () => {

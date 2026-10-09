@@ -45,7 +45,7 @@ export const MULTILINGUAL_HINTS = [
 const MODEL_CANTONESE = "eleven_v4_turbo";
 
 /** Tools the agent can call on this server. Transfers and the SMS question are left out of the test. */
-const SKIPPED = new Set(["ask_caller_language", "record_sms_consent", "transfer_to_human", "end_call"]);
+const SKIPPED = new Set(["ask_caller_language", "record_sms_consent", "transfer_to_human"]);
 
 export interface ElevenAgentOptions {
   apiKey: string;
@@ -63,6 +63,14 @@ export interface ElevenAgentOptions {
   detectionOnlyAtStart?: boolean;
   /** Seconds of silence after which ElevenLabs ends the call (a backstop for a goodbye without end_call); 0 is off. */
   silenceHangupSecs?: number;
+  /**
+   * Twilio auth token: with it, end_call is this server's tool and the server ends the Twilio call
+   * itself (after the goodbye has had time to play), instead of relying on ElevenLabs' end_call.
+   */
+  twilioAuthToken?: string;
+  twilioApiBase?: string;
+  /** How long after end_call the server hangs up, so the goodbye is heard first. */
+  hangupDelayMs?: number;
   /** Shared secret the agent sends with every tool call. */
   toolKey: string;
 }
@@ -125,7 +133,7 @@ You hear the caller through speech recognition and speak with your own voice.
 - Your greeting ends with 你好 so Chinese speakers can answer in Chinese; it does not mean the caller speaks Chinese. Answer in whatever language they reply in.
 - Mandarin and Cantonese are decided once, from how the caller speaks in their first turns. After that, never move between them (with language detection or set_language) unless the caller asks for the other one in words, such as 講廣東話 or 说普通话. A Mandarin speaker's word that looks Cantonese, or the other way round, is not a reason to switch.
 - Stay in the caller's language for the whole call, even after a tool result, a long pause or a booking. Once a caller speaks Cantonese, every reply is Cantonese: never drift into Mandarin or English. Once a caller speaks Mandarin, every reply is Mandarin: never drift into Cantonese or English. The same for English. Change only when the caller changes.
-- Men's or women's: speech recognition often confuses "men's" and "women's" (one sounds inside the other). Never change the service the caller chose on your own, and never assume it from the name on file or the voice. Name the service clearly in the quick check before booking ("A men's cut at three. Is this for Eric?"), and if the caller corrects it, use their correction.
+- Men's or women's: speech recognition often confuses "men's" and "women's" (one sounds inside the other). Never change the service the caller chose on your own, and never assume it from the name on file or the voice. Name the service clearly in the quick check before booking ("A men's cut at three for Eric. Shall I book it?"), and if the caller corrects it, use their correction.
 - Live transfer is not available on this line; offer to take a message instead.
 - Never call book_appointment, cancel_booking or reschedule_booking in the same reply that asks the caller to confirm. Ask, stop, and only act after they say yes.
 - Goodbyes: when the call is done, say one short goodbye ending with "${l["en-US"].byes}" (Mandarin or Cantonese: "${l["zh-CN"].byes}", Korean: "${l["ko-KR"].byes}") and call end_call in that same reply, so the call hangs up right after it. Say goodbye once; never wait for the caller to say it back.
@@ -170,8 +178,10 @@ function bodySchema(schema: { properties?: Record<string, any>; required?: strin
   return { type: "object", required: [...(schema.required ?? []), "call_sid", "call_key"], properties };
 }
 
-export function agentTools(opts: Pick<ElevenAgentOptions, "publicBaseUrl" | "toolKey">) {
-  return TOOL_DEFINITIONS.filter((t) => !SKIPPED.has(t.name)).map((t) => ({
+export function agentTools(opts: Pick<ElevenAgentOptions, "publicBaseUrl" | "toolKey" | "twilioAuthToken">) {
+  // end_call is ours only when this server can hang up through Twilio; otherwise ElevenLabs' own.
+  const skip = (name: string) => SKIPPED.has(name) || (name === "end_call" && !opts.twilioAuthToken);
+  return TOOL_DEFINITIONS.filter((t) => !skip(t.name)).map((t) => ({
     type: "webhook",
     name: t.name,
     description: t.description ?? t.name,
@@ -199,7 +209,10 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
     const voice = voiceIdFor(deps, code);
     presets[lang] = {
       overrides: {
-        agent: { language: lang, first_message: deps.languages[code].greeting },
+        // No first_message here: a language switch mid-call (a "拜拜" at the end, say) would otherwise
+        // play that language's greeting again, as if the call started over. The opening greeting is
+        // set per call in register().
+        agent: { language: lang },
         tts: { ...(voice ? { voice_id: voice } : {}), model_id: modelFor(code, s) },
       },
     };
@@ -239,12 +252,19 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
           temperature: 0.3,
           tools: agentTools(opts),
           built_in_tools: {
-            end_call: {
-              name: "end_call",
-              description: "Hang up. Call it in the same reply as your goodbye, right after the goodbye words: the call ends once they have been spoken. Never wait for the caller to say goodbye back.",
-              pre_tool_speech: "off",
-              params: { system_tool_type: "end_call" },
-            },
+            // With the Twilio token, end_call is this server's webhook tool (it hangs up the call
+            // itself); without it, ElevenLabs' own.
+            ...(opts.twilioAuthToken
+              ? {}
+              : {
+                  end_call: {
+                    name: "end_call",
+                    description:
+                      "Hang up. Call it in the same reply as your goodbye, right after the goodbye words: the call ends once they have been spoken. Never wait for the caller to say goodbye back.",
+                    pre_tool_speech: "off",
+                    params: { system_tool_type: "end_call" },
+                  },
+                }),
             language_detection: {
               name: "language_detection",
               description:
@@ -388,6 +408,9 @@ interface ElevenCall {
   chineseChosen?: LanguageCode;
   /** A switch to the other Chinese, refused once: asked again, it goes through. */
   chineseSwitchAsked?: LanguageCode;
+  /** Twilio account of the call (from the webhook), for hanging up through Twilio's API. */
+  accountSid?: string;
+  hangupTimer?: NodeJS.Timeout;
 }
 
 export class ElevenLine {
@@ -430,6 +453,36 @@ export class ElevenLine {
     return this.agentId;
   }
 
+  /**
+   * The agent said goodbye and called end_call: end the Twilio call ourselves once the goodbye has
+   * had time to play, so it cannot linger or start over.
+   */
+  private hangUpSoon(callSid: string, call: ElevenCall, reason: string) {
+    if (call.hangupTimer) return;
+    const token = this.opts.twilioAuthToken;
+    if (!token || !call.accountSid) {
+      console.warn(`[eleven call ${callSid}] end_call (${reason}), but no Twilio account or token to hang up with`);
+      return;
+    }
+    const delay = this.opts.hangupDelayMs ?? 6000;
+    console.log(`[eleven call ${callSid}] end_call (${reason}): hanging up in ${delay}ms`);
+    call.hangupTimer = setTimeout(() => {
+      const base = this.opts.twilioApiBase ?? "https://api.twilio.com";
+      const auth = Buffer.from(`${call.accountSid}:${token}`).toString("base64");
+      fetch(`${base}/2010-04-01/Accounts/${encodeURIComponent(call.accountSid!)}/Calls/${encodeURIComponent(callSid)}.json`, {
+        method: "POST",
+        headers: { Authorization: `Basic ${auth}`, "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ Status: "completed" }),
+        signal: AbortSignal.timeout(10000),
+      })
+        .then(async (r) => {
+          if (r.ok) console.log(`[eleven call ${callSid}] hung up`);
+          else console.warn(`[eleven call ${callSid}] Twilio refused the hang-up: ${r.status} ${(await r.text()).slice(0, 300)}`);
+        })
+        .catch((err) => console.warn(`[eleven call ${callSid}] hang-up failed: ${(err as Error).message}`));
+    }, delay);
+  }
+
   /** This call already had its conversation registered with ElevenLabs. */
   hasCall(callSid: string): boolean {
     return this.calls.has(callSid);
@@ -440,7 +493,7 @@ export class ElevenLine {
   }
 
   /** POST /eleven/twiml: registers the call with ElevenLabs and returns its TwiML. */
-  async register(p: { callSid: string; from: string; to: string }): Promise<string> {
+  async register(p: { callSid: string; from: string; to: string; accountSid?: string }): Promise<string> {
     const deps = this.deps;
     const now = deps.now?.() ?? DateTime.now();
     const ids = deps.config.prefetchServiceIds;
@@ -455,7 +508,8 @@ export class ElevenLine {
     // Every call that opens in English ends its greeting with 你好, returning English callers too (a
     // shared phone, a family member who speaks Chinese); a caller saved as Chinese hears their own.
     const greeting = language === "en-US" ? newCallerGreeting(deps.config.welcomeGreeting, this.settings) : deps.languages[language].greeting;
-    this.track(p.callSid, p.from, p.to, language);
+    const tracked = this.track(p.callSid, p.from, p.to, language);
+    tracked.accountSid = p.accountSid || undefined;
     const context = callContext({
       salon: deps.salon,
       now,
@@ -552,7 +606,7 @@ export class ElevenLine {
         call.language = code;
         return { saved: await deps.callers.saveLanguage(call.phone, code) };
       },
-      requestEnd: () => {},
+      requestEnd: (reason) => this.hangUpSoon(callSid, call, reason),
       requestTransfer: () => ({ ok: false, why: "Live transfer is not available on this line. Offer to take a message." }),
       recordOutcome: (outcome: Outcome, detail) => {
         call.log.record.outcomes.push({ outcome, at: new Date().toISOString(), detail });

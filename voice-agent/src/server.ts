@@ -82,6 +82,9 @@ export function createServer(deps: SessionDeps) {
             mandarinModel: cfg.elevenAgentMandarinModel,
             detectionOnlyAtStart: cfg.elevenDetectOnlyAtStart,
             silenceHangupSecs: cfg.elevenSilenceHangupSecs,
+            twilioAuthToken: cfg.twilioAuthToken,
+            twilioApiBase: cfg.twilioApiBase,
+            hangupDelayMs: cfg.elevenHangupDelayMs,
             toolKey: toolKeyFor(toolSecret),
           },
           toolSecret,
@@ -257,7 +260,7 @@ export function createServer(deps: SessionDeps) {
     }
     console.log(`[eleven call ${callSid || "?"}] incoming from ${maskPhone(req.body?.From)}`);
     try {
-      const twiml = await eleven.register({ callSid, from: String(req.body?.From ?? ""), to: String(req.body?.To ?? "") });
+      const twiml = await eleven.register({ callSid, from: String(req.body?.From ?? ""), to: String(req.body?.To ?? ""), accountSid: String(req.body?.AccountSid ?? "") });
       res.type("text/xml").send(endWithHangup(twiml, callSid));
     } catch (err) {
       console.error(`[eleven call ${callSid}] could not start: ${(err as Error).message}`);
