@@ -405,6 +405,30 @@ describe("Azure Voice Live line", () => {
     call.ws.close();
   });
 
+  it("switches a Mandarin call to Cantonese when the caller asks for 廣東話 in their own words", async () => {
+    const { az, port } = await startAzure();
+    const call = await azureCall(port, "CA_az4", "zh-CN");
+    await waitFor(() => az.of("response.create").length === 1);
+    // Azure writes it in simplified characters, as it hears Mandarin-ish speech.
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "可以讲广东话吗" });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-WanLungNeural"));
+    call.ws.close();
+  });
+
+  it("waits for the caller's transcript before judging set_language", async () => {
+    const { az, port } = await startAzure();
+    const call = await azureCall(port, "CA_az5", "zh-CN");
+    await waitFor(() => az.of("response.create").length === 1);
+    // The model asks to switch before the transcript of "Cantonese, please" arrives.
+    az.send({ type: "input_audio_buffer.committed", item_id: "u1" });
+    az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-HK" }) });
+    await new Promise((r) => setTimeout(r, 100));
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "Cantonese please" });
+    await waitFor(() => az.of("conversation.item.create").some((e) => /"ok":true/.test(e.item?.output ?? "")));
+    expect(az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-WanLungNeural")).toBe(true);
+    call.ws.close();
+  });
+
   it("refuses set_language from Cantonese to Mandarin when the caller did not ask", async () => {
     const { az, port } = await startAzure();
     const call = await azureCall(port, "CA_az3");

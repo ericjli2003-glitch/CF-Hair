@@ -153,6 +153,11 @@ export class RealtimeCall {
   private hangupTimer: NodeJS.Timeout | null = null;
   private callerTurns = 0;
   private lastCallerText = "";
+  /** The caller's last two utterances: a request for a language may come just before the reply. */
+  private recentCallerText: string[] = [];
+  /** Caller turns committed but not transcribed yet, and who waits for them (set_language). */
+  private transcriptsPending = 0;
+  private transcriptWaiters: (() => void)[] = [];
   /** Resolves when the Calls record has been posted or queued (tests). */
   reported: Promise<void> = Promise.resolve();
 
@@ -218,6 +223,8 @@ export class RealtimeCall {
     this.responses.clear();
     this.audioMs = 0;
     this.sent = [];
+    this.transcriptsPending = 0;
+    for (const w of this.transcriptWaiters.splice(0)) w();
     void this.connect();
   }
 
@@ -443,10 +450,18 @@ export class RealtimeCall {
         this.turnDetectedAt = Date.now();
         this.callerStoppedAt = typeof e.audio_end_ms === "number" ? this.wallTimeAt(e.audio_end_ms) : this.turnDetectedAt;
         return;
+      case "input_audio_buffer.committed":
+        this.transcriptsPending++;
+        return;
+      case "conversation.item.input_audio_transcription.failed":
+        this.transcriptDone();
+        return;
       case "conversation.item.input_audio_transcription.completed": {
+        this.transcriptDone();
         const text = String(e.transcript ?? "").trim();
         if (!text) return;
         this.lastCallerText = text;
+        this.recentCallerText = [...this.recentCallerText, text].slice(-2);
         this.log?.say("caller", text);
         if (this.cfg.logTranscripts) this.tag(`heard: "${text}"`);
         this.followCallerLanguage(text);
@@ -648,7 +663,10 @@ export class RealtimeCall {
       callerPhone: isAnonymousCaller(this.from) ? null : toE164(this.from),
       currentLanguage: () => this.language,
       switchLanguage: async (code) => {
-        if (!chineseSwitchOk(this.language, code, this.lastCallerText)) {
+        // The model can act on the caller's words before their transcript arrives here: wait for it,
+        // so "講廣東話" is seen before deciding.
+        await this.transcriptSettled(1500);
+        if (!chineseSwitchOk(this.language, code, this.recentCallerText.join(" "))) {
           this.tag(`kept ${this.language}: set_language ${code} without the caller asking for it`);
           return { saved: "skipped" as const, refused: `the caller did not ask for ${code}; speech recognition writes Cantonese and Mandarin alike` };
         }
@@ -688,12 +706,32 @@ export class RealtimeCall {
   private followCallerLanguage(text: string) {
     if (!this.opts.provider.languageVoice(this.language)) return;
     const a = analyzeUtterance(text);
-    const lang: LanguageCode | null = a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : null;
+    // A language named in the caller's own words ("講廣東話", "说普通话", "한국어 돼요?") wins.
+    const asked = a.explicitNative && a.explicitNative !== "zh" ? a.explicitNative : null;
+    const lang: LanguageCode | null = asked ?? (a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : null);
     if (!lang || lang === this.language) return;
     // Cantonese written down by speech recognition looks like Mandarin: never switch on that alone.
     if (!chineseSwitchOk(this.language, lang, text)) return;
     this.setLanguage(lang, "heard in the caller's words");
     void this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, lang);
+  }
+
+  private transcriptDone() {
+    this.transcriptsPending = Math.max(0, this.transcriptsPending - 1);
+    if (this.transcriptsPending > 0) return;
+    for (const w of this.transcriptWaiters.splice(0)) w();
+  }
+
+  /** Resolves once every committed caller turn has its transcript, or after `ms`. */
+  private transcriptSettled(ms: number): Promise<void> {
+    if (this.transcriptsPending === 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      const timer = setTimeout(resolve, ms);
+      this.transcriptWaiters.push(() => {
+        clearTimeout(timer);
+        resolve();
+      });
+    });
   }
 
   private async postMessage(m: { callerName: string; phone: string; message: string; urgency: "low" | "normal" | "high" }) {
