@@ -107,7 +107,8 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.prompt).toContain("never name the language");
     expect(cc.agent.first_message).toBe("Hi, CF Hair Salon. 你好！");
     expect(cc.agent.prompt.built_in_tools.end_call.description).toContain("same reply as your goodbye");
-    expect(cc.agent.prompt.prompt).toContain("A men's cut, for a man, at three. Is this for Eric?");
+    expect(cc.agent.prompt.prompt).toContain("A men's cut at three. Is this for Eric?");
+    expect(cc.agent.prompt.prompt).not.toContain("for a man, at three");
     // Full questions for the time and the name, in every language.
     expect(cc.agent.prompt.prompt).toContain("How does three o'clock sound?");
     expect(cc.agent.prompt.prompt).toContain("三点钟怎么样？");
