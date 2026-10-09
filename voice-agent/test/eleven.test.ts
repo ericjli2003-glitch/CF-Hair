@@ -109,6 +109,8 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.built_in_tools.end_call.description).toContain("same reply as your goodbye");
     expect(cc.agent.prompt.prompt).toContain("A men's cut, for a man, at three?");
     expect(cc.agent.prompt.prompt).toContain("Once a caller speaks Mandarin, every reply is Mandarin");
+    // The time comes first, before men's or women's.
+    expect(cc.agent.prompt.prompt).toContain('1. Time first: unless the caller already said when, your first question is always "When would you like to come in?"');
     expect(cc.asr.keywords).toEqual(expect.arrayContaining(["for a man", "for a woman"]));
     expect(cc.tts.optimize_streaming_latency).toBe(1);
     const names = cc.agent.prompt.tools.map((t: { name: string }) => t.name);
