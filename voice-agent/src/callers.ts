@@ -168,8 +168,14 @@ export class CallerMemory {
     }
   }
 
+  /**
+   * Saves the name for this number, unless it already has a different one: a phone is often shared
+   * (couples, parents and children), and booking for someone else must not rename the number.
+   */
   async saveName(phone: string | null, name: string): Promise<void> {
     if (!phone || isAnonymousCaller(phone) || !name.trim()) return;
+    const onFile = this.local.get(phone)?.name?.trim();
+    if (onFile && onFile.toLowerCase() !== name.trim().toLowerCase()) return;
     try {
       await this.api.putCaller(phone, { name: name.trim() });
       this.local.upsert(phone, { name: name.trim() });
