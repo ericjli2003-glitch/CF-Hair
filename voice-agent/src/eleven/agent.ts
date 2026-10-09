@@ -34,6 +34,9 @@ const MODEL_FAST = "eleven_flash_v2_5";
 const MODEL_ENGLISH_FALLBACK = "eleven_turbo_v2";
 
 /** Salon words in Cantonese, Mandarin and Korean, to help speech recognition hear them right. */
+/** English phrases that tell men's from women's when "men's" alone is misheard (ElevenLabs line only). */
+const SERVICE_HINTS = ["men's haircut", "for a man", "for a guy", "women's haircut", "for a woman", "for a lady"];
+
 export const MULTILINGUAL_HINTS = [
   "飛髮", "剪頭髮", "男士剪髮", "女士剪髮", "小朋友剪髮", "洗剪吹", "電髮", "負離子", "焗油", "補色", "染髮", "預約", "聽日", "有冇位",
   "剪头发", "理发", "男士理发", "女士剪发", "儿童剪发", "烫发", "离子烫", "染发", "预约", "明天", "有没有位置",
@@ -71,6 +74,17 @@ export interface AgentSettings {
   detectionOnlyAtStart: boolean;
 }
 
+/**
+ * What a new caller hears first: the salon's English greeting plus 你好 (the same word in Mandarin
+ * and Cantonese), so Chinese speakers answer in Chinese from their first sentence and the language
+ * detection hears it in time. An English-only voice model cannot say Chinese characters, so it gets
+ * the sound written out instead.
+ */
+export function newCallerGreeting(welcome: string, s: Pick<AgentSettings, "englishModel">): string {
+  const englishOnly = /_v2$|^eleven_(turbo|flash)_v2$/.test(s.englishModel);
+  return `${welcome.trim()} ${englishOnly ? "Nee how!" : "你好！"}`;
+}
+
 export function requestedSettings(opts: ElevenAgentOptions): AgentSettings {
   return {
     englishModel: opts.englishModel || MODEL_ENGLISH_FALLBACK,
@@ -103,9 +117,12 @@ function agentNote(deps: SessionDeps): string {
   return `# This call: ElevenLabs phone agent
 You hear the caller through speech recognition and speak with your own voice.
 - Language: always answer in the language the caller speaks (English, Mandarin, Cantonese or Korean). When they speak another of these, use the language detection tool, and call set_language once so their next call opens in it. Do both silently: never say that you are switching, never name the language ("let me switch to Cantonese"), just carry on in their language. There is no ask_caller_language or keypad here.
+- Your greeting ends with 你好 so Chinese speakers can answer in Chinese; it does not mean the caller speaks Chinese. Answer in whatever language they reply in.
+- Stay in the caller's language for the whole call, even after a tool result, a long pause or a booking. Once a caller speaks Cantonese, every reply is Cantonese: never drift into Mandarin or English. Once a caller speaks Mandarin, every reply is Mandarin: never drift into Cantonese or English. The same for English. Change only when the caller changes.
+- Men's or women's: speech recognition often confuses "men's" and "women's" (one sounds inside the other). Never change the service the caller chose on your own, and never assume it from the name on file or the voice. In the quick check before booking, say it in a way that cannot be misheard: "A men's cut, for a man, at three?" or "A women's cut, for a woman, at three?". If the caller corrects it, use their correction.
 - Live transfer is not available on this line; offer to take a message instead.
 - Never call book_appointment, cancel_booking or reschedule_booking in the same reply that asks the caller to confirm. Ask, stop, and only act after they say yes.
-- Goodbyes: when the call is done, say a short goodbye ending with "${l["en-US"].byes}" (Mandarin or Cantonese: "${l["zh-CN"].byes}", Korean: "${l["ko-KR"].byes}"), then use end_call.
+- Goodbyes: when the call is done, say one short goodbye ending with "${l["en-US"].byes}" (Mandarin or Cantonese: "${l["zh-CN"].byes}", Korean: "${l["ko-KR"].byes}") and call end_call in that same reply, so the call hangs up right after it. Say goodbye once; never wait for the caller to say it back.
 
 ${SPOKEN_STYLE}
 
@@ -184,7 +201,7 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
     name: AGENT_NAME,
     tags: ["cf-hair"],
     conversation_config: {
-      asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: [...SPEECH_HINTS.split(","), ...MULTILINGUAL_HINTS] },
+      asr: { quality: "high", user_input_audio_format: "ulaw_8000", keywords: [...SPEECH_HINTS.split(","), ...SERVICE_HINTS, ...MULTILINGUAL_HINTS] },
       // No canned English fillers ("Alright, I'll jump in") while the model thinks: they ignore the
       // caller's language.
       // "normal" eagerness: a short pause mid-sentence is not taken as the end of the caller's turn.
@@ -198,7 +215,7 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
       conversation: { max_duration_seconds: 600 },
       language_presets: presets,
       agent: {
-        first_message: deps.config.welcomeGreeting,
+        first_message: newCallerGreeting(deps.config.welcomeGreeting, s),
         language: "en",
         prompt: {
           prompt: `${base}\n\n${agentNote(deps)}`,
@@ -208,7 +225,7 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
           built_in_tools: {
             end_call: {
               name: "end_call",
-              description: "End the call after the goodbye has been said.",
+              description: "Hang up. Call it in the same reply as your goodbye, right after the goodbye words: the call ends once they have been spoken. Never wait for the caller to say goodbye back.",
               pre_tool_speech: "off",
               params: { system_tool_type: "end_call" },
             },
@@ -404,7 +421,7 @@ export class ElevenLine {
     ]);
     const language = caller.preferredLanguage;
     const known = caller.preferredLanguage !== "en-US" || caller.callCount > 0;
-    const greeting = known ? deps.languages[language].greeting : deps.config.welcomeGreeting;
+    const greeting = known ? deps.languages[language].greeting : newCallerGreeting(deps.config.welcomeGreeting, this.settings);
     this.track(p.callSid, p.from, p.to, language);
     const context = callContext({
       salon: deps.salon,

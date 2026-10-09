@@ -105,6 +105,11 @@ describe("ElevenLabs phone agent line", () => {
     // Spoken Hong Kong Cantonese, not standard written Chinese; never announce a switch.
     expect(cc.agent.prompt.prompt).toContain("好呀，聽日幾點方便呀？");
     expect(cc.agent.prompt.prompt).toContain("never name the language");
+    expect(cc.agent.first_message).toBe("Hi, CF Hair Salon. 你好！");
+    expect(cc.agent.prompt.built_in_tools.end_call.description).toContain("same reply as your goodbye");
+    expect(cc.agent.prompt.prompt).toContain("A men's cut, for a man, at three?");
+    expect(cc.agent.prompt.prompt).toContain("Once a caller speaks Mandarin, every reply is Mandarin");
+    expect(cc.asr.keywords).toEqual(expect.arrayContaining(["for a man", "for a woman"]));
     expect(cc.tts.optimize_streaming_latency).toBe(1);
     const names = cc.agent.prompt.tools.map((t: { name: string }) => t.name);
     expect(names).toEqual(expect.arrayContaining(["check_availability", "book_appointment", "take_message", "set_language"]));
@@ -142,7 +147,8 @@ describe("ElevenLabs phone agent line", () => {
     expect(vars.call_sid).toBe("CA_el1");
     expect(vars.caller_phone).toBe("+16045550777");
     expect(vars.call_context).toContain("Current date and time");
-    expect(reg.body.conversation_initiation_client_data.conversation_config_override.agent).toEqual({ language: "en", first_message: "Hi, CF Hair Salon." });
+    // New callers hear 你好 after the English greeting, so Chinese speakers answer in Chinese.
+    expect(reg.body.conversation_initiation_client_data.conversation_config_override.agent).toEqual({ language: "en", first_message: "Hi, CF Hair Salon. 你好！" });
   });
 
   it("runs the booking tools for the agent, and refuses calls without the keys", async () => {
@@ -210,6 +216,8 @@ describe("ElevenLabs phone agent line", () => {
     // Only English changes: Cantonese stays.
     expect(second.body.conversation_config.language_presets.yue).toBeTruthy();
     expect(warned.join("\n")).toContain("English Agents must use turbo or flash v2.");
+    // An English-only voice cannot read 你好: it gets the sound written out.
+    expect(second.body.conversation_config.agent.first_message).toBe("Hi, CF Hair Salon. Nee how!");
   });
 
   it("drops only-at-start language detection if ElevenLabs refuses it, and says so", async () => {
