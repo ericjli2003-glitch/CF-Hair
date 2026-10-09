@@ -61,6 +61,8 @@ export interface ElevenAgentOptions {
   mandarinModel?: string;
   /** Language detection may switch only in the caller's first two turns. */
   detectionOnlyAtStart?: boolean;
+  /** Seconds of silence after which ElevenLabs ends the call (a backstop for a goodbye without end_call); 0 is off. */
+  silenceHangupSecs?: number;
   /** Shared secret the agent sends with every tool call. */
   toolKey: string;
 }
@@ -72,6 +74,8 @@ export interface AgentSettings {
   /** "" when there is no Cantonese language (refused or not set): Cantonese runs on the Mandarin setting. */
   cantoneseCode: string;
   detectionOnlyAtStart: boolean;
+  /** 0 when off or refused. */
+  silenceHangupSecs: number;
 }
 
 /**
@@ -91,6 +95,7 @@ export function requestedSettings(opts: ElevenAgentOptions): AgentSettings {
     mandarinModel: opts.mandarinModel || MODEL_FAST,
     cantoneseCode: opts.cantoneseCode,
     detectionOnlyAtStart: opts.detectionOnlyAtStart ?? true,
+    silenceHangupSecs: opts.silenceHangupSecs ?? 15,
   };
 }
 
@@ -208,7 +213,15 @@ export function agentConfig(deps: SessionDeps, opts: ElevenAgentOptions, s: Agen
       // No canned English fillers ("Alright, I'll jump in") while the model thinks: they ignore the
       // caller's language.
       // "normal" eagerness: a short pause mid-sentence is not taken as the end of the caller's turn.
-      turn: { turn_timeout: 7, turn_eagerness: deps.config.elevenAgentEagerness, speculative_turn: true, soft_timeout_config: { timeout_seconds: -1 } },
+      // silence_end_call_timeout: if nobody speaks for that long (say, after a goodbye the model did not
+      // follow with end_call), ElevenLabs hangs up.
+      turn: {
+        turn_timeout: 7,
+        turn_eagerness: deps.config.elevenAgentEagerness,
+        speculative_turn: true,
+        soft_timeout_config: { timeout_seconds: -1 },
+        ...(s.silenceHangupSecs > 0 ? { silence_end_call_timeout: s.silenceHangupSecs } : {}),
+      },
       tts: {
         model_id: s.englishModel,
         ...(en ? { voice_id: en } : {}),
@@ -311,6 +324,11 @@ export async function upsertAgent(deps: SessionDeps, opts: ElevenAgentOptions): 
         console.warn(`[eleven] voice ${voice[1]} is not in this ElevenLabs account (add it under Voices > My Voices); using the default voice for now`);
         continue;
       }
+      if (s.silenceHangupSecs > 0 && /silence_end_call_timeout/i.test(msg)) {
+        refused("hanging up after silence (silence_end_call_timeout)", e);
+        s.silenceHangupSecs = 0;
+        continue;
+      }
       if (s.detectionOnlyAtStart && /only_at_conversation_start|built_in_tools|language_detection|system_tool/i.test(msg)) {
         refused('"only at conversation start" for language detection', e);
         s.detectionOnlyAtStart = false;
@@ -353,6 +371,7 @@ export async function describeAgent(opts: ElevenAgentOptions, agentId: string, a
     `English model ${cc.tts?.model_id ?? "?"}`,
     `Mandarin ${presets.zh?.overrides?.tts?.model_id ?? "?"}`,
     asked.cantoneseCode ? `Cantonese "${asked.cantoneseCode}" ${presets[asked.cantoneseCode] ? `kept (${presets[asked.cantoneseCode]?.overrides?.tts?.model_id ?? "?"})` : "NOT kept"}` : "Cantonese on the Mandarin setting",
+    `hang up after ${cc.turn?.silence_end_call_timeout ?? "no"}${cc.turn?.silence_end_call_timeout ? " s" : ""} of silence`,
     `language detection ${detection ? (onlyAtStart ? "only at conversation start" : asked.detectionOnlyAtStart ? "on, but ElevenLabs did NOT keep only-at-start (turn it on in the agent's Tools tab)" : "on, any time") : "missing"}`,
   ];
   return parts.join("; ");

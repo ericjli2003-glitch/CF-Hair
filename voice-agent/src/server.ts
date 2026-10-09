@@ -81,6 +81,7 @@ export function createServer(deps: SessionDeps) {
             englishModel: cfg.elevenAgentEnglishModel,
             mandarinModel: cfg.elevenAgentMandarinModel,
             detectionOnlyAtStart: cfg.elevenDetectOnlyAtStart,
+            silenceHangupSecs: cfg.elevenSilenceHangupSecs,
             toolKey: toolKeyFor(toolSecret),
           },
           toolSecret,

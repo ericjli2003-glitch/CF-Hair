@@ -502,7 +502,13 @@ export class ToolExecutor {
       });
       this.hooks.recordOutcome("booked", { bookingId: booking.id, service: booking.serviceName, start: booking.start });
       this.hooks.rememberName(d.customer_name);
-      const out: Record<string, unknown> = { ok: true, booking: this.bookingView(booking), phoneOnFile: phoneForSpeech(phone) };
+      const out: Record<string, unknown> = {
+        ok: true,
+        booking: this.bookingView(booking),
+        phoneOnFile: phoneForSpeech(phone),
+        // Hang up after one goodbye, unless the caller still wants something (or the text question below comes first).
+        next: "Unless the caller is still asking something, say one short goodbye in their language ending with the bye line, and end the call in that same reply. Do not wait for them to say goodbye back.",
+      };
       // One polite promotional-text question, only for the caller's own number and only if never answered.
       const optIn = this.hooks.smsOptIn;
       if (optIn && phone === this.hooks.callerPhone && optIn.eligible()) {

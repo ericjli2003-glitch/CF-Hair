@@ -189,6 +189,8 @@ export interface AppConfig {
   elevenDetectOnlyAtStart: boolean;
   /** How soon the agent takes a pause as the end of the caller's turn: eager, normal or patient. */
   elevenAgentEagerness: string;
+  /** ElevenLabs ends the call after this many seconds of silence (a backstop after a goodbye); 0 is off. */
+  elevenSilenceHangupSecs: number;
   /** ElevenLabs streaming latency optimization, 0 (best sound) to 4 (fastest). */
   elevenAgentLatency: number;
   /** Detect the caller's language from transcripts and switch automatically. */
@@ -313,6 +315,7 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     elevenAgentMandarinModel: env("ELEVENLABS_AGENT_ZH_MODEL", "eleven_v4_turbo"),
     elevenDetectOnlyAtStart: env("ELEVENLABS_DETECT_ONLY_AT_START", "on") !== "off",
     elevenAgentEagerness: env("ELEVENLABS_AGENT_TURN_EAGERNESS", "normal"),
+    elevenSilenceHangupSecs: Math.max(0, envInt("ELEVENLABS_SILENCE_HANGUP_SECS", 15)),
     elevenAgentLatency: Math.min(4, Math.max(0, envInt("ELEVENLABS_AGENT_LATENCY", 1))),
     welcomeGreeting: env(
       "WELCOME_GREETING",

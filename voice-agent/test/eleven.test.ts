@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 /** Stand-in for the ElevenLabs API: agents list/create/update and Twilio register-call. */
-async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean; missingVoice?: string; refuseEnglishV4?: boolean; refuseOnlyAtStart?: boolean } = {}) {
+async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean; missingVoice?: string; refuseEnglishV4?: boolean; refuseOnlyAtStart?: boolean; refuseSilenceHangup?: boolean } = {}) {
   const seen: { method: string; path: string; key: string; body: any }[] = [];
   let saved: any = null;
   const server = http.createServer((req, res) => {
@@ -35,6 +35,9 @@ async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean;
         if (opts.refuseCantonese && body?.conversation_config?.language_presets?.yue) return json(422, { detail: "Unsupported language: yue" });
         if (opts.refuseEnglishV4 && body?.conversation_config?.tts?.model_id === "eleven_v4_turbo") {
           return json(400, { detail: { status: "invalid_tts_model", message: "English Agents must use turbo or flash v2." } });
+        }
+        if (opts.refuseSilenceHangup && body?.conversation_config?.turn?.silence_end_call_timeout !== undefined) {
+          return json(422, { detail: [{ loc: ["body", "conversation_config", "turn", "silence_end_call_timeout"], msg: "Extra inputs are not permitted" }] });
         }
         if (opts.refuseOnlyAtStart && JSON.stringify(body).includes("only_at_conversation_start")) {
           return json(422, { detail: [{ loc: ["body", "conversation_config", "agent", "prompt", "built_in_tools", "language_detection", "params", "only_at_conversation_start"], msg: "Extra inputs are not permitted" }] });
@@ -102,6 +105,8 @@ describe("ElevenLabs phone agent line", () => {
     // Language detection switches only in the caller's first two turns.
     expect(cc.agent.prompt.built_in_tools.language_detection.params).toEqual({ system_tool_type: "language_detection", only_at_conversation_start: true });
     expect(cc.turn.turn_eagerness).toBe("normal");
+    // Backstop: silence after the goodbye ends the call.
+    expect(cc.turn.silence_end_call_timeout).toBe(15);
     // Spoken Hong Kong Cantonese, not standard written Chinese; never announce a switch.
     expect(cc.agent.prompt.prompt).toContain("好呀，聽日幾點方便呀？");
     expect(cc.agent.prompt.prompt).toContain("never name the language");
@@ -180,6 +185,8 @@ describe("ElevenLabs phone agent line", () => {
       await tool("book_appointment", { service_id: "mens-cut", start: slots[0].start, customer_name: "Eleven Test", confirmed_with_caller: true })
     ).json();
     expect(booked.ok).toBe(true);
+    // The result tells the agent to say one goodbye and hang up in the same reply.
+    expect(booked.next).toContain("end the call in that same reply");
     expect((await tool("get_services", {}, "wrong")).status).toBe(401);
     const forged = await fetch(`http://127.0.0.1:${port}/eleven/tools/get_services`, {
       method: "POST",
@@ -259,6 +266,22 @@ describe("ElevenLabs phone agent line", () => {
     expect(warned.join("\n")).toContain("English Agents must use turbo or flash v2.");
     // An English-only voice cannot read 你好: it gets the sound written out.
     expect(second.body.conversation_config.agent.first_message).toBe("Hi, CF Hair Salon. Nee how!");
+  });
+
+  it("drops the silence hang-up if ElevenLabs refuses it, keeping the rest", async () => {
+    const el = await fakeEleven({ refuseSilenceHangup: true });
+    const warn = console.warn;
+    console.warn = () => {};
+    try {
+      await start(el.base);
+      await waitFor(() => el.seen.filter((s) => s.path === "/v1/convai/agents/create").length === 2);
+    } finally {
+      console.warn = warn;
+    }
+    const second = el.seen.filter((s) => s.path === "/v1/convai/agents/create")[1];
+    expect(second.body.conversation_config.turn.silence_end_call_timeout).toBeUndefined();
+    expect(second.body.conversation_config.language_presets.yue).toBeTruthy();
+    expect(second.body.conversation_config.agent.prompt.built_in_tools.language_detection.params.only_at_conversation_start).toBe(true);
   });
 
   it("drops only-at-start language detection if ElevenLabs refuses it, and says so", async () => {
