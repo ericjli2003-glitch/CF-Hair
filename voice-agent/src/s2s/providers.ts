@@ -52,6 +52,15 @@ export function isModelUnavailable(err: { code?: string; message?: string } | un
   return err.code === "invalid_model" || /not supported in this region|model[^.]*not (found|available|supported)/i.test(err.message ?? "");
 }
 
+/**
+ * Azure could not apply the session settings with this model (seen with gpt-realtime-mini and a
+ * text-only MiniMax session, 2026-10-09: max_config_attempts_exceeded). Another model may take them.
+ */
+export function isSetupRejected(err: { code?: string; message?: string } | undefined): boolean {
+  if (!err) return false;
+  return err.code === "max_config_attempts_exceeded" || err.code === "invalid_session_update_message" || /session configuration failed/i.test(err.message ?? "");
+}
+
 export function openAiProvider(cfg: AppConfig, auth: OpenAiAuth): RealtimeProvider {
   return {
     tag: "s2s",

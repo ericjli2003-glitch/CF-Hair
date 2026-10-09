@@ -456,4 +456,31 @@ describe("Azure model not offered in the region", () => {
     expect(urls[2]).toContain("model=gpt-realtime-mini");
     second.close();
   });
+
+  it("switches models in the same call when Azure cannot set up the session with one", async () => {
+    // Seen 2026-10-09: gpt-realtime-mini offered in the region, but the session setup failed.
+    const wss = new WebSocketServer({ port: 0, host: "127.0.0.1" });
+    await new Promise<void>((r) => wss.once("listening", () => r()));
+    closers.push(() => wss.close());
+    const urls: string[] = [];
+    const events: any[] = [];
+    wss.on("connection", (ws, req) => {
+      urls.push(req.url ?? "");
+      ws.on("message", (raw) => {
+        const m = JSON.parse(raw.toString());
+        events.push({ url: req.url, ...m });
+        if (m.type === "session.update" && req.url?.endsWith("model=gpt-realtime-mini")) {
+          ws.send(JSON.stringify({ type: "error", error: { code: "max_config_attempts_exceeded", message: "Session configuration failed after 5 attempts.", param: "type" } }));
+        }
+      });
+    });
+    const base = `http://127.0.0.1:${(wss.address() as AddressInfo).port}`;
+    const { port } = await startServer("ws://unused", { openAiApiKey: "", azureVoiceLiveEndpoint: base, azureVoiceLiveKey: "az-key", azureVoiceLiveModel: "gpt-realtime-mini" });
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/azure/media`);
+    await new Promise<void>((r) => ws.once("open", () => r()));
+    ws.send(JSON.stringify({ event: "start", streamSid: "MZs", start: { streamSid: "MZs", callSid: "CA_cfg1", customParameters: { token: relayToken(AUTH, "CA_cfg1"), from: "+16045550198", opening: "welcome" } } }));
+    await waitFor(() => events.some((e) => e.type === "response.create" && e.url.includes("model=gpt-4.1-mini")));
+    expect(urls[0]).toContain("model=gpt-realtime-mini");
+    ws.close();
+  });
 });

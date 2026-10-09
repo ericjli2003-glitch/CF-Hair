@@ -13,7 +13,7 @@ import { DEFAULT_LANGUAGE, normalizeLanguage, type LanguageCode } from "../langu
 import { isAnonymousCaller, toE164 } from "../phone.js";
 import { verifyRelayToken } from "../relay/twiml.js";
 import { analyzeUtterance, chineseSwitchOk, chineseVariant } from "../agent/langdetect.js";
-import { isModelUnavailable, type RealtimeProvider } from "./providers.js";
+import { isModelUnavailable, isSetupRejected, type RealtimeProvider } from "./providers.js";
 import { SentenceChunker } from "../agent/chunker.js";
 
 /**
@@ -133,6 +133,8 @@ export class RealtimeCall {
   private heardAudio = false;
   /** The first response is the greeting; its transcript was logged when it was requested. */
   private greetingResponseId: string | null = null;
+  /** The session settings last sent, without instructions and tools. */
+  private sentSettings: Record<string, unknown> = {};
   private closed = false;
 
   // Playback, for barge-in and hang-up.
@@ -361,7 +363,11 @@ export class RealtimeCall {
   private configure() {
     if (this.configured || !this.oaiOpen || !this.log) return;
     this.configured = true;
-    this.sendOai(this.opts.provider.session({ instructions: this.instructions(this.context), language: this.language, tools: realtimeTools() }));
+    const session = this.opts.provider.session({ instructions: this.instructions(this.context), language: this.language, tools: realtimeTools() });
+    // For the log if the service refuses them: everything but the long instructions and tools.
+    const { instructions: _i, tools: _t, ...rest } = (session.session ?? {}) as Record<string, unknown>;
+    this.sentSettings = rest;
+    this.sendOai(session);
     for (const chunk of this.audioQueue) this.sendAudio(chunk);
     this.audioQueue = [];
     // The greeting, word for word, in the voice used for the rest of the call.
@@ -408,11 +414,15 @@ export class RealtimeCall {
     switch (e.type) {
       case "error":
         this.tag(`${this.opts.provider.label} error: ${e.error?.code ?? ""} ${e.error?.message ?? ""} ${e.error?.param ? `(param ${e.error.param})` : ""}`.trim(), "error");
-        // The model is not offered here (an Azure region without it): try the next model in this same call.
-        if (!this.heardAudio && isModelUnavailable(e.error) && this.opts.provider.fallback) {
+        // The model is not offered here (an Azure region without it), or it refuses this call's settings:
+        // try the next model in this same call.
+        const unavailable = isModelUnavailable(e.error);
+        if (!this.heardAudio && (unavailable || isSetupRejected(e.error)) && this.opts.provider.fallback) {
+          if (!unavailable) this.tag(`settings sent: ${JSON.stringify(this.sentSettings)}`, "warn");
           const next = this.opts.provider.fallback();
           if (next) {
-            this.tag(`${this.opts.provider.label} does not offer that model here; switching to ${next} (later calls start with it)`, "warn");
+            const why = unavailable ? "does not offer that model here" : "could not set up the call with that model";
+            this.tag(`${this.opts.provider.label} ${why}; switching to ${next} (later calls start with it)`, "warn");
             if (this.log) this.log.record.model = `${this.opts.provider.tag}:${next}`;
             this.reconnect();
             return;
