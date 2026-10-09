@@ -53,7 +53,7 @@ function s2sNote(deps: SessionDeps, provider: RealtimeProvider): string {
   return `# This call: speech to speech
 You hear the caller's voice directly and speak with your own voice. There is no transcript, no speech recognition and no separate text to speech, so ignore the parts above about transcripts, the phone system switching languages, and ask_caller_language.
 - Accents: listen for what the caller most likely means in a salon call, as described above.
-- Language: answer in the language the caller speaks (English, Mandarin, Cantonese or Korean). When the caller speaks Mandarin, Cantonese or Korean, or asks for one, switch to it at once and also call set_language once so it is remembered for their next call. Cantonese means spoken Cantonese, not Mandarin.
+- Language: always answer in the language the caller is speaking now (English, Mandarin, Cantonese or Korean), even when the call opened in another one: a returning caller may answer a Cantonese greeting in English. Every reply stays in that language, times, prices and confirmations included. When the caller speaks a different language from the call's, or asks for one, switch to it at once and also call set_language once so it is remembered for their next call. Cantonese means spoken Cantonese, not Mandarin.
 - Keep replies short (one short sentence), but say them like a real person at the front desk, not a recording.
 
 # Voice and delivery
@@ -337,14 +337,7 @@ export class RealtimeCall {
     // A couple of words ("OK", "喂") say little; wait for a real sentence.
     const a = analyzeUtterance(d.text);
     if (lang && lang !== this.language && (a.han >= 2 || a.hangul >= 2 || a.latinWords >= 2)) {
-      this.setLanguage(lang, `spoken language ${d.languageCode} (Scribe)`);
-      void this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, lang);
-      const name = this.deps.languages[lang].englishName;
-      const how = lang === "zh-HK" ? " (spoken Hong Kong Cantonese, in traditional characters)" : "";
-      this.sendOai({
-        type: "conversation.item.create",
-        item: { type: "message", role: "system", content: [{ type: "input_text", text: `The caller speaks ${name}. Reply only in ${name}${how} from now on.` }] },
-      });
+      this.followTo(lang, `spoken language ${d.languageCode} (Scribe)`);
     }
     this.listenForLanguage();
   }
@@ -762,12 +755,30 @@ export class RealtimeCall {
     const a = analyzeUtterance(text);
     // A language named in the caller's own words ("講廣東話", "说普通话", "한국어 돼요?") wins.
     const asked = a.explicitNative && a.explicitNative !== "zh" ? a.explicitNative : null;
-    const lang: LanguageCode | null = asked ?? (a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : null);
+    // A whole English sentence (three words or more, no Chinese or Korean) on a call in another
+    // language: the caller is speaking English.
+    const english = a.latinWords >= 3 && a.han + a.hangul + a.kana === 0 ? "en-US" : null;
+    const lang: LanguageCode | null = asked ?? (a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : english);
     if (!lang || lang === this.language) return;
     // Cantonese written down by speech recognition looks like Mandarin: never switch on that alone.
     if (!chineseSwitchOk(this.language, lang, text)) return;
-    this.setLanguage(lang, "heard in the caller's words");
+    this.followTo(lang, "heard in the caller's words");
+  }
+
+  /**
+   * The caller speaks another language than the call's (heard, not asked through set_language):
+   * switch the voice, remember it for the number, and tell the model, whose instructions still
+   * name the old language.
+   */
+  private followTo(lang: LanguageCode, reason: string) {
+    this.setLanguage(lang, reason);
     void this.deps.callers.saveLanguage(this.caller?.phone ?? toE164(this.from) ?? null, lang);
+    const name = this.deps.languages[lang].englishName;
+    const how = lang === "zh-HK" ? " (spoken Hong Kong Cantonese, in traditional characters)" : "";
+    this.sendOai({
+      type: "conversation.item.create",
+      item: { type: "message", role: "system", content: [{ type: "input_text", text: `The caller speaks ${name}. The call is now in ${name}: reply only in ${name}${how} from now on, times and prices included.` }] },
+    });
   }
 
   private transcriptDone() {

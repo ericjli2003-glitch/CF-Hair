@@ -446,6 +446,16 @@ describe("Azure Voice Live line", () => {
     call.ws.close();
   });
 
+  it("moves a Cantonese call to English when the caller answers in English", async () => {
+    const { az, port } = await startAzure();
+    const call = await azureCall(port, "CA_az7", "zh-HK");
+    await waitFor(() => az.of("response.create").length === 1);
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "Hi, can I book a haircut tomorrow?" });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "en-HK-YanNeural"));
+    await waitFor(() => az.of("conversation.item.create").some((e) => e.item?.role === "system" && /now in English/.test(e.item.content?.[0]?.text ?? "")));
+    call.ws.close();
+  });
+
   it("waits for the caller's transcript before judging set_language", async () => {
     const { az, port } = await startAzure();
     const call = await azureCall(port, "CA_az5", "zh-CN");
