@@ -484,15 +484,21 @@ the ElevenLabs dashboard. Calls and their transcripts show in ElevenLabs under A
 Set up: the `ELEVENLABS_API_KEY` needs the **ElevenLabs Agents** permission (Write) as well as Text
 to Speech and Speech to Text. The startup log shows `[eleven] agent ready: agent_...` or why it
 failed. Then point a Twilio number's "A call comes in" to `https://<host>/eleven/twiml` (POST).
-`ELEVENLABS_AGENT=off` turns the line off. English uses ElevenLabs' English-only Turbo v2 (their
-rule for English agents is Turbo or Flash v2; Turbo sounds clearly better on the phone for about
-0.2 s more, `ELEVENLABS_AGENT_EN_MODEL=eleven_flash_v2` for the fastest), with streaming latency
-optimization at 1 of 4 (`ELEVENLABS_AGENT_LATENCY`; higher is faster and rougher). Mandarin and
-Korean use Flash v2.5. ElevenLabs
-agents have no Cantonese language yet, so a returning Cantonese caller starts on the Mandarin ("zh")
-setting with their Cantonese voice and Eleven v4 Turbo switched in for the call; a new caller who
-starts speaking Cantonese mid-call gets the Mandarin voice. If ElevenLabs adds a code for Cantonese,
-set it in `ELEVENLABS_AGENT_CANTONESE`.
+`ELEVENLABS_AGENT=off` turns the line off.
+
+Models and languages (Oct 9): Eleven v4 Turbo for English (`ELEVENLABS_AGENT_EN_MODEL`), Mandarin
+(`ELEVENLABS_AGENT_ZH_MODEL`) and Cantonese, with Cantonese as its own agent language
+(`ELEVENLABS_AGENT_CANTONESE`, default `yue`; empty puts Cantonese callers on the Mandarin setting with
+the Cantonese voice). ElevenLabs' language detection switches only in the caller's first two turns
+(`ELEVENLABS_DETECT_ONLY_AT_START`, default on), and `ELEVENLABS_AGENT_TURN_EAGERNESS` (default
+`normal`) keeps short pauses from being taken as the end of a turn. If ElevenLabs refuses any of these,
+the agent is saved without it and the log quotes ElevenLabs' reply: v4 for English falls back to
+`eleven_turbo_v2`, v4 for Mandarin to Flash v2.5, `yue` is dropped, only-at-start is dropped. After
+saving, the startup log reads the agent back: `[eleven] agent settings as saved: English model ...;
+Mandarin ...; Cantonese "yue" kept (...); language detection only at conversation start`. The prompt
+asks for spoken styles per language (`SPOKEN_STYLE` in `src/eleven/agent.ts`), with Cantonese written
+as spoken Hong Kong Cantonese (係, 唔, 冇, 嘅, 聽日) rather than standard written Chinese, and never
+announcing a language switch.
 
 ## Azure Voice Live test line
 

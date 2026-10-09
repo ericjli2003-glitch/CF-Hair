@@ -181,8 +181,14 @@ export interface AppConfig {
   /** ElevenLabs' code for Cantonese in agents. Empty (default): agents have no Cantonese language yet, so Cantonese
    *  callers run on the Mandarin ("zh") settings with the Cantonese voice and Eleven v4 Turbo. */
   elevenAgentCantoneseCode: string;
-  /** English voice model on the ElevenLabs agent (English agents take eleven_turbo_v2 or eleven_flash_v2). */
+  /** English voice model on the ElevenLabs agent; eleven_turbo_v2 is used if ElevenLabs refuses it. */
   elevenAgentEnglishModel: string;
+  /** Mandarin voice model on the ElevenLabs agent; eleven_flash_v2_5 is used if ElevenLabs refuses it. */
+  elevenAgentMandarinModel: string;
+  /** ElevenLabs language detection may switch only in the caller's first two turns. */
+  elevenDetectOnlyAtStart: boolean;
+  /** How soon the agent takes a pause as the end of the caller's turn: eager, normal or patient. */
+  elevenAgentEagerness: string;
   /** ElevenLabs streaming latency optimization, 0 (best sound) to 4 (fastest). */
   elevenAgentLatency: number;
   /** Detect the caller's language from transcripts and switch automatically. */
@@ -300,9 +306,13 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     elevenChineseModel: env("ELEVENLABS_MANDARIN_MODEL", "eleven_flash_v2_5"),
     elevenAgentApiKey: env("ELEVENLABS_AGENT", "on") === "off" ? "" : env("ELEVENLABS_API_KEY").trim(),
     elevenAgentLlm: env("ELEVENLABS_AGENT_LLM", "claude-haiku-4-5"),
-    elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", ""),
+    // Cantonese as its own agent language; dropped automatically (and logged) if ElevenLabs refuses it.
+    elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", "yue"),
     // Turbo sounds clearly better than Flash on the phone for about 0.2 s more before the voice starts.
-    elevenAgentEnglishModel: env("ELEVENLABS_AGENT_EN_MODEL", "eleven_turbo_v2"),
+    elevenAgentEnglishModel: env("ELEVENLABS_AGENT_EN_MODEL", "eleven_v4_turbo"),
+    elevenAgentMandarinModel: env("ELEVENLABS_AGENT_ZH_MODEL", "eleven_v4_turbo"),
+    elevenDetectOnlyAtStart: env("ELEVENLABS_DETECT_ONLY_AT_START", "on") !== "off",
+    elevenAgentEagerness: env("ELEVENLABS_AGENT_TURN_EAGERNESS", "normal"),
     elevenAgentLatency: Math.min(4, Math.max(0, envInt("ELEVENLABS_AGENT_LATENCY", 1))),
     welcomeGreeting: env(
       "WELCOME_GREETING",

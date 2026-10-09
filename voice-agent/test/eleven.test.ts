@@ -14,8 +14,9 @@ afterEach(() => {
 });
 
 /** Stand-in for the ElevenLabs API: agents list/create/update and Twilio register-call. */
-async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean; missingVoice?: string } = {}) {
+async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean; missingVoice?: string; refuseEnglishV4?: boolean; refuseOnlyAtStart?: boolean } = {}) {
   const seen: { method: string; path: string; key: string; body: any }[] = [];
+  let saved: any = null;
   const server = http.createServer((req, res) => {
     let raw = "";
     req.on("data", (c) => (raw += c));
@@ -29,11 +30,19 @@ async function fakeEleven(opts: { existing?: boolean; refuseCantonese?: boolean;
       if (req.method === "GET" && req.url!.startsWith("/v1/convai/agents?")) {
         return json(200, { agents: opts.existing ? [{ agent_id: "agent_old", name: AGENT_NAME }] : [], has_more: false });
       }
+      if (req.method === "GET" && req.url!.startsWith("/v1/convai/agents/agent_")) return json(200, saved ?? {});
       if (req.url === "/v1/convai/agents/create" || req.url!.startsWith("/v1/convai/agents/agent_")) {
         if (opts.refuseCantonese && body?.conversation_config?.language_presets?.yue) return json(422, { detail: "Unsupported language: yue" });
+        if (opts.refuseEnglishV4 && body?.conversation_config?.tts?.model_id === "eleven_v4_turbo") {
+          return json(400, { detail: { status: "invalid_tts_model", message: "English Agents must use turbo or flash v2." } });
+        }
+        if (opts.refuseOnlyAtStart && JSON.stringify(body).includes("only_at_conversation_start")) {
+          return json(422, { detail: [{ loc: ["body", "conversation_config", "agent", "prompt", "built_in_tools", "language_detection", "params", "only_at_conversation_start"], msg: "Extra inputs are not permitted" }] });
+        }
         if (opts.missingVoice && JSON.stringify(body).includes(opts.missingVoice)) {
           return json(400, { detail: { type: "not_found", code: "voice_not_found", message: `A voice for the voice_id ${opts.missingVoice} was not found.` } });
         }
+        saved = body;
         return json(200, { agent_id: opts.existing ? "agent_old" : "agent_new" });
       }
       if (req.url === "/v1/convai/twilio/register-call") {
@@ -85,11 +94,17 @@ describe("ElevenLabs phone agent line", () => {
     expect(cc.agent.prompt.llm).toBe("claude-haiku-4-5");
     expect(cc.agent.prompt.prompt).toContain("{{call_context}}");
     expect(cc.agent.prompt.prompt).toContain("Henderson Place");
-    // ElevenLabs agents have no Cantonese language: Mandarin and Korean presets only.
-    expect(Object.keys(cc.language_presets).sort()).toEqual(["ko", "zh"]);
-    expect(cc.language_presets.zh.overrides.tts.model_id).toBe("eleven_flash_v2_5");
-    // English agents must use the English-only v2 models.
-    expect(cc.tts.model_id).toBe("eleven_turbo_v2");
+    // Cantonese as its own language, Eleven v4 Turbo for English, Mandarin and Cantonese.
+    expect(Object.keys(cc.language_presets).sort()).toEqual(["ko", "yue", "zh"]);
+    expect(cc.language_presets.zh.overrides.tts.model_id).toBe("eleven_v4_turbo");
+    expect(cc.language_presets.yue.overrides.tts.model_id).toBe("eleven_v4_turbo");
+    expect(cc.tts.model_id).toBe("eleven_v4_turbo");
+    // Language detection switches only in the caller's first two turns.
+    expect(cc.agent.prompt.built_in_tools.language_detection.params).toEqual({ system_tool_type: "language_detection", only_at_conversation_start: true });
+    expect(cc.turn.turn_eagerness).toBe("normal");
+    // Spoken Hong Kong Cantonese, not standard written Chinese; never announce a switch.
+    expect(cc.agent.prompt.prompt).toContain("好呀，聽日幾點方便呀？");
+    expect(cc.agent.prompt.prompt).toContain("never name the language");
     expect(cc.tts.optimize_streaming_latency).toBe(1);
     const names = cc.agent.prompt.tools.map((t: { name: string }) => t.name);
     expect(names).toEqual(expect.arrayContaining(["check_availability", "book_appointment", "take_message", "set_language"]));
@@ -158,15 +173,87 @@ describe("ElevenLabs phone agent line", () => {
     expect(forged.status).toBe(403);
   });
 
-  it("opens a returning Cantonese caller on the Mandarin setting with the Cantonese voice model", async () => {
+  it("opens a returning Cantonese caller on the Mandarin setting with the Cantonese voice model when there is no Cantonese language", async () => {
     const el = await fakeEleven();
-    const { port } = await start(el.base);
+    const { port } = await start(el.base, { elevenAgentCantoneseCode: "" });
     await incoming(port, { CallSid: "CA_el_yue", From: "+16045550188", To: "+12365550100" });
     const reg = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!;
     const o = reg.body.conversation_initiation_client_data.conversation_config_override;
     expect(o.agent.language).toBe("zh");
     expect(o.agent.first_message).toBe("你好，CF Hair Salon。");
     expect(o.tts.model_id).toBe("eleven_v4_turbo");
+  });
+
+  it("opens a returning Cantonese caller in Cantonese (yue) with Eleven v4 Turbo", async () => {
+    const el = await fakeEleven();
+    const { port } = await start(el.base);
+    await incoming(port, { CallSid: "CA_el_yue2", From: "+16045550188", To: "+12365550100" });
+    const o = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!.body.conversation_initiation_client_data.conversation_config_override;
+    expect(o.agent.language).toBe("yue");
+    expect(o.tts.model_id).toBe("eleven_v4_turbo");
+  });
+
+  it("falls back to eleven_turbo_v2 for English when ElevenLabs refuses Eleven v4 Turbo, logging its reply", async () => {
+    const el = await fakeEleven({ refuseEnglishV4: true });
+    const warned: string[] = [];
+    const warn = console.warn;
+    console.warn = (...a: unknown[]) => void warned.push(a.join(" "));
+    try {
+      await start(el.base);
+      await waitFor(() => el.seen.filter((s) => s.path === "/v1/convai/agents/create").length === 2);
+    } finally {
+      console.warn = warn;
+    }
+    const [first, second] = el.seen.filter((s) => s.path === "/v1/convai/agents/create");
+    expect(first.body.conversation_config.tts.model_id).toBe("eleven_v4_turbo");
+    expect(second.body.conversation_config.tts.model_id).toBe("eleven_turbo_v2");
+    // Only English changes: Cantonese stays.
+    expect(second.body.conversation_config.language_presets.yue).toBeTruthy();
+    expect(warned.join("\n")).toContain("English Agents must use turbo or flash v2.");
+  });
+
+  it("drops only-at-start language detection if ElevenLabs refuses it, and says so", async () => {
+    const el = await fakeEleven({ refuseOnlyAtStart: true });
+    const warned: string[] = [];
+    const warn = console.warn;
+    console.warn = (...a: unknown[]) => void warned.push(a.join(" "));
+    try {
+      await start(el.base);
+      await waitFor(() => el.seen.filter((s) => s.path === "/v1/convai/agents/create").length === 2);
+    } finally {
+      console.warn = warn;
+    }
+    const second = el.seen.filter((s) => s.path === "/v1/convai/agents/create")[1];
+    expect(second.body.conversation_config.agent.prompt.built_in_tools.language_detection.params).toEqual({ system_tool_type: "language_detection" });
+    expect(second.body.conversation_config.language_presets.yue).toBeTruthy();
+    expect(warned.join("\n")).toContain("Extra inputs are not permitted");
+  });
+
+  it("registers Cantonese callers on the Mandarin setting after ElevenLabs refused yue", async () => {
+    const el = await fakeEleven({ refuseCantonese: true });
+    const { port } = await start(el.base);
+    await waitFor(() => el.seen.filter((s) => s.path === "/v1/convai/agents/create").length === 2);
+    await incoming(port, { CallSid: "CA_el_yue3", From: "+16045550188", To: "+12365550100" });
+    const o = el.seen.find((s) => s.path === "/v1/convai/twilio/register-call")!.body.conversation_initiation_client_data.conversation_config_override;
+    expect(o.agent.language).toBe("zh");
+    expect(o.tts.model_id).toBe("eleven_v4_turbo");
+  });
+
+  it("reads the agent back and logs what ElevenLabs kept", async () => {
+    const el = await fakeEleven();
+    const logged: string[] = [];
+    const log = console.log;
+    console.log = (...a: unknown[]) => void logged.push(a.join(" "));
+    try {
+      await start(el.base);
+      await waitFor(() => logged.some((l) => l.includes("agent settings as saved")));
+    } finally {
+      console.log = log;
+    }
+    const line = logged.find((l) => l.includes("agent settings as saved"))!;
+    expect(line).toContain("English model eleven_v4_turbo");
+    expect(line).toContain('Cantonese "yue" kept (eleven_v4_turbo)');
+    expect(line).toContain("language detection only at conversation start");
   });
 
   it("leaves out a voice that is not in the account instead of failing the agent", async () => {
