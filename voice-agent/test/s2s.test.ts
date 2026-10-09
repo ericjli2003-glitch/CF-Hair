@@ -538,4 +538,34 @@ describe("Azure model not offered in the region", () => {
     expect(urls[0]).toContain("model=gpt-realtime-mini");
     ws.close();
   });
+
+  it("keeps the model and drops the setting Azure refuses", async () => {
+    // Stand-in Azure: gpt-realtime-mini refuses a speech recognition language list, takes the rest.
+    const wss = new WebSocketServer({ port: 0, host: "127.0.0.1" });
+    await new Promise<void>((r) => wss.once("listening", () => r()));
+    closers.push(() => wss.close());
+    const urls: string[] = [];
+    const events: any[] = [];
+    wss.on("connection", (ws, req) => {
+      urls.push(req.url ?? "");
+      ws.on("message", (raw) => {
+        const m = JSON.parse(raw.toString());
+        events.push({ url: req.url, ...m });
+        if (m.type === "session.update" && m.session?.input_audio_transcription?.language) {
+          ws.send(JSON.stringify({ type: "error", error: { code: "max_config_attempts_exceeded", message: "Session configuration failed after 5 attempts." } }));
+        }
+      });
+    });
+    const base = `http://127.0.0.1:${(wss.address() as AddressInfo).port}`;
+    const { port } = await startServer("ws://unused", { openAiApiKey: "", azureVoiceLiveEndpoint: base, azureVoiceLiveKey: "az-key", azureVoiceLiveModel: "gpt-realtime-mini" });
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/azure/media`);
+    await new Promise<void>((r) => ws.once("open", () => r()));
+    ws.send(JSON.stringify({ event: "start", streamSid: "MZd", start: { streamSid: "MZd", callSid: "CA_cfg2", customParameters: { token: relayToken(AUTH, "CA_cfg2"), from: "+16045550197", opening: "welcome" } } }));
+    await waitFor(() => urls.length === 2 && events.filter((e) => e.type === "response.create").length === 2);
+    expect(urls.every((u) => u.includes("model=gpt-realtime-mini"))).toBe(true);
+    const last = events.filter((e) => e.type === "session.update").at(-1);
+    expect(last.session.input_audio_transcription).toEqual({ model: "azure-speech" });
+    expect(last.session.input_audio_noise_reduction).toBeTruthy();
+    ws.close();
+  });
 });

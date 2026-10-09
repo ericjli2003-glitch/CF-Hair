@@ -471,8 +471,17 @@ export class RealtimeCall {
         // The model is not offered here (an Azure region without it), or it refuses this call's settings:
         // try the next model in this same call.
         const unavailable = isModelUnavailable(e.error);
+        // Refused settings: first try the same model with fewer optional settings.
+        if (!this.heardAudio && !unavailable && isSetupRejected(e.error) && this.opts.provider.simpler) {
+          this.tag(`settings sent: ${JSON.stringify(this.sentSettings)}`, "warn");
+          const dropped = this.opts.provider.simpler();
+          if (dropped) {
+            this.tag(`${this.opts.provider.label} refused the settings for ${this.opts.provider.model}; trying again without ${dropped} (later calls keep that)`, "warn");
+            this.reconnect();
+            return;
+          }
+        }
         if (!this.heardAudio && (unavailable || isSetupRejected(e.error)) && this.opts.provider.fallback) {
-          if (!unavailable) this.tag(`settings sent: ${JSON.stringify(this.sentSettings)}`, "warn");
           const next = this.opts.provider.fallback();
           if (next) {
             const why = unavailable ? "does not offer that model here" : "could not set up the call with that model";

@@ -37,6 +37,12 @@ export interface RealtimeProvider {
    */
   fallback?(): string | null;
   /**
+   * The service refused this call's settings with the current model: drop the next optional setting
+   * and return what was dropped (for the log), or null when nothing is left to drop. Remembered for
+   * later calls, like fallback().
+   */
+  simpler?(): string | null;
+  /**
    * Languages spoken by an outside voice (MiniMax) instead of the service: the model writes text and
    * the bridge streams it through `speech`.
    */
@@ -110,6 +116,15 @@ export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null
   // The chosen model first, then the fallbacks, used in turn when Azure says one is not offered.
   const models = [...new Set([cfg.azureVoiceLiveModel, ...cfg.azureVoiceLiveFallbacks])];
   let current = 0;
+  // Optional settings dropped, in this order, when Azure refuses the setup with a model (seen with
+  // gpt-realtime-mini, 2026-10-09; the playground connects with it, so one of these is the cause).
+  const DROPS = [
+    "the speech recognition language list",
+    "speech recognition (the model hears the caller itself)",
+    "noise suppression and echo cancellation",
+    "custom turn detection",
+  ];
+  let dropped = 0;
   const voiceFor = (lang: LanguageCode) => (outside(lang) && speech ? `${speech.label} ${speech.voiceFor(lang)}` : cfg.azureVoices[lang]);
   const voice = (lang: LanguageCode) => ({ type: "azure-standard", name: cfg.azureVoices[lang], ...(cfg.azureVoiceRate !== "1" ? { rate: cfg.azureVoiceRate } : {}) });
   return {
@@ -121,7 +136,12 @@ export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null
     fallback() {
       if (current + 1 >= models.length) return null;
       current++;
+      dropped = 0; // the next model gets the full settings again
       return models[current];
+    },
+    simpler() {
+      if (dropped >= DROPS.length) return null;
+      return DROPS[dropped++];
     },
     voiceFor,
     async connect() {
@@ -142,17 +162,14 @@ export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null
           voice: voice(language),
           input_audio_format: "g711_ulaw",
           output_audio_format: "g711_ulaw",
-          turn_detection: {
-            type: cfg.azureTurnDetection,
-            silence_duration_ms: cfg.azureSilenceMs,
-            create_response: true,
-            interrupt_response: true,
-          },
-          input_audio_noise_reduction: { type: "azure_deep_noise_suppression" },
+          ...(dropped < 4
+            ? { turn_detection: { type: cfg.azureTurnDetection, silence_duration_ms: cfg.azureSilenceMs, create_response: true, interrupt_response: true } }
+            : {}),
+          ...(dropped < 3 ? { input_audio_noise_reduction: { type: "azure_deep_noise_suppression" } } : {}),
           // Azure refuses its echo cancellation while it writes text only (ec_not_supported), so a call
           // that may switch to a MiniMax voice goes without; phones cancel their own echo anyway.
-          ...(external.size === 0 ? { input_audio_echo_cancellation: { type: "server_echo_cancellation" } } : {}),
-          input_audio_transcription: { model: "azure-speech", language: AZURE_LOCALES },
+          ...(external.size === 0 && dropped < 3 ? { input_audio_echo_cancellation: { type: "server_echo_cancellation" } } : {}),
+          ...(dropped < 2 ? { input_audio_transcription: dropped < 1 ? { model: "azure-speech", language: AZURE_LOCALES } : { model: "azure-speech" } } : {}),
           tools,
           tool_choice: "auto",
         },
