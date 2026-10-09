@@ -378,7 +378,7 @@ describe("Azure Voice Live line", () => {
     expect(s.input_audio_format).toBe("g711_ulaw");
     expect(s.output_audio_format).toBe("g711_ulaw");
     // A returning Cantonese caller starts with the Cantonese voice.
-    expect(s.voice).toEqual({ type: "azure-standard", name: "zh-HK-HiuMaanNeural" });
+    expect(s.voice).toEqual({ type: "azure-standard", name: "zh-HK-WanLungNeural" });
     expect(s.turn_detection.type).toBe("azure_semantic_vad_multilingual");
     expect(s.input_audio_noise_reduction).toEqual({ type: "azure_deep_noise_suppression" });
     expect(s.input_audio_transcription.model).toBe("azure-speech");
@@ -397,11 +397,11 @@ describe("Azure Voice Live line", () => {
     expect(az.of("session.update")[0].session.voice.name).toBe("en-HK-YanNeural");
     // From the caller's words (Cantonese)...
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮，有冇位呀？" });
-    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-HiuMaanNeural"));
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-WanLungNeural"));
     // ...and from set_language (Mandarin), once the caller asks for it.
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u2", transcript: "Can you speak Mandarin?" });
     az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-CN" }) });
-    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-XiaoxiaoNeural"));
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-YunxiNeural"));
     call.ws.close();
   });
 
@@ -410,12 +410,12 @@ describe("Azure Voice Live line", () => {
     const call = await azureCall(port, "CA_az3");
     await waitFor(() => az.of("response.create").length === 1);
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮，有冇位呀？" });
-    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-HiuMaanNeural"));
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-HK-WanLungNeural"));
     // Cantonese as speech recognition writes it, then the model asks for Mandarin.
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u2", transcript: "我想剪头发的" });
     az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-CN" }) });
     await waitFor(() => az.of("conversation.item.create").some((e) => /Language not changed/.test(e.item?.output ?? "")));
-    expect(az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-XiaoxiaoNeural")).toBe(false);
+    expect(az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-YunxiNeural")).toBe(false);
     call.ws.close();
   });
 });

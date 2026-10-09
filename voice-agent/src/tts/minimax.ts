@@ -33,6 +33,9 @@ const VOICE_NAMES: Record<LanguageCode, RegExp> = {
   "ko-KR": /^Korean_/,
 };
 const FEMALE = /lady|woman|girl|female|\(F\)|（F）/i;
+const MALE = /(^|[^e])male|man\b|gentleman|boy|guy|\(M\)|（M）/i;
+/** The salon wants a man's voice: a male voice when the name says so, else any voice not named female. */
+const isMale = (id: string) => !FEMALE.test(id) && MALE.test(id);
 
 interface VoiceList {
   system_voice?: { voice_id: string }[] | null;
@@ -58,7 +61,7 @@ export class MiniMaxSpeech {
 
   /**
    * Checks the voices for `langs` against the account's voice list (POST /v1/get_voice) and, for one
-   * that is not there, uses a system voice for that language instead (a female one when there is
+   * that is not there, uses a system voice for that language instead (a male one when there is
    * one), so a wrong voice id does not cost the call its MiniMax voice. Keeps the configured voices
    * if the list cannot be read.
    */
@@ -77,7 +80,7 @@ export class MiniMaxSpeech {
     for (const lang of langs) {
       if (all.has(this.voices[lang])) continue;
       const fits = system.filter((id) => VOICE_NAMES[lang].test(id));
-      const pick = fits.find((id) => FEMALE.test(id)) ?? fits[0];
+      const pick = fits.find(isMale) ?? fits.find((id) => !FEMALE.test(id)) ?? fits[0];
       if (!pick) {
         console.warn(`MiniMax: voice ${this.voices[lang]} for ${lang} is not in this account, and no ${lang} system voice was found`);
         continue;

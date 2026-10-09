@@ -506,7 +506,7 @@ turn detection (`AZURE_TURN_DETECTION`, default `azure_semantic_vad_multilingual
 
 Voices (change any in Render): `AZURE_VOICE_EN_US` `en-HK-YanNeural` (English with a Hong Kong
 accent; `en-US-AvaMultilingualNeural` for North American), `AZURE_VOICE_ZH_HK`
-`zh-HK-HiuMaanNeural` (Cantonese), `AZURE_VOICE_ZH_CN` `zh-CN-XiaoxiaoNeural` (Mandarin),
+`zh-HK-WanLungNeural` (Cantonese), `AZURE_VOICE_ZH_CN` `zh-CN-YunxiNeural` (Mandarin),
 `AZURE_VOICE_KO_KR` `ko-KR-SunHiNeural` (Korean); `AZURE_VOICE_RATE` for speed. A returning
 caller starts in their saved language's voice. When the caller switches language, the voice follows:
 the model calls set_language, and as a backup the server switches as soon as the transcript shows
@@ -539,10 +539,10 @@ switches to the Azure voice and says the reply again. With MiniMax set up, `/rou
 callers saved as Mandarin to the Azure line too.
 
 Set `MINIMAX_API_KEY` in Render (MiniMax platform > API keys). Voices: `MINIMAX_VOICE_ZH_CN`
-(default `female-tianmei`), `MINIMAX_VOICE_ZH_HK` (default `Cantonese_GentleLady`),
+(default `Chinese (Mandarin)_Reliable_Executive`, a man), `MINIMAX_VOICE_ZH_HK` (default `Cantonese_PlayfulMan`, a man),
 `MINIMAX_VOICE_EN_US`; copy voice IDs from MiniMax's voice library. At startup the service checks
 them against the account's voice list and, for one that is not there, uses a system voice of that
-language instead (the log says which). `MINIMAX_MODEL` (default `speech-2.8-turbo`), `MINIMAX_SPEED`,
+language instead, a man's voice when there is one (the log says which). `MINIMAX_MODEL` (default `speech-2.8-turbo`), `MINIMAX_SPEED`,
 `MINIMAX_BASE_URL` (default `https://api-uw.minimax.io`; `https://api.minimax.io` for the global
 endpoint), `MINIMAX_GROUP_ID` (only for older accounts). Set `MINIMAX_LANGUAGES=zh-CN` to go back to
 Azure's own Cantonese voice.
@@ -551,7 +551,7 @@ Azure's own Cantonese voice.
 
 `POST /route/twiml` combines the two lines that sounded best in testing. It looks up the caller's
 saved language first: callers saved as Cantonese go to the Azure line (Cantonese voice
-`zh-HK-HiuMaanNeural`), everyone else to the ElevenLabs agent (best English and Mandarin voices).
+`zh-HK-WanLungNeural`), everyone else to the ElevenLabs agent (best English and Mandarin voices).
 A new caller who speaks Cantonese on the ElevenLabs line is saved as Cantonese (the agent calls
 set_language with zh-HK), so their next call goes to Azure. If one of the two lines is not set up,
 the other takes every call. Point the number's "A call comes in" to `https://<host>/route/twiml`.

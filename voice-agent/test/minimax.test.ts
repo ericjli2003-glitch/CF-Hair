@@ -24,7 +24,7 @@ async function fakeMiniMax(opts: { fail?: boolean; delayMs?: (text: string) => n
     req.on("end", () => {
       if (req.url?.startsWith("/v1/get_voice")) {
         res.writeHead(200, { "content-type": "application/json" });
-        res.end(JSON.stringify({ system_voice: [{ voice_id: "female-tianmei" }, { voice_id: "Cantonese_PlayfulMan" }, { voice_id: "Cantonese_KindWoman" }], voice_cloning: [], base_resp: { status_code: 0 } }));
+        res.end(JSON.stringify({ system_voice: [{ voice_id: "female-tianmei" }, { voice_id: "Cantonese_KindWoman" }, { voice_id: "Cantonese_PlayfulMan" }], voice_cloning: [], base_resp: { status_code: 0 } }));
         return;
       }
       bodies.push(JSON.parse(raw));
@@ -160,15 +160,15 @@ describe("MiniMax voice", () => {
     await new Promise((r) => setTimeout(r, 100));
     expect(updates()).toBe(before);
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u2", transcript: "可以讲普通话吗" });
-    await waitFor(() => az.events.some((e) => e.type === "session.update" && e.session.voice?.name === "zh-CN-XiaoxiaoNeural"));
+    await waitFor(() => az.events.some((e) => e.type === "session.update" && e.session.voice?.name === "zh-CN-YunxiNeural"));
   });
 
-  it("swaps a voice the account does not have for one of that language", async () => {
+  it("swaps a voice the account does not have for a man's voice of that language", async () => {
     const mm = await fakeMiniMax();
     const speech = new MiniMaxSpeech({ apiKey: "mm-key", baseUrl: mm.base, groupId: "", model: "m", voices: { "en-US": "e", "zh-CN": "female-tianmei", "zh-HK": "Cantonese_Missing", "ko-KR": "k" }, speed: 1 });
     await speech.checkVoices(["zh-CN", "zh-HK"]);
     expect(speech.voiceFor("zh-CN")).toBe("female-tianmei");
-    expect(speech.voiceFor("zh-HK")).toBe("Cantonese_KindWoman");
+    expect(speech.voiceFor("zh-HK")).toBe("Cantonese_PlayfulMan");
   });
 
   it("plays replies one after another, never mixed, even when a later one loads first", async () => {

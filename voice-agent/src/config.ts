@@ -246,8 +246,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     azureVoices: {
       // English with a Hong Kong accent by default, matching the salon's clients; en-US voices work too.
       "en-US": env("AZURE_VOICE_EN_US", "en-HK-YanNeural"),
-      "zh-CN": env("AZURE_VOICE_ZH_CN", "zh-CN-XiaoxiaoNeural"),
-      "zh-HK": env("AZURE_VOICE_ZH_HK", "zh-HK-HiuMaanNeural"),
+      "zh-CN": env("AZURE_VOICE_ZH_CN", "zh-CN-YunxiNeural"),
+      "zh-HK": env("AZURE_VOICE_ZH_HK", "zh-HK-WanLungNeural"),
       "ko-KR": env("AZURE_VOICE_KO_KR", "ko-KR-SunHiNeural"),
     },
     azureVoiceRate: env("AZURE_VOICE_RATE", "1"),
@@ -259,8 +259,8 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
     minimaxModel: env("MINIMAX_MODEL", "speech-2.8-turbo"),
     minimaxVoices: {
       "en-US": env("MINIMAX_VOICE_EN_US", "English_radiant_girl"),
-      "zh-CN": env("MINIMAX_VOICE_ZH_CN", "female-tianmei"),
-      "zh-HK": env("MINIMAX_VOICE_ZH_HK", "Cantonese_GentleLady"),
+      "zh-CN": env("MINIMAX_VOICE_ZH_CN", "Chinese (Mandarin)_Reliable_Executive"),
+      "zh-HK": env("MINIMAX_VOICE_ZH_HK", "Cantonese_PlayfulMan"),
       "ko-KR": env("MINIMAX_VOICE_KO_KR", "female-tianmei"),
     },
     minimaxSpeed: Math.min(2, Math.max(0.5, Number.parseFloat(env("MINIMAX_SPEED", "1")) || 1)),
