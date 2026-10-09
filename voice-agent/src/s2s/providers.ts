@@ -43,6 +43,12 @@ export interface RealtimeProvider {
    */
   simpler?(): string | null;
   /**
+   * The current model hears the caller's audio itself (gpt-realtime and the like), so it can tell
+   * Mandarin from Cantonese; a text model (gpt-4.1-mini) only reads the transcript, which writes both
+   * alike. Absent means it hears.
+   */
+  hearsCaller?(): boolean;
+  /**
    * Languages spoken by an outside voice (MiniMax) instead of the service: the model writes text and
    * the bridge streams it through `speech`.
    */
@@ -143,6 +149,7 @@ export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null
       if (dropped >= DROPS.length) return null;
       return DROPS[dropped++];
     },
+    hearsCaller: () => /realtime/i.test(models[current]),
     voiceFor,
     async connect() {
       const url = new URL(cfg.azureVoiceLiveEndpoint);
@@ -182,8 +189,16 @@ export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null
     forceInternal() {
       external = new Set();
     },
-    note: `- Each language has its own voice on this line, and the voice changes when the language does. When the caller speaks a different language from the current one, call set_language first, then reply in that language.
+    get note() {
+      const voices = `- Each language has its own voice on this line, and the voice changes when the language does. When the caller speaks a different language from the current one, call set_language first, then reply in that language.`;
+      const cantonese = `- In Cantonese, write spoken Hong Kong Cantonese in traditional characters (係、唔、嘅、咗、啲、咩、而家、幾點), never standard written Chinese, because your words are read aloud exactly as written.`;
+      return /realtime/i.test(models[current])
+        ? `${voices}
+- You hear the caller's voice: tell Mandarin from Cantonese by how they sound, not by any transcript, and call set_language as soon as the caller's language differs from the call's (for example a Mandarin speaker on a call that is in Cantonese).
+${cantonese}`
+        : `${voices}
 - You read the caller through speech recognition, which writes Cantonese the same way as Mandarin (standard written Chinese). So never switch between Cantonese and Mandarin because of how the words look; only when the caller asks for the other one.
-- In Cantonese, write spoken Hong Kong Cantonese in traditional characters (係、唔、嘅、咗、啲、咩、而家、幾點), never standard written Chinese, because your words are read aloud exactly as written.`,
+${cantonese}`;
+    },
   };
 }

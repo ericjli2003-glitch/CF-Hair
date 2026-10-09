@@ -345,12 +345,13 @@ describe("Azure Voice Live line", () => {
     return { ws, got };
   }
 
-  async function startAzure() {
+  async function startAzure(extra: Record<string, unknown> = {}) {
     const az = await fakeRealtime();
     const { port, deps } = await startServer("ws://unused", {
       openAiApiKey: "",
       azureVoiceLiveEndpoint: az.url.replace("ws://", "http://"),
       azureVoiceLiveKey: "az-key",
+      ...extra,
     });
     return { az, port, deps };
   }
@@ -391,7 +392,7 @@ describe("Azure Voice Live line", () => {
   });
 
   it("switches to the matching Azure voice when the caller changes language", async () => {
-    const { az, port } = await startAzure();
+    const { az, port } = await startAzure({ azureVoiceLiveModel: "gpt-4.1-mini" }); // reads the transcript only
     const call = await azureCall(port, "CA_az2");
     await waitFor(() => az.of("response.create").length === 1);
     expect(az.of("session.update")[0].session.voice.name).toBe("en-HK-YanNeural");
@@ -434,6 +435,7 @@ describe("Azure Voice Live line", () => {
       openAiApiKey: "",
       azureVoiceLiveEndpoint: az.url.replace("ws://", "http://"),
       azureVoiceLiveKey: "az-key",
+      azureVoiceLiveModel: "gpt-4.1-mini", // a text model: Scribe listens for it
       elevenLabsApiKey: "el-key",
       scribeRealtimeUrl: `ws://127.0.0.1:${(scribe.address() as AddressInfo).port}`,
     });
@@ -456,6 +458,28 @@ describe("Azure Voice Live line", () => {
     call.ws.close();
   });
 
+  it("trusts set_language between Cantonese and Mandarin from a model that hears the caller", async () => {
+    const { az, port } = await startAzure({ azureVoiceLiveModel: "gpt-realtime-mini" });
+    const call = await azureCall(port, "CA_az8", "zh-HK");
+    await waitFor(() => az.of("response.create").length === 1);
+    // The transcript looks like anything; the model heard Mandarin.
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想剪头发的" });
+    az.send({ type: "response.function_call_arguments.done", response_id: "r2", call_id: "c1", name: "set_language", arguments: JSON.stringify({ language: "zh-CN" }) });
+    await waitFor(() => az.of("session.update").some((e) => e.session.voice?.name === "zh-CN-YunxiNeural"));
+    call.ws.close();
+  });
+
+  it("does not guess Cantonese or Mandarin from the transcript when the model hears the caller", async () => {
+    const { az, port } = await startAzure({ azureVoiceLiveModel: "gpt-realtime-mini" });
+    const call = await azureCall(port, "CA_az9", "en-US");
+    await waitFor(() => az.of("response.create").length === 1);
+    const before = az.of("session.update").length;
+    az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮" });
+    await new Promise((r) => setTimeout(r, 150));
+    expect(az.of("session.update").length).toBe(before); // the model picks the language with set_language
+    call.ws.close();
+  });
+
   it("waits for the caller's transcript before judging set_language", async () => {
     const { az, port } = await startAzure();
     const call = await azureCall(port, "CA_az5", "zh-CN");
@@ -471,7 +495,7 @@ describe("Azure Voice Live line", () => {
   });
 
   it("refuses set_language from Cantonese to Mandarin when the caller did not ask", async () => {
-    const { az, port } = await startAzure();
+    const { az, port } = await startAzure({ azureVoiceLiveModel: "gpt-4.1-mini" }); // reads the transcript only
     const call = await azureCall(port, "CA_az3");
     await waitFor(() => az.of("response.create").length === 1);
     az.send({ type: "conversation.item.input_audio_transcription.completed", item_id: "u1", transcript: "我想聽日剪頭髮，有冇位呀？" });

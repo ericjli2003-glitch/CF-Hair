@@ -318,6 +318,8 @@ export class RealtimeCall {
    */
   private listenForLanguage() {
     if (this.closed || !this.cfg.elevenLabsApiKey || !this.opts.provider.languageVoice(this.language)) return;
+    // A model that hears the caller knows the language better than Scribe on phone audio.
+    if (this.opts.provider.hearsCaller?.() ?? true) return;
     if (this.langIdHeard >= this.cfg.s2sLanguageIdSentences) return;
     this.langId = new ScribeLanguageId(
       { url: this.cfg.scribeRealtimeUrl, apiKey: this.cfg.elevenLabsApiKey, vadSilenceSecs: 0.4 },
@@ -710,10 +712,13 @@ export class RealtimeCall {
       callerPhone: isAnonymousCaller(this.from) ? null : toE164(this.from),
       currentLanguage: () => this.language,
       switchLanguage: async (code) => {
+        // A model that hears the caller tells Mandarin from Cantonese by ear: trust it. One that only
+        // reads the transcript (where both look alike) needs the caller to have asked.
+        const hears = this.opts.provider.hearsCaller?.() ?? true;
         // The model can act on the caller's words before their transcript arrives here: wait for it,
         // so "講廣東話" is seen before deciding.
-        await this.transcriptSettled(1500);
-        if (!chineseSwitchOk(this.language, code, this.recentCallerText.join(" "))) {
+        if (!hears) await this.transcriptSettled(1500);
+        if (!hears && !chineseSwitchOk(this.language, code, this.recentCallerText.join(" "))) {
           this.tag(`kept ${this.language}: set_language ${code} without the caller asking for it`);
           return { saved: "skipped" as const, refused: `the caller did not ask for ${code}; speech recognition writes Cantonese and Mandarin alike` };
         }
@@ -758,7 +763,11 @@ export class RealtimeCall {
     // A whole English sentence (three words or more, no Chinese or Korean) on a call in another
     // language: the caller is speaking English.
     const english = a.latinWords >= 3 && a.han + a.hangul + a.kana === 0 ? "en-US" : null;
-    const lang: LanguageCode | null = asked ?? (a.hangul > 0 ? "ko-KR" : a.han > 0 ? chineseVariant(a, null) : english);
+    // Which Chinese it is: a model that hears the caller decides (it calls set_language); the text
+    // only guesses, and Mandarin and Cantonese are written alike.
+    const hears = this.opts.provider.hearsCaller?.() ?? true;
+    const chinese = a.han > 0 && !hears ? chineseVariant(a, null) : null;
+    const lang: LanguageCode | null = asked ?? (a.hangul > 0 ? "ko-KR" : a.han > 0 ? chinese : english);
     if (!lang || lang === this.language) return;
     // Cantonese written down by speech recognition looks like Mandarin: never switch on that alone.
     if (!chineseSwitchOk(this.language, lang, text)) return;
