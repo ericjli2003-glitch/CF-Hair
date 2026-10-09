@@ -47,9 +47,7 @@ server.listen(cfg.port, () => {
   console.log(
     `  Azure Voice Live test line: ${cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? `on, POST /azure/twiml (${cfg.azureVoiceLiveModel}, voices ${Object.values(cfg.azureVoices).join(", ")})` : "off (set AZURE_VOICELIVE_ENDPOINT and AZURE_VOICELIVE_API_KEY)"}`,
   );
-  console.log(
-    `  MiniMax voices: ${cfg.minimaxApiKey ? `on for ${cfg.minimaxLanguages.join(", ") || "no languages"} on the Azure line (${cfg.minimaxModel})` : "off (set MINIMAX_API_KEY)"}`,
-  );
+  console.log(`  MiniMax: ${cfg.minimaxApiKey ? `key set (${cfg.minimaxModel})` : "off (set MINIMAX_API_KEY)"}; Chinese voice choice: ${cfg.chineseVoice || "automatic"}`);
   console.log(
     `  ElevenLabs agent test line: ${cfg.elevenAgentApiKey && cfg.publicBaseUrl ? `on, POST /eleven/twiml (${cfg.elevenAgentLlm})` : "off (needs ELEVENLABS_API_KEY and the public URL)"}`,
   );

@@ -15,6 +15,8 @@ import { s2sAfterTwiml, s2sTwiml } from "./s2s/twiml.js";
 import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
 import { azureProvider, openAiProvider, type RealtimeProvider } from "./s2s/providers.js";
 import { MiniMaxSpeech } from "./tts/minimax.js";
+import { ElevenSpeech } from "./tts/elevenlabs.js";
+import type { OutsideVoice } from "./tts/outside.js";
 import { ElevenLine, toolKeyFor } from "./eleven/agent.js";
 
 export const RELAY_PATH = "/relay";
@@ -92,8 +94,31 @@ export function createServer(deps: SessionDeps) {
         speed: cfg.minimaxSpeed,
       })
     : null;
-  minimax?.checkVoices(cfg.minimaxLanguages).catch((e) => console.warn(`MiniMax voice check skipped: ${(e as Error).message}`));
-  const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg, minimax) : null;
+  // Mandarin and Cantonese on the Azure line: the ElevenLabs English voice by default, so callers
+  // hear the same voice in every language; MiniMax or Azure's own voices if chosen (CHINESE_VOICE).
+  // The same voice and model the ElevenLabs agent speaks each language with: that language's own
+  // ElevenLabs voice (CR_<LANG>_VOICE) if it has one, else the English voice.
+  const agentVoice = (l: LanguageCode) => [deps.languages[l].voice, deps.languages["en-US"].voice].map((v) => v.split("-")[0]).find(looksLikeElevenLabsVoice);
+  const elevenVoices = Object.fromEntries(cfg.minimaxLanguages.map((l) => [l, cfg.elevenChineseVoice || agentVoice(l)]).filter(([, v]) => v));
+  const elevenVoice =
+    cfg.elevenTtsApiKey && Object.keys(elevenVoices).length === cfg.minimaxLanguages.length
+      ? new ElevenSpeech({
+          apiKey: cfg.elevenTtsApiKey,
+          apiBase: cfg.elevenLabsApiBase,
+          voices: elevenVoices,
+          models: { "zh-CN": cfg.elevenChineseModel, "zh-HK": "eleven_v4_turbo", "ko-KR": cfg.elevenChineseModel, "en-US": cfg.elevenAgentEnglishModel },
+          latency: cfg.elevenAgentLatency,
+        })
+      : null;
+  const choice = cfg.chineseVoice || (elevenVoice ? "elevenlabs" : minimax ? "minimax" : "azure");
+  const outside: OutsideVoice | null = choice === "elevenlabs" ? elevenVoice : choice === "minimax" ? minimax : null;
+  if (choice === "elevenlabs" && !elevenVoice) console.warn("CHINESE_VOICE=elevenlabs needs ELEVENLABS_API_KEY and an ElevenLabs voice id (CR_EN_US_VOICE or ELEVENLABS_CHINESE_VOICE); using Azure's voices");
+  if (choice === "minimax" && !minimax) console.warn("CHINESE_VOICE=minimax needs MINIMAX_API_KEY; using Azure's voices");
+  if (outside === minimax) minimax?.checkVoices(cfg.minimaxLanguages).catch((e) => console.warn(`MiniMax voice check skipped: ${(e as Error).message}`));
+  if (cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey) {
+    console.log(`  Azure line voices for ${cfg.minimaxLanguages.join(", ")}: ${outside ? `${outside.label} (${cfg.minimaxLanguages.map((l) => outside.voiceFor(l)).join(", ")})` : "Azure's own"}`);
+  }
+  const azureLine = cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey ? azureProvider(cfg, outside) : null;
   /** Speech-to-speech calls that failed, so /s2s/after can apologize instead of hanging up silently. */
   const s2sFailed = new Map<string, number>();
   // Languages spoken with ElevenLabs directly use that language's ElevenLabs voice id (CR_<LANG>_VOICE).

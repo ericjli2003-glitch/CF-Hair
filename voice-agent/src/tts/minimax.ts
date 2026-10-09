@@ -1,4 +1,5 @@
 import type { LanguageCode } from "../languages.js";
+import type { OutsideVoice } from "./outside.js";
 
 /**
  * MiniMax text to speech, streamed for phone calls. MiniMax (a Chinese AI lab) has some of the most
@@ -43,7 +44,8 @@ interface VoiceList {
   voice_generation?: { voice_id: string }[] | null;
 }
 
-export class MiniMaxSpeech {
+export class MiniMaxSpeech implements OutsideVoice {
+  readonly label = "MiniMax";
   private readonly voices: Record<LanguageCode, string>;
 
   constructor(readonly opts: MiniMaxOptions) {

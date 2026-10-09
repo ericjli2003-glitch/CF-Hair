@@ -529,6 +529,13 @@ Set up:
 
 ## MiniMax voices for Mandarin and Cantonese
 
+**Default since Oct 9: the ElevenLabs voice.** When `ELEVENLABS_API_KEY` is set and the agent has an
+ElevenLabs voice, Mandarin and Cantonese on the Azure line are spoken by the same ElevenLabs voice the
+ElevenLabs agent uses (Flash v2.5 for Mandarin, `ELEVENLABS_MANDARIN_MODEL`; Eleven v4 Turbo for
+Cantonese), so first-time and returning callers hear one voice (`src/tts/elevenlabs.ts`).
+`ELEVENLABS_CHINESE_VOICE` sets a different voice id. `CHINESE_VOICE=minimax` uses MiniMax as below;
+`CHINESE_VOICE=azure` uses Azure's own voices.
+
 MiniMax, a Chinese AI lab, has some of the most natural Mandarin and Cantonese voices. On the
 Azure line, languages listed in `MINIMAX_LANGUAGES` (default `zh-CN,zh-HK`, Mandarin and
 Cantonese, with Cantonese boosted as Yue) are spoken by

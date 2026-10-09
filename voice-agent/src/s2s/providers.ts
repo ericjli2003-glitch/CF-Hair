@@ -1,7 +1,7 @@
 import type { AppConfig } from "../config.js";
 import type { LanguageCode } from "../languages.js";
 import type { OpenAiAuth } from "./openai-auth.js";
-import type { MiniMaxSpeech } from "../tts/minimax.js";
+import type { OutsideVoice } from "../tts/outside.js";
 
 /**
  * The speech-to-speech services the bridge in realtime.ts can talk to. Both speak the Realtime
@@ -40,7 +40,7 @@ export interface RealtimeProvider {
    * Languages spoken by an outside voice (MiniMax) instead of the service: the model writes text and
    * the bridge streams it through `speech`.
    */
-  speech?: MiniMaxSpeech | null;
+  speech?: OutsideVoice | null;
   speaksExternally?(lang: LanguageCode): boolean;
   /** After an outside-voice failure: the service's own voices from now on. */
   forceInternal?(): void;
@@ -104,13 +104,13 @@ export function openAiProvider(cfg: AppConfig, auth: OpenAiAuth): RealtimeProvid
 /** Transcription locales for Azure Speech: auto-detected among the salon's four languages. */
 const AZURE_LOCALES = "en-US,zh-HK,zh-CN,ko-KR";
 
-export function azureProvider(cfg: AppConfig, speech: MiniMaxSpeech | null = null): RealtimeProvider {
+export function azureProvider(cfg: AppConfig, speech: OutsideVoice | null = null): RealtimeProvider {
   let external = new Set<LanguageCode>(speech ? cfg.minimaxLanguages : []);
   const outside = (lang: LanguageCode) => external.has(lang);
   // The chosen model first, then the fallbacks, used in turn when Azure says one is not offered.
   const models = [...new Set([cfg.azureVoiceLiveModel, ...cfg.azureVoiceLiveFallbacks])];
   let current = 0;
-  const voiceFor = (lang: LanguageCode) => (outside(lang) && speech ? `MiniMax ${speech.voiceFor(lang)}` : cfg.azureVoices[lang]);
+  const voiceFor = (lang: LanguageCode) => (outside(lang) && speech ? `${speech.label} ${speech.voiceFor(lang)}` : cfg.azureVoices[lang]);
   const voice = (lang: LanguageCode) => ({ type: "azure-standard", name: cfg.azureVoices[lang], ...(cfg.azureVoiceRate !== "1" ? { rate: cfg.azureVoiceRate } : {}) });
   return {
     tag: "azure",

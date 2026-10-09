@@ -156,6 +156,17 @@ export interface AppConfig {
   minimaxVoices: { "en-US": string; "zh-CN": string; "zh-HK": string; "ko-KR": string };
   minimaxSpeed: number;
   minimaxLanguages: ("en-US" | "zh-CN" | "zh-HK" | "ko-KR")[];
+  /**
+   * Who speaks those languages (MINIMAX_LANGUAGES) on the Azure line: "elevenlabs" (the ElevenLabs
+   * English voice, so every caller hears the same voice), "minimax", or "azure" (Azure's own voices).
+   * Empty: ElevenLabs when ELEVENLABS_API_KEY and an ElevenLabs English voice are set, else MiniMax
+   * when MINIMAX_API_KEY is set.
+   */
+  chineseVoice: string;
+  elevenTtsApiKey: string;
+  /** ElevenLabs voice id for Mandarin and Cantonese; empty means the ElevenLabs agent's own voices. */
+  elevenChineseVoice: string;
+  elevenChineseModel: string;
   /** ElevenLabs phone agent test line (src/eleven). On when ELEVENLABS_API_KEY is set, unless ELEVENLABS_AGENT=off. */
   elevenAgentApiKey: string;
   elevenAgentLlm: string;
@@ -269,6 +280,10 @@ export function loadConfig(overrides: Partial<AppConfig> = {}): AppConfig {
       .split(",")
       .map((x) => x.trim())
       .filter((x): x is "en-US" | "zh-CN" | "zh-HK" | "ko-KR" => ["en-US", "zh-CN", "zh-HK", "ko-KR"].includes(x)),
+    chineseVoice: env("CHINESE_VOICE").trim().toLowerCase(),
+    elevenTtsApiKey: env("ELEVENLABS_API_KEY").trim(),
+    elevenChineseVoice: env("ELEVENLABS_CHINESE_VOICE").trim(),
+    elevenChineseModel: env("ELEVENLABS_MANDARIN_MODEL", "eleven_flash_v2_5"),
     elevenAgentApiKey: env("ELEVENLABS_AGENT", "on") === "off" ? "" : env("ELEVENLABS_API_KEY").trim(),
     elevenAgentLlm: env("ELEVENLABS_AGENT_LLM", "claude-haiku-4-5"),
     elevenAgentCantoneseCode: env("ELEVENLABS_AGENT_CANTONESE", ""),

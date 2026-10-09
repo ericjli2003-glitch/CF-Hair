@@ -532,7 +532,7 @@ export class RealtimeCall {
 
   /** MiniMax failed: switch to the service's own voice for the rest of the call and say the reply again. */
   private outsideVoiceFailed(err: Error) {
-    this.tag(`MiniMax voice failed: ${err.message}; using the ${this.opts.provider.label} voice instead`, "error");
+    this.tag(`${this.opts.provider.speech?.label ?? "Outside"} voice failed: ${err.message}; using the ${this.opts.provider.label} voice instead`, "error");
     if (this.outsideVoiceOff) return;
     this.outsideVoiceOff = true;
     this.opts.provider.forceInternal?.();

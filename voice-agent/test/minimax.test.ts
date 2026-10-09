@@ -163,6 +163,39 @@ describe("MiniMax voice", () => {
     await waitFor(() => az.events.some((e) => e.type === "session.update" && e.session.voice?.name === "zh-CN-YunxiNeural"));
   });
 
+  it("speaks Mandarin with the ElevenLabs agent's voice and model when ElevenLabs is set up", async () => {
+    // Stand-in ElevenLabs text to speech: mu-law bytes straight back.
+    const reqs: { url: string; body: any }[] = [];
+    const el = http.createServer((req, res) => {
+      let raw = "";
+      req.on("data", (c) => (raw += c));
+      req.on("end", () => {
+        reqs.push({ url: req.url ?? "", body: JSON.parse(raw) });
+        res.writeHead(200, { "content-type": "audio/basic" });
+        res.end(Buffer.alloc(160, 0x7f));
+      });
+    });
+    await new Promise<void>((r) => el.listen(0, "127.0.0.1", () => r()));
+    closers.push(() => el.close());
+    const az = await fakeAzure();
+    const voice = "AbCdEfGhIjKlMnOpQrSt";
+    const port = await start({
+      azureVoiceLiveEndpoint: az.base,
+      azureVoiceLiveKey: "k",
+      minimaxApiKey: "mm-key",
+      elevenTtsApiKey: "el-key",
+      elevenChineseVoice: voice,
+      elevenLabsApiBase: `http://127.0.0.1:${(el.address() as AddressInfo).port}`,
+    });
+    const got = await call(port, "CA_el1", "zh-CN");
+    await waitFor(() => az.events.some((e) => e.type === "response.create"));
+    az.send({ type: "response.text.delta", response_id: "r1", item_id: "i1", delta: "您好。" });
+    az.send({ type: "response.text.done", response_id: "r1", item_id: "i1", text: "您好。" });
+    await waitFor(() => got.some((m) => m.event === "media"));
+    expect(reqs[0].url).toContain(`/v1/text-to-speech/${voice}/stream?output_format=ulaw_8000`);
+    expect(reqs[0].body).toMatchObject({ text: "您好。", model_id: "eleven_flash_v2_5", language_code: "zh" });
+  });
+
   it("swaps a voice the account does not have for a man's voice of that language", async () => {
     const mm = await fakeMiniMax();
     const speech = new MiniMaxSpeech({ apiKey: "mm-key", baseUrl: mm.base, groupId: "", model: "m", voices: { "en-US": "e", "zh-CN": "female-tianmei", "zh-HK": "Cantonese_Missing", "ko-KR": "k" }, speed: 1 });
