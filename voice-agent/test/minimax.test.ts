@@ -6,6 +6,7 @@ import twilio from "twilio";
 import { createServer } from "../src/server.js";
 import { relayToken } from "../src/relay/twiml.js";
 import { MiniMaxSpeech, pcmToMulaw } from "../src/tts/minimax.js";
+import { VoiceWithBackup, type OutsideVoice } from "../src/tts/outside.js";
 import { testDeps, waitFor } from "./helpers.js";
 
 const AUTH = "test_auth_token";
@@ -226,7 +227,7 @@ describe("MiniMax voice", () => {
     expect(bytes[0]).not.toBe(bytes[160]);
   });
 
-  it("falls back to the Azure voice and repeats the reply if MiniMax fails", async () => {
+  it("falls back to the Azure voice in a new session if MiniMax fails", async () => {
     const mm = await fakeMiniMax({ fail: true });
     const az = await fakeAzure();
     const port = await start({ azureVoiceLiveEndpoint: az.base, azureVoiceLiveKey: "k", minimaxApiKey: "mm-key", minimaxBaseUrl: mm.base });
@@ -234,8 +235,10 @@ describe("MiniMax voice", () => {
     await waitFor(() => az.events.some((e) => e.type === "response.create"));
     az.send({ type: "response.text.delta", response_id: "r1", item_id: "i1", delta: "您好。" });
     az.send({ type: "response.text.done", response_id: "r1", item_id: "i1", text: "您好。" });
+    // A text-only session cannot start speaking, so a new one starts with audio and greets again
+    // (nothing was heard yet).
     await waitFor(() => az.events.some((e) => e.type === "session.update" && e.session.modalities?.includes("audio") && e.session.voice));
-    await waitFor(() => az.events.some((e) => e.type === "response.create" && /again/.test(e.response?.instructions ?? "")));
+    await waitFor(() => az.events.filter((e) => e.type === "response.create" && /greeting/.test(e.response?.instructions ?? "")).length === 2);
   });
 
   it("routes Mandarin callers to the Azure line when MiniMax speaks Mandarin, others to ElevenLabs", async () => {
@@ -268,5 +271,28 @@ describe("MiniMax voice", () => {
     expect(mandarin).toContain("wss://voice.test/azure/media");
     expect(mandarin).toContain('<Parameter name="startLanguage" value="zh-CN"/>');
     expect(await route("+16045550222")).not.toContain("/azure/media");
+  });
+
+  it("uses the backup voice when the first is refused, and keeps using it", async () => {
+    const calls: string[] = [];
+    const voice = (label: string, fail?: string): OutsideVoice => ({
+      label,
+      voiceFor: () => `${label}-voice`,
+      async *mulaw(text) {
+        calls.push(`${label}:${text}`);
+        if (fail) throw new Error(fail);
+        yield Buffer.from([1]);
+      },
+    });
+    const v = new VoiceWithBackup(voice("ElevenLabs", "ElevenLabs 402 paid_plan_required"), voice("MiniMax"));
+    const play = async (t: string) => {
+      const out: Buffer[] = [];
+      for await (const c of v.mulaw(t, "zh-CN", new AbortController().signal)) out.push(c);
+      return out.length;
+    };
+    expect(await play("one")).toBe(1);
+    expect(await play("two")).toBe(1);
+    expect(calls).toEqual(["ElevenLabs:one", "MiniMax:one", "MiniMax:two"]);
+    expect(v.label).toBe("MiniMax");
   });
 });

@@ -133,6 +133,8 @@ export class RealtimeCall {
   private heardAudio = false;
   /** The first response is the greeting; its transcript was logged when it was requested. */
   private greetingResponseId: string | null = null;
+  /** What to say first in a session restarted mid-call (after the outside voice failed). */
+  private resumeNote = "";
   /** The session settings last sent, without instructions and tools. */
   private sentSettings: Record<string, unknown> = {};
   private closed = false;
@@ -370,11 +372,11 @@ export class RealtimeCall {
     this.sendOai(session);
     for (const chunk of this.audioQueue) this.sendAudio(chunk);
     this.audioQueue = [];
-    // The greeting, word for word, in the voice used for the rest of the call.
-    this.sendOai({
-      type: "response.create",
-      response: { instructions: `Say exactly this greeting and nothing else: "${this.greeting}"`, tool_choice: "none" },
-    });
+    // The greeting, word for word, in the voice used for the rest of the call (or, in a session
+    // restarted mid-call, a short sorry instead).
+    const first = this.resumeNote || `Say exactly this greeting and nothing else: "${this.greeting}"`;
+    this.resumeNote = "";
+    this.sendOai({ type: "response.create", response: { instructions: first, tool_choice: "none" } });
     if (!this.greetingLogged) this.log.say("agent", this.greeting, { lang: this.language });
     this.greetingLogged = true;
   }
@@ -530,15 +532,23 @@ export class RealtimeCall {
     return sp;
   }
 
-  /** MiniMax failed: switch to the service's own voice for the rest of the call and say the reply again. */
+  /**
+   * The outside voice failed: use the service's own voice for the rest of the call. A session that
+   * started text-only cannot start speaking (Azure: "Text to speech synthesizer is not configured"),
+   * so the session restarts with audio: before anything was heard it greets again, later it says
+   * sorry and asks the caller to repeat.
+   */
   private outsideVoiceFailed(err: Error) {
     this.tag(`${this.opts.provider.speech?.label ?? "Outside"} voice failed: ${err.message}; using the ${this.opts.provider.label} voice instead`, "error");
     if (this.outsideVoiceOff) return;
     this.outsideVoiceOff = true;
     this.opts.provider.forceInternal?.();
-    const update = this.opts.provider.languageVoice(this.language);
-    if (update) this.sendOai(update);
-    this.sendOai({ type: "response.create", response: { instructions: "Say your last reply to the caller again, exactly as before." } });
+    for (const sp of this.speaking.values()) sp.stop();
+    this.speaking.clear();
+    if (this.heardAudio) {
+      this.resumeNote = "In the caller's language, say a short sorry that the line cut out for a moment, and ask them to say their last request again.";
+    }
+    this.reconnect();
   }
 
   /** The caller started talking: stop what is playing and keep only what they heard. */

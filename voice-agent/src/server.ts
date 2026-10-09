@@ -16,7 +16,7 @@ import { openAiAuthFromConfig } from "./s2s/openai-auth.js";
 import { azureProvider, openAiProvider, type RealtimeProvider } from "./s2s/providers.js";
 import { MiniMaxSpeech } from "./tts/minimax.js";
 import { ElevenSpeech } from "./tts/elevenlabs.js";
-import type { OutsideVoice } from "./tts/outside.js";
+import { VoiceWithBackup, type OutsideVoice } from "./tts/outside.js";
 import { ElevenLine, toolKeyFor } from "./eleven/agent.js";
 
 export const RELAY_PATH = "/relay";
@@ -111,10 +111,12 @@ export function createServer(deps: SessionDeps) {
         })
       : null;
   const choice = cfg.chineseVoice || (elevenVoice ? "elevenlabs" : minimax ? "minimax" : "azure");
-  const outside: OutsideVoice | null = choice === "elevenlabs" ? elevenVoice : choice === "minimax" ? minimax : null;
+  // ElevenLabs with MiniMax as its backup when both are set up.
+  const outside: OutsideVoice | null =
+    choice === "elevenlabs" ? (elevenVoice && minimax ? new VoiceWithBackup(elevenVoice, minimax) : elevenVoice) : choice === "minimax" ? minimax : null;
   if (choice === "elevenlabs" && !elevenVoice) console.warn("CHINESE_VOICE=elevenlabs needs ELEVENLABS_API_KEY and an ElevenLabs voice id (CR_EN_US_VOICE or ELEVENLABS_CHINESE_VOICE); using Azure's voices");
   if (choice === "minimax" && !minimax) console.warn("CHINESE_VOICE=minimax needs MINIMAX_API_KEY; using Azure's voices");
-  if (outside === minimax) minimax?.checkVoices(cfg.minimaxLanguages).catch((e) => console.warn(`MiniMax voice check skipped: ${(e as Error).message}`));
+  if (outside && minimax && choice !== "azure") minimax.checkVoices(cfg.minimaxLanguages).catch((e) => console.warn(`MiniMax voice check skipped: ${(e as Error).message}`));
   if (cfg.azureVoiceLiveEndpoint && cfg.azureVoiceLiveKey) {
     console.log(`  Azure line voices for ${cfg.minimaxLanguages.join(", ")}: ${outside ? `${outside.label} (${cfg.minimaxLanguages.map((l) => outside.voiceFor(l)).join(", ")})` : "Azure's own"}`);
   }
